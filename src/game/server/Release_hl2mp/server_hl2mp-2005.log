@@ -1,9 +1,0 @@
-﻿Build started 7/17/2011 2:52:15 PM.
-     1>Project "C:\Users\James\Desktop\Source Code\contingency-src\src\game\server\server_hl2mp-2005.vcxproj" on node 2 (clean target(s)).
-     1>_PrepareForClean:
-         Deleting file ".\Release_hl2mp\Server.lastbuildstate".
-     1>Done Building Project "C:\Users\James\Desktop\Source Code\contingency-src\src\game\server\server_hl2mp-2005.vcxproj" (clean target(s)).
-
-Build succeeded.
-
-Time Elapsed 00:00:00.34
