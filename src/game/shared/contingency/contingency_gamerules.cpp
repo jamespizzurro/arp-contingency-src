@@ -33,9 +33,8 @@
 	#include "hl2mp_bot_temp.h"
 #endif
 
-#include "grenade_satchel.h"
-#include "grenade_tripmine.h"
-
+	#include "grenade_satchel.h"
+	#include "grenade_tripmine.h"
 #endif
 
 REGISTER_GAMERULES_CLASS( CContingencyRules );
@@ -70,6 +69,7 @@ IMPLEMENT_NETWORKCLASS_ALIASED( ContingencyRulesProxy, DT_ContingencyRulesProxy 
 #endif
 
 // ALL CONTINGENCY CONVARS SHOULD GO HERE regardless of where they are used
+// This is for organizational purposes as ConVars everywhere can get quite confusing
 #ifndef CLIENT_DLL
 	// Health regeneration system
 	ConVar contingency_health_regen( "contingency_health_regen", "1", FCVAR_GAMEDLL | FCVAR_NOTIFY, "Toggles player health regeneration functionality" );
@@ -96,8 +96,6 @@ IMPLEMENT_NETWORKCLASS_ALIASED( ContingencyRulesProxy, DT_ContingencyRulesProxy 
 	ConVar contingency_client_backgroundmusic_volume( "contingency_client_backgroundmusic_volume", "0.5", FCVAR_ARCHIVE, "Defines the normalized loudness of background music (0.0 to 1.0)" );
 
 	// Added loadout system
-	// These are for storing players' loadouts so that they carry over from game to game and server to server
-	// I've found they aren't very reliable with regards to getting and setting via the server, so another system handles that
 	ConVar contingency_client_preferredprimaryweapon( "contingency_client_preferredprimaryweapon", "weapon_smg1", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_SERVER_CAN_EXECUTE, "Defines the classname of the preferred primary weapon to use" );
 	ConVar contingency_client_preferredsecondaryweapon( "contingency_client_preferredsecondaryweapon", "weapon_pistol", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_SERVER_CAN_EXECUTE, "Defines the classname of the preferred secondary weapon to use" );
 	ConVar contingency_client_preferredmeleeweapon( "contingency_client_preferredmeleeweapon", "weapon_crowbar", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_SERVER_CAN_EXECUTE, "Defines the classname of the preferred melee weapon to use" );
@@ -180,54 +178,12 @@ void CContingencyRules::ResetPhaseVariables( void )
 
 	// Added wave system
 	PurgeCurrentWave();
-	SetWaveNumber( 0 );	// wave number is set to 1 after the first interim phase
+	SetWaveNumber( 0 );	// wave number is set to 1 after the first interim phase (i.e. this is intentional)
 	SetWaveType( WAVE_NONE );
 	SetNumEnemiesRemaining( 0 );
 	SetCalculatedNumEnemies( 0 );
 	SetNumEnemiesSpawned( 0 );
 	m_bPlayersDefeated = false;
-}
-#endif
-
-#ifndef CLIENT_DLL
-// Added announcements system
-// This function allows the server to display a certain block of text at the center of a particular player's or all players' HUDs
-void CContingencyRules::DisplayAnnouncement( const char* announcementText, float timeOnScreen, bool shouldFade, CBasePlayer *pTargetPlayer )
-{
-	hudtextparms_s tTextParam;
-	tTextParam.x			= -1;
-	tTextParam.y			= 0.3;
-	tTextParam.effect		= 1;
-	tTextParam.r1			= 255;
-	tTextParam.g1			= 255;
-	tTextParam.b1			= 255;
-	tTextParam.a1			= 255;
-	tTextParam.r2			= 255;
-	tTextParam.g2			= 255;
-	tTextParam.b2			= 255;
-	tTextParam.a2			= 255;
-	tTextParam.fadeinTime	= 1.0;
-	tTextParam.fadeoutTime	= 1.0;
-	tTextParam.holdTime		= timeOnScreen;
-	tTextParam.fxTime		= 1.0;
-	tTextParam.channel		= 1;
-
-	color32 fadeblack = { 0, 0, 0, 200 };
-
-	if ( pTargetPlayer )
-	{
-		UTIL_HudMessage( pTargetPlayer, tTextParam, announcementText );
-
-		if ( shouldFade )
-			UTIL_ScreenFade( pTargetPlayer, fadeblack, 3.0, timeOnScreen, FFADE_IN );
-	}
-	else
-	{
-		UTIL_HudMessageAll( tTextParam, announcementText );
-
-		if ( shouldFade )
-			UTIL_ScreenFadeAll( fadeblack, 3.0, timeOnScreen, FFADE_IN );
-	}
 }
 #endif
 
@@ -312,6 +268,7 @@ void CContingencyRules::ClientSettingsChanged( CBasePlayer *pPlayer )
 
 		// Update successful, so update the value of our ConVar to reflect this
 		// This will in turn call this function again, but this block won't because of the first condition
+		// Yes, this entire ConVar thing is a bit hacky and dumb, but it's the only one of my solutions that has actually worked so far
 		engine->ClientCommand( pContingencyPlayer->edict(), "contingency_client_updateloadout 0" );
 	}
 
@@ -325,13 +282,12 @@ void CContingencyRules::ClientSettingsChanged( CBasePlayer *pPlayer )
 void CContingencyRules::ClientDisconnected( edict_t *pClient )
 {
 #ifndef CLIENT_DLL
-
 	// Added a non-restorative health system
 	CContingency_Player *pPlayer = ToContingencyPlayer( CBaseEntity::Instance(pClient) );
 	if ( pPlayer )
 	{
 		const char *steamID = engine->GetPlayerNetworkIDString( pClient );
-		CContingency_Player_Info *pPlayerInfo = FindPlayerInfoWithSteamID( steamID );
+		CContingency_Player_Info *pPlayerInfo = FindPlayerInfoBySteamID( steamID );
 		if ( pPlayerInfo )
 		{
 			// We've found a player info entry with our player's steamID in it,
@@ -369,7 +325,6 @@ void CContingencyRules::ClientDisconnected( edict_t *pClient )
 	}
 
 	BaseClass::ClientDisconnected( pClient );
-
 #endif
 }
 
@@ -389,10 +344,10 @@ void CContingencyRules::PerformWaveCalculations( void )
 
 		Warning("The current map is set not to allow any waves. This is not allowed, and to prevent the game from breaking, all waves have been enabled. Please check your contingency_configuration entity flags!\n");
 
-		DoesMapSupportHeadcrabs(true);
-		DoesMapSupportAntlions(true);
-		DoesMapSupportZombies(true);
-		DoesMapSupportCombine(true);
+		DoesMapSupportHeadcrabs( true );
+		DoesMapSupportAntlions( true );
+		DoesMapSupportZombies( true );
+		DoesMapSupportCombine( true );
 	}
 
 	int waveSelected = random->RandomInt( WAVE_NONE + 1, NUM_WAVES - 1 );
@@ -404,7 +359,7 @@ void CContingencyRules::PerformWaveCalculations( void )
 
 	SetWaveType( waveSelected );
 
-	// Now we need to calculate exactly how many NPC to spawn,
+	// Now we need to calculate exactly how many NPCs to spawn,
 	// which depends on several variables, including how many
 	// waves players have successfully defeated as well as
 	// the type of NPCs we're going to be spawning, the ladder
@@ -412,14 +367,17 @@ void CContingencyRules::PerformWaveCalculations( void )
 
 	// For this task, I've chosen to use some simple multiplers,
 	// each of which is tied to its own ConVar for easy editing
+	// (maps can now manipulate these ConVars using addition/subtraction-based offsets too)
 
-	// We're also going to want to factor in how many players are
+	// So yeah, we're also going to want to factor in how many players are
 	// on the server so as not to overwhelm (or underwhelm) folks
-	// so quickly that we turn them off from the mod entirely...
-	// ...and I don't think a static multiplier makes sense for this,
-	// so I've opted for multipying the current wave number by
-	// the total number of players on the server as a base...
-	// ...we'll see if this all works out!
+	// so quickly that we turn them off from the game entirely...
+
+	// ...so instead of just using multipliers, I've opted for
+	// multipying the current wave number by the total number of players
+	// on the server as a base...
+
+	// I imagine this is going be changed in the (near?) future, but we'll see!
 
 	int numEnemiesToSpawnThisWave = GetWaveNumber() * GetTotalNumPlayers();
 
@@ -443,6 +401,7 @@ void CContingencyRules::PerformWaveCalculations( void )
 		break;
 	}
 
+	// Update wave-specific variables and stuff to reflect the calculations made above
 	SetNumEnemiesRemaining( numEnemiesToSpawnThisWave );
 	SetCalculatedNumEnemies( numEnemiesToSpawnThisWave );
 	SetNumEnemiesSpawned( 0 );
@@ -457,7 +416,7 @@ void CContingencyRules::HandleNPCDeath( CAI_BaseNPC *pNPC, const CTakeDamageInfo
 	// Make sure this NPC is part of our current wave
 	if ( IsNPCInCurrentWave(pNPC) )
 	{
-		// Give players credit for killing NPCs
+		// Give players credit for killing enemy NPCs
 		CContingency_Player *pPlayer = ToContingencyPlayer( info.GetAttacker() );
 		if ( pPlayer )
 		{
@@ -465,7 +424,7 @@ void CContingencyRules::HandleNPCDeath( CAI_BaseNPC *pNPC, const CTakeDamageInfo
 			GetGlobalTeam( pPlayer->GetTeamNumber() )->AddScore( 1 );
 		}
 
-		// ...now players have one less NPC to worry about!
+		// ...now players have one less enemy to worry about!
 		RemoveNPCFromCurrentWave( pNPC );
 		DecrementNumEnemiesRemaining();
 	}
@@ -481,66 +440,9 @@ void CContingencyRules::HandleNPCDeath( CAI_BaseNPC *pNPC, const CTakeDamageInfo
 
 #endif
 
-#ifndef CLIENT_DLL
-// Added sound cue and background music system
-void CContingencyRules::PlayAnnouncementSound( const char *soundName, CBasePlayer *pTargetPlayer )
-{
-	CRecipientFilter filter;
-
-	if ( pTargetPlayer )	// target player defined, play sound only for specified player
-		filter.AddRecipient( pTargetPlayer );
-	else	// no target player defined, play sound for all players
-		filter.AddAllPlayers();
-
-	filter.MakeReliable();
-
-	UserMessageBegin( filter, "SendAudio" );
-	WRITE_STRING( soundName );
-	MessageEnd();
-}
-#else
-// Added sound cue and background music system
-#include "engine/ienginesound.h"
-void CContingencyRules::PlayBackgroundMusic( void )
-{
-	C_Contingency_Player *pLocalPlayer = C_Contingency_Player::GetLocalContingencyPlayer();
-	if ( !pLocalPlayer )
-		return;
-
-	// Stop whatever background music might be playing
-	// (only one should be playing at a time)
-	StopPlayingBackgroundMusic();
-
-	if ( !contingency_client_backgroundmusic.GetBool() )
-	{
-		// This client does not want us playing background music for them, so don't
-		return;
-	}
-
-	// Play a random background sound from our list of background sounds
-	// WARNING/TODO: This may interfere with map-specific background sound systems...
-	enginesound->EmitAmbientSound( kBackgroundMusic[random->RandomInt(0, NUM_BACKGROUND_MUSIC - 1)], contingency_client_backgroundmusic_volume.GetFloat() );
-}
-
-// Added sound cue and background music system
-void CContingencyRules::StopPlayingBackgroundMusic( void )
-{
-	C_Contingency_Player *pLocalPlayer = C_Contingency_Player::GetLocalContingencyPlayer();
-	if ( !pLocalPlayer )
-		return;
-
-	// Play a dummy sound (audio file w/ silence) to stop any background sounds that are playing
-	// WARNING/TODO: This may interfere with map-specific background sound systems...
-	enginesound->StopAllSounds( false );
-	//enginesound->StopAllSounds( true );
-	//enginesound->EmitAmbientSound( "hud/dummysound.wav", 0.5f );
-}
-#endif
-
 void CContingencyRules::Think( void )
 {
 #ifndef CLIENT_DLL
-	
 	// Skip over CHL2MPRules::Think()
 	CGameRules::Think();
 
@@ -585,7 +487,7 @@ void CContingencyRules::Think( void )
 	{
 		if ( GetCurrentPhase() == PHASE_INTERIM )
 		{
-			// At the end of an interim phase, the combat phase begins
+			// At the end of an interim phase, a combat phase begins
 
 			IncrementWaveNumber();
 			PerformWaveCalculations();
@@ -620,6 +522,8 @@ void CContingencyRules::Think( void )
 				
 				DisplayAnnouncement( UTIL_VarArgs("YOUR TEAM WAS WIPED OUT!\nYou made it to wave %i.\nThe game will reset shortly.", GetWaveNumber()) );
 
+				// TODO: Good place for a sound cue of some kind...
+
 				m_iRestartDelay = 10;
 
 				m_bPlayersDefeated = true;
@@ -632,7 +536,7 @@ void CContingencyRules::Think( void )
 
 				DisplayAnnouncement( UTIL_VarArgs("WAVE %i CLEARED!\nInterim phase is now active for %i seconds.", GetWaveNumber(), contingency_phase_interimtime.GetInt()), 5.0f );
 
-				// TODO: Another excellent place for a sound cue...
+				// TODO: Good place for a sound cue of some kind...
 
 				SetCurrentPhase( PHASE_INTERIM );
 			}
@@ -649,7 +553,6 @@ void CContingencyRules::Think( void )
 	// It was in CHL2MPRules::Think, so I'm keeping it around
 	// until we have a specific reason to remove it
 	ManageObjectRelocation();
-
 #endif
 }
 
@@ -660,7 +563,7 @@ void CContingencyRules::CheckRestartGame( void )
 	if ( m_iRestartDelay > 0 )
 	{
 		if ( m_iRestartDelay > 60 )
-			m_iRestartDelay = 60;
+			m_iRestartDelay = 60;	// clamp @ 60 seconds (is this necessary?)
 
 		m_flRestartGameTime = gpGlobals->curtime + m_iRestartDelay;
 		m_bCompleteReset = true;
@@ -686,7 +589,7 @@ void CContingencyRules::RestartGame()
 	// Added a non-restorative health system
 	m_PlayerInfoList.Purge();	// purge all player infos when the game is restarted
 
-	// Pre-cleanup stuff
+	// Pre-cleanup stuff:
 
 	for (int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
@@ -719,7 +622,7 @@ void CContingencyRules::RestartGame()
 
 	CleanUpMap();
 
-	// Post-cleanup stuff
+	// Post-cleanup stuff:
 
 	// Added phase system
 	if ( GetTotalNumPlayers() <= 0 )
@@ -746,44 +649,6 @@ void CContingencyRules::RestartGame()
 		event->SetString( "objective", "CONTINGENCY" );
 
 		gameeventmanager->FireEvent( event );
-	}
-}
-#endif
-
-#ifndef CLIENT_DLL
-void CContingencyRules::RemoveSatchelsAndTripmines( CContingency_Player *pPlayer )
-{
-	CBaseEntity *pEntity;
-	CSatchelCharge *pSatchel;
-	CTripmineGrenade *pTripmine;
-
-	pEntity = NULL;
-	pSatchel = NULL;
-	while ( (pEntity = gEntList.FindEntityByClassname(pEntity, "npc_satchel")) != NULL )
-	{
-		pSatchel = dynamic_cast<CSatchelCharge*>( pEntity );
-		if ( pSatchel )
-		{
-			if ( pPlayer && (pSatchel->GetThrower() != pPlayer) )
-				continue;
-
-			UTIL_Remove( pSatchel );
-		}
-	}
-
-	pEntity = NULL;
-	pTripmine = NULL;
-	while ( (pEntity = gEntList.FindEntityByClassname(pEntity, "npc_tripmine")) != NULL )
-	{
-		pTripmine = dynamic_cast<CTripmineGrenade*>( pEntity );
-		if ( pTripmine )
-		{
-			if ( pPlayer && (pTripmine->m_hOwner != pPlayer) )
-				continue;
-
-			pTripmine->KillBeam();
-			UTIL_Remove( pTripmine );
-		}
 	}
 }
 #endif
@@ -842,6 +707,8 @@ CAmmoDef *GetAmmoDef()
 		// Give players unlimited ammo
 		// This is merely an illusion, but it works
 		// The "99999"s are all the changes I've made in this department
+
+		// Other unrelated changes have probably been made here too...
 //																								plr dmg		npc dmg	max carry	impulse
 		def.AddAmmoType("AR2",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			11,		99999,		BULLET_IMPULSE(200, 1225),	0 );
 		def.AddAmmoType("AR2AltFire",		DMG_DISSOLVE,				TRACER_NONE,			0,			100,		1,			0,							0 );
@@ -1814,4 +1681,264 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 
 //===== End Of AI Patch ======
 
+#endif
+
+//////////////////////
+// HELPER FUNCTIONS //
+//////////////////////
+// (everything from here on down)
+
+// These are functions that can function (no pun intended?)
+// more or less independently and be called anytime without much fuss
+
+bool CContingencyRules::IsPlayerPlaying( CContingency_Player *pPlayer )
+{
+	if ( !pPlayer )
+		return false;	// null pointers? eww...
+
+	if ( !pPlayer->IsAlive() || pPlayer->IsObserver() )
+		return false;	// dead players aren't considered playing because they're more like spectators
+
+	// All players are forced to TEAM_PLAYER when they spawn
+	// and they should not be able to leave that team,
+	// so we shouldn't need to check for that here anymore
+	// (originally we did, hence this comment)
+
+	return true;
+}
+
+// Do not allow players to respawn when they shouldn't be able to do so
+bool CContingencyRules::CanPlayersRespawn( void )
+{
+	// Added phase system
+	if ( GetCurrentPhase() == PHASE_COMBAT )
+		return false;
+
+	return true;
+}
+
+#ifndef CLIENT_DLL
+int CContingencyRules::GetTotalNumPlayers( void )
+{
+	int iNumPlayers = 0;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *pClient = UTIL_PlayerByIndex( i );
+
+		if ( !pClient || !pClient->edict() )
+			continue;
+
+		if ( !pClient->IsNetClient() )
+			continue;
+
+		iNumPlayers++;
+	}
+
+	return iNumPlayers;
+}
+
+int CContingencyRules::GetNumPlayingPlayers( void )
+{
+	int iNumPlayers = 0;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CContingency_Player *pClient = ToContingencyPlayer( UTIL_PlayerByIndex(i) );
+
+		if ( !pClient || !pClient->edict() )
+			continue;
+
+		if ( !pClient->IsNetClient() )
+			continue;
+
+		if ( !IsPlayerPlaying(pClient) )
+			continue;
+
+		iNumPlayers++;
+	}
+
+	return iNumPlayers;
+}
+
+// Added loadout system
+void CContingencyRules::UpdatePlayerLoadouts( void )
+{
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex( i ) );
+		if ( !pPlayer )
+			continue;
+
+		if ( !IsPlayerPlaying(pPlayer) )
+			continue;	// dead players' loadouts will be updated when they spawn
+
+		pPlayer->ApplyLoadout( pPlayer->GetHealth() );
+	}
+}
+
+void CContingencyRules::RespawnDeadPlayers( void )
+{
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex( i ) );
+		if ( !pPlayer )
+			continue;
+
+		if ( IsPlayerPlaying(pPlayer) )
+			continue;
+
+		pPlayer->Spawn();	// spawning will also update our loadout
+	}
+}
+
+// Added announcements system
+// This function allows the server to display a certain block of text at the center of a particular player's or all players' HUDs
+void CContingencyRules::DisplayAnnouncement( const char* announcementText, float timeOnScreen, bool shouldFade, CBasePlayer *pTargetPlayer )
+{
+	hudtextparms_s tTextParam;
+	tTextParam.x			= -1;
+	tTextParam.y			= 0.3;
+	tTextParam.effect		= 1;
+	tTextParam.r1			= 255;
+	tTextParam.g1			= 255;
+	tTextParam.b1			= 255;
+	tTextParam.a1			= 255;
+	tTextParam.r2			= 255;
+	tTextParam.g2			= 255;
+	tTextParam.b2			= 255;
+	tTextParam.a2			= 255;
+	tTextParam.fadeinTime	= 1.0;
+	tTextParam.fadeoutTime	= 1.0;
+	tTextParam.holdTime		= timeOnScreen;
+	tTextParam.fxTime		= 1.0;
+	tTextParam.channel		= 1;
+
+	color32 fadeblack = { 0, 0, 0, 200 };
+
+	if ( pTargetPlayer )
+	{
+		UTIL_HudMessage( pTargetPlayer, tTextParam, announcementText );
+
+		if ( shouldFade )
+			UTIL_ScreenFade( pTargetPlayer, fadeblack, 3.0, timeOnScreen, FFADE_IN );
+	}
+	else
+	{
+		UTIL_HudMessageAll( tTextParam, announcementText );
+
+		if ( shouldFade )
+			UTIL_ScreenFadeAll( fadeblack, 3.0, timeOnScreen, FFADE_IN );
+	}
+}
+
+void CContingencyRules::RemoveSatchelsAndTripmines( CContingency_Player *pPlayer )
+{
+	CBaseEntity *pEntity;
+	CSatchelCharge *pSatchel;
+	CTripmineGrenade *pTripmine;
+
+	pEntity = NULL;
+	pSatchel = NULL;
+	while ( (pEntity = gEntList.FindEntityByClassname(pEntity, "npc_satchel")) != NULL )
+	{
+		pSatchel = dynamic_cast<CSatchelCharge*>( pEntity );
+		if ( pSatchel )
+		{
+			if ( pPlayer && (pSatchel->GetThrower() != pPlayer) )
+				continue;
+
+			UTIL_Remove( pSatchel );
+		}
+	}
+
+	pEntity = NULL;
+	pTripmine = NULL;
+	while ( (pEntity = gEntList.FindEntityByClassname(pEntity, "npc_tripmine")) != NULL )
+	{
+		pTripmine = dynamic_cast<CTripmineGrenade*>( pEntity );
+		if ( pTripmine )
+		{
+			if ( pPlayer && (pTripmine->m_hOwner != pPlayer) )
+				continue;
+
+			pTripmine->KillBeam();
+			UTIL_Remove( pTripmine );
+		}
+	}
+}
+
+// Added a non-restorative health system
+CContingency_Player_Info *CContingencyRules::FindPlayerInfoBySteamID( const char *steamID )
+{
+	// Search through our list of player infos looking for one that
+	// corresponds with the specified SteamID
+	for ( int i = 0; i < m_PlayerInfoList.Count(); i++ )
+	{
+		CContingency_Player_Info *pPlayerInfo = dynamic_cast<CContingency_Player_Info*>( m_PlayerInfoList[i] );
+		if ( !pPlayerInfo )
+			continue;	// this entry isn't valid, so move onto the next one in the list
+
+		if ( pPlayerInfo->GetSteamID() == steamID )
+			return m_PlayerInfoList[i];	// we've found something, so stop searching and return it right away!
+	}
+
+	return NULL;	// our search returned no results!
+}
+#endif
+
+#ifndef CLIENT_DLL
+// Added sound cue and background music system
+void CContingencyRules::PlayAnnouncementSound( const char *soundName, CBasePlayer *pTargetPlayer )
+{
+	CRecipientFilter filter;
+
+	if ( pTargetPlayer )	// target player defined, play sound only for specified player
+		filter.AddRecipient( pTargetPlayer );
+	else	// no target player defined, play sound for all players
+		filter.AddAllPlayers();
+
+	filter.MakeReliable();
+
+	UserMessageBegin( filter, "SendAudio" );
+	WRITE_STRING( soundName );
+	MessageEnd();
+}
+#else
+// Added sound cue and background music system
+#include "engine/ienginesound.h"
+void CContingencyRules::PlayBackgroundMusic( void )
+{
+	C_Contingency_Player *pLocalPlayer = C_Contingency_Player::GetLocalContingencyPlayer();
+	if ( !pLocalPlayer )
+		return;
+
+	// Stop whatever background music might be playing
+	// (only one should be playing at a time)
+	StopPlayingBackgroundMusic();
+
+	if ( !contingency_client_backgroundmusic.GetBool() )
+	{
+		// This client does not want us playing background music for them, so don't
+		return;
+	}
+
+	// Play a random background sound from our list of background sounds
+	// WARNING/TODO: This may interfere with map-specific background sound systems...
+	enginesound->EmitAmbientSound( kBackgroundMusic[random->RandomInt(0, NUM_BACKGROUND_MUSIC - 1)], contingency_client_backgroundmusic_volume.GetFloat() );
+}
+
+// Added sound cue and background music system
+void CContingencyRules::StopPlayingBackgroundMusic( void )
+{
+	C_Contingency_Player *pLocalPlayer = C_Contingency_Player::GetLocalContingencyPlayer();
+	if ( !pLocalPlayer )
+		return;
+
+	// Play a dummy sound (audio file w/ silence) to stop any background sounds that are playing
+	// WARNING/TODO: This may interfere with map-specific background sound systems...
+	enginesound->StopAllSounds( false );
+	//enginesound->StopAllSounds( true );
+	//enginesound->EmitAmbientSound( "hud/dummysound.wav", 0.5f );
+}
 #endif

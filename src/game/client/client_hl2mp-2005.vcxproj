@@ -217,9 +217,9 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\shared\contingency\contingency_concommands.cpp" />
     <ClCompile Include="..\shared\contingency\contingency_gamerules.cpp" />
     <ClCompile Include="..\shared\contingency\contingency_player_shared.cpp" />
-    <ClCompile Include="..\shared\contingency\contingency_weapon_types.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_healthkit.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_nyangun.cpp" />
     <ClCompile Include="achievement_notification_panel.cpp" />

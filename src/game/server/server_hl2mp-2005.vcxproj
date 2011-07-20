@@ -217,9 +217,9 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClCompile Include="..\shared\achievementmgr.cpp" />
     <ClCompile Include="..\shared\achievements_hlx.cpp" />
     <ClCompile Include="..\shared\activitylist.cpp" />
+    <ClCompile Include="..\shared\contingency\contingency_concommands.cpp" />
     <ClCompile Include="..\shared\contingency\contingency_gamerules.cpp" />
     <ClCompile Include="..\shared\contingency\contingency_player_shared.cpp" />
-    <ClCompile Include="..\shared\contingency\contingency_weapon_types.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_healthkit.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_nyangun.cpp" />
     <ClCompile Include="..\shared\hl2mp\hl2mp_weapon_parse.cpp" />

@@ -126,17 +126,3 @@ Color C_Contingency_Player::GetHealthConditionColor( void )
 
 	return Color( 255, 255, 255, 255 );	// white
 }
-
-// Added sound cue and background music system
-void PlayBackgroundMusic_f( void )
-{
-	ContingencyRules()->PlayBackgroundMusic();
-}
-ConCommand playbackgroundmusic( "playbackgroundmusic", PlayBackgroundMusic_f, "Plays some random background music", 0 );
-
-// Added sound cue and background music system
-void StopPlayingBackgroundMusic_f( void )
-{
-	ContingencyRules()->StopPlayingBackgroundMusic();
-}
-ConCommand stopplayingbackgroundmusic( "stopplayingbackgroundmusic", StopPlayingBackgroundMusic_f, "Stops any background music that might be playing", 0 );

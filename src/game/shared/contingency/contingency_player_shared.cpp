@@ -14,6 +14,8 @@
 
 // Revert to normal HL2 footsteps
 extern ConVar sv_footsteps;
+
+// Revert to normal HL2 footsteps
 void CContingency_Player::PlayStepSound( Vector &vecOrigin, surfacedata_t *psurface, float fvol, bool force )
 {
 	if ( (gpGlobals->maxClients > 1) && !sv_footsteps.GetFloat() )

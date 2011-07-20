@@ -28,15 +28,15 @@
 
 enum CONTINGENCY_TEAMS
 {
-	TEAM_PLAYER,
+	TEAM_PLAYER = 0,
 
 	NUM_TEAMS
 };
 
 // Added phase system
-enum CONTINGENCY_PHASE
+enum CONTINGENCY_PHASES
 {
-	PHASE_WAITING_FOR_PLAYERS,
+	PHASE_WAITING_FOR_PLAYERS = -1,
 	PHASE_INTERIM,
 	PHASE_COMBAT,
 
@@ -44,17 +44,15 @@ enum CONTINGENCY_PHASE
 };
 
 // Added wave system
-enum CONTINGENCY_WAVE
+enum CONTINGENCY_WAVES
 {
-	WAVE_NONE,
+	WAVE_NONE = -1,
 	WAVE_HEADCRABS,
 	WAVE_ANTLIONS,
 	WAVE_ZOMBIES,
 	WAVE_COMBINE,
 
-	NUM_WAVES	// actually represents 1 more than the number of waves
-				// if you don't include WAVE_NONE, but oh well...
-				// there are a number of reasons why WAVE_NONE isn't -1, trust me!
+	NUM_WAVES
 };
 
 // Added wave system
@@ -149,135 +147,56 @@ public:
 	CContingencyRules();
 	~CContingencyRules();
 
-public:	// helper functions
-
-	bool IsPlayerPlaying( CContingency_Player *pPlayer = NULL )
-	{
-		if ( !pPlayer )
-		{
-			// Null pointers? Eww...
-
-			return false;
-		}
-
-		if ( !pPlayer->IsAlive() || pPlayer->IsObserver() )
-		{
-			// Dead players aren't considered playing because
-			// they're more like spectators
-
-			return false;
-		}
-
-		// All players are forced to TEAM_PLAYER when they spawn
-		// and they should not be able to leave that team,
-		// so we shouldn't need to check for that here
-		// (originally we did, hence this comment)
-
-		return true;
-	}
-
-	// Do not allow players to respawn when they shouldn't be able to do so
-	bool CanPlayersRespawn( void )
-	{
-		// Added phase system
-		if ( GetCurrentPhase() == PHASE_COMBAT )
-			return false;
-
-		return true;
-	}
-
-#ifndef CLIENT_DLL
-	int GetTotalNumPlayers( void )
-	{
-		int iNumPlayers = 0;
-
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CBasePlayer *pClient = UTIL_PlayerByIndex( i );
-
-			if ( !pClient || !pClient->edict() )
-				continue;
-
-			if ( !pClient->IsNetClient() )
-				continue;
-
-			iNumPlayers++;
-		}
-
-		return iNumPlayers;
-	}
-#endif
-
-#ifndef CLIENT_DLL
-	int GetNumPlayingPlayers( void )
-	{
-		int iNumPlayers = 0;
-
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CContingency_Player *pClient = ToContingencyPlayer( UTIL_PlayerByIndex(i) );
-
-			if ( !pClient || !pClient->edict() )
-				continue;
-
-			if ( !pClient->IsNetClient() )
-				continue;
-
-			if ( !IsPlayerPlaying(pClient) )
-				continue;
-
-			iNumPlayers++;
-		}
-
-		return iNumPlayers;
-	}
-#endif
-
-#ifndef CLIENT_DLL
-	// Added loadout system
-	void UpdatePlayerLoadouts( void )
-	{
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex( i ) );
-			if ( !pPlayer )
-				continue;
-
-			if ( !IsPlayerPlaying(pPlayer) )
-				continue;	// dead players' loadouts will be updated when they spawn
-
-			pPlayer->ApplyLoadout( pPlayer->GetHealth() );
-		}
-	}
-#endif
-
-#ifndef CLIENT_DLL
-	void RespawnDeadPlayers( void )
-	{
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex( i ) );
-			if ( !pPlayer )
-				continue;
-
-			if ( IsPlayerPlaying(pPlayer) )
-				continue;
-
-			pPlayer->Spawn();
-		}
-	}
-#endif
-
 public:
+
+	//////////////////////
+	// HELPER FUNCTIONS //
+	//////////////////////
+	// (everything in this particular "public:" block)
+
+	// These are functions that can function (no pun intended?)
+	// more or less independently and be called anytime without much fuss
 
 	const char *GetGameDescription( void ) { return "Contingency"; }
 	int GetMaxNumPlayers( void ) { return 5; }	// defines the maximum number of players allowed on a server
 
+	// Do not allow players to hurt each other
+	int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
+	bool FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
+
+	bool IsPlayerPlaying( CContingency_Player *pPlayer = NULL );
+
+	// Do not allow players to respawn when they shouldn't be able to do so
+	bool CanPlayersRespawn( void );
+
 #ifndef CLIENT_DLL
+	int GetTotalNumPlayers( void );
+	int GetNumPlayingPlayers( void );
+
+	// Added loadout system
+	void UpdatePlayerLoadouts( void );
+
+	void RespawnDeadPlayers( void );
+
 	// Added announcements system
 	// This function allows the server to display a certain block of text at the center of a particular player's or all players' HUDs
 	void DisplayAnnouncement( const char* announcementText, float timeOnScreen = 8.0f, bool shouldFade = true, CBasePlayer *pTargetPlayer = NULL );
+
+	void RemoveSatchelsAndTripmines( CContingency_Player *pPlayer = NULL );
+
+	// Added a non-restorative health system
+	CContingency_Player_Info *FindPlayerInfoBySteamID( const char *steamID );
 #endif
+
+	// Added sound cue and background music system
+#ifndef CLIENT_DLL
+	void PlayAnnouncementSound( const char *soundName, CBasePlayer *pTargetPlayer = NULL );
+#else
+	void PlayBackgroundMusic( void );
+	void StopPlayingBackgroundMusic( void );
+#endif
+
+public:
 
 #ifndef CLIENT_DLL
 	void ResetPhaseVariables( void );
@@ -306,16 +225,8 @@ public:
 
 	void Think( void );
 
-#ifndef CLIENT_DLL
-	void RemoveSatchelsAndTripmines( CContingency_Player *pPlayer = NULL );
-#endif
-
 	void CheckRestartGame( void );
 	void RestartGame( void );
-
-	// Do not allow players to hurt each other
-	int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
-	bool FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 
 #ifndef CLIENT_DLL
 	// Move AI relationship tables to CContingencyRules
@@ -486,34 +397,6 @@ public:
 	void PurgeCurrentSupportWave( void )
 	{
 		m_CurrentSupportWaveNPCList.Purge();
-	}
-#endif
-
-	// Added sound cue and background music system
-#ifndef CLIENT_DLL
-	void PlayAnnouncementSound( const char *soundName, CBasePlayer *pTargetPlayer = NULL );
-#else
-	void PlayBackgroundMusic( void );
-	void StopPlayingBackgroundMusic( void );
-#endif
-
-	// Added a non-restorative health system
-#ifndef CLIENT_DLL
-	CContingency_Player_Info *FindPlayerInfoWithSteamID( const char *steamID )
-	{
-		// Search through our list of player infos looking for one that
-		// corresponds with the specified SteamID
-		for ( int i = 0; i < m_PlayerInfoList.Count(); i++ )
-		{
-			CContingency_Player_Info *pPlayerInfo = dynamic_cast<CContingency_Player_Info*>( m_PlayerInfoList[i] );
-			if ( !pPlayerInfo )
-				continue;	// this entry isn't valid, so move onto the next one in the list
-
-			if ( pPlayerInfo->GetSteamID() == steamID )
-				return m_PlayerInfoList[i];	// we've found something, so stop searching and return it right away!
-		}
-
-		return NULL;	// our search returned no results!
 	}
 #endif
 

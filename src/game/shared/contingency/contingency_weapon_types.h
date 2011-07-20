@@ -4,7 +4,9 @@
 #define CONTINGENCY_WEAPON_TYPES_H
 #pragma once
 
-// TODO: All of this stands to be redone using external text files and KeyValues
+// TODO: All of this is in its own header because it stands to be redone
+// using external text files and KeyValues for easy editing and general manipulation
+// without having to recompile and stuff...
 
 static const int NUM_WEAPON_TYPE_PARAMETERS = 2;
 

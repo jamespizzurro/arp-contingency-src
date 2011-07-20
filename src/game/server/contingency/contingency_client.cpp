@@ -166,10 +166,10 @@ void GameStartFrame( void )
 	gpGlobals->teamplay = false;
 
 // Enable bots for testing and debugging purposes
-/*#ifdef DEBUG
+//#ifdef DEBUG
 	extern void Bot_RunAll();
 	Bot_RunAll();
-#endif*/
+//#endif
 }
 
 void InstallGameRules()

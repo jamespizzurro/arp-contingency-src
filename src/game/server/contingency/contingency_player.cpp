@@ -231,7 +231,7 @@ void CContingency_Player::Spawn( void )
 	// Added a non-restorative health system
 	const char *steamID = engine->GetPlayerNetworkIDString( edict() );
 	int savedPlayerHealth = 0;
-	CContingency_Player_Info *pPlayerInfo = ContingencyRules()->FindPlayerInfoWithSteamID( steamID );
+	CContingency_Player_Info *pPlayerInfo = ContingencyRules()->FindPlayerInfoBySteamID( steamID );
 	if ( pPlayerInfo && !pPlayerInfo->HasBeenAccessed() )
 	{
 		// We've found a player info entry with our player's steamID in it,
@@ -541,29 +541,7 @@ void CContingency_Player::PlayerDeathThink( void )
 }
 
 // Added drop system
-void CC_Player_Drop( void )
-{
-	CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_GetCommandClient() );
-	if ( !pPlayer )
-		return;
-
-	CBaseCombatWeapon *pWeapon = pPlayer->GetActiveWeapon();
-	if ( !pWeapon )
-		return;
-
-	// Only allow players to drop special weapons
-	for ( int i = 0; i < NUM_SPECIAL_WEAPON_TYPES; i++ )
-	{
-		if ( FClassnameIs(pWeapon, kSpecialWeaponTypes[i][0]) )
-		{
-			pPlayer->Weapon_Drop( pWeapon, NULL, NULL );
-			return;
-		}
-	}
-}
-static ConCommand drop( "drop", CC_Player_Drop, "Drops your current weapon (if possible; only works for special weapons)" );
-
-// Added drop system
+// Most of this is from base classes...
 void CContingency_Player::Weapon_Drop( CBaseCombatWeapon *pWeapon, const Vector *pvecTarget, const Vector *pVelocity )
 {
 	if ( !pWeapon )
