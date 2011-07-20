@@ -34,6 +34,8 @@ BEGIN_DATADESC( CContingencyBossSpawner )
 	// Add a custom rally point entity for wave spawners
 	DEFINE_KEYFIELD( rallyPointName, FIELD_STRING, "rallyPointName" ),
 
+	DEFINE_KEYFIELD( m_flMaximumDistanceFromNearestPlayer, FIELD_FLOAT, "MaxPlayerDistance" ),
+
 END_DATADESC()
 
 CContingencyBossSpawner::CContingencyBossSpawner( void )
@@ -82,6 +84,21 @@ void CContingencyBossSpawner::MakeNPC( void )
 		m_iBossSpawnFrequency = 1;	// assume the mapper is an idiot
 	if ( ContingencyRules()->GetWaveNumber() % m_iBossSpawnFrequency != 0 )
 		return;
+
+	if ( m_flMaximumDistanceFromNearestPlayer > -1 )
+	{
+		// This spawner is restricted to a certain spawning distance
+		// In other words, at least one player must be within the defined
+		// maximum distance away (m_flMaximumDistanceFromNearestPlayer)
+		// from this spawner in order for it to function
+
+		CBasePlayer *pNearestPlayer = UTIL_GetNearestPlayer( this->GetAbsOrigin() );
+		if ( !pNearestPlayer )
+			return;	// no players found?
+
+		if ( (this->GetAbsOrigin() - pNearestPlayer->GetAbsOrigin()).LengthSqr() > (m_flMaximumDistanceFromNearestPlayer * m_flMaximumDistanceFromNearestPlayer) )
+			return;	// nearest player is too far away!
+	}
 
 	// Spawn a random type of NPC type associated with the current wave
 	int currentWaveType = ContingencyRules()->GetWaveType();

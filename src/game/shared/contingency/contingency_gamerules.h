@@ -7,6 +7,8 @@
 #include "teamplay_gamerules.h"
 #include "gamevars_shared.h"
 
+#include "contingency_weapon_types.h"
+
 #ifndef CLIENT_DLL
 	#include "contingency_player.h"
 #else
@@ -52,6 +54,7 @@ enum CONTINGENCY_WAVE
 
 	NUM_WAVES	// actually represents 1 more than the number of waves
 				// if you don't include WAVE_NONE, but oh well...
+				// there are a number of reasons why WAVE_NONE isn't -1, trust me!
 };
 
 // Added wave system
@@ -123,15 +126,6 @@ static const char* kBackgroundMusic[NUM_BACKGROUND_MUSIC] =
 	"music/HL2_song20_submix4_loop.wav",
 	"music/HL2_song29_loop.wav",
 	"music/HL2_song31_loop.wav"
-};
-
-// Special weapons are weapons that can be picked up regardless of a player's loadout
-// Some are weapons that can only be obtained using cheats while others can only be placed on a map by level designers
-static const int NUM_SPECIAL_WEAPONS = 2;
-static const char* kSpecialWeapons[NUM_SPECIAL_WEAPONS] =
-{
-	"weapon_nyangun",
-	"weapon_healthkit"
 };
 
 class CContingencyRulesProxy : public CHL2MPGameRulesProxy
@@ -241,7 +235,7 @@ public:	// helper functions
 
 #ifndef CLIENT_DLL
 	// Added loadout system
-	void ReplenishLivingPlayers( void )
+	void UpdatePlayerLoadouts( void )
 	{
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
@@ -250,9 +244,9 @@ public:	// helper functions
 				continue;
 
 			if ( !IsPlayerPlaying(pPlayer) )
-				continue;
+				continue;	// dead players' loadouts will be updated when they spawn
 
-			pPlayer->Replenish();
+			pPlayer->ApplyLoadout( pPlayer->GetHealth() );
 		}
 	}
 #endif
@@ -355,10 +349,10 @@ public:
 			SetCalculatedNumEnemies( 0 );
 			m_bPlayersDefeated = false;
 
-			RemoveSatchelsAndTripmines();	// more cleaning (satchels and tripmines)...
+			RemoveSatchelsAndTripmines();	// more cleaning (all players' satchels and tripmines)
 
 			// Added loadout system
-			ReplenishLivingPlayers();
+			UpdatePlayerLoadouts();
 
 			SetInterimPhaseTimeLeft( contingency_phase_interimtime.GetInt() );
 
@@ -449,8 +443,25 @@ public:
 	}
 #endif
 #ifndef CLIENT_DLL
-	int GetMapPreferredWaveType( void ) { return m_iMapPreferredWaveType; }
-	void SetMapPreferredWaveType( int newPreferredWaveType ) { m_iMapPreferredWaveType = newPreferredWaveType; }
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	bool DoesMapSupportHeadcrabs( void ) { return m_bMapHeadcrabSupport; }
+	void DoesMapSupportHeadcrabs( bool boolean ) { m_bMapHeadcrabSupport = boolean; }
+	bool DoesMapSupportAntlions( void ) { return m_bMapAntlionSupport; }
+	void DoesMapSupportAntlions( bool boolean ) { m_bMapAntlionSupport = boolean; }
+	bool DoesMapSupportZombies( void ) { return m_bMapZombieSupport; }
+	void DoesMapSupportZombies( bool boolean ) { m_bMapZombieSupport = boolean; }
+	bool DoesMapSupportCombine( void ) { return m_bMapCombineSupport; }
+	void DoesMapSupportCombine( bool boolean ) { m_bMapCombineSupport = boolean; }
+
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	int GetMapHeadcrabWaveMultiplierOffset( void ) { return m_flMapHeadcrabWaveMultiplierOffset; }
+	void SetMapHeadcrabWaveMultiplierOffset( int newMapHeadcrabWaveMultiplierOffset ) { m_flMapHeadcrabWaveMultiplierOffset = newMapHeadcrabWaveMultiplierOffset; }
+	int GetMapAntlionWaveMultiplierOffset( void ) { return m_flMapAntlionWaveMultiplierOffset; }
+	void SetMapAntlionWaveMultiplierOffset( int newMapAntlionWaveMultiplierOffset ) { m_flMapAntlionWaveMultiplierOffset = newMapAntlionWaveMultiplierOffset; }
+	int GetMapZombieWaveMultiplierOffset( void ) { return m_flMapZombieWaveMultiplierOffset; }
+	void SetMapZombieWaveMultiplierOffset( int newMapZombieWaveMultiplierOffset ) { m_flMapZombieWaveMultiplierOffset = newMapZombieWaveMultiplierOffset; }
+	int GetMapCombineWaveMultiplierOffset( void ) { return m_flMapCombineWaveMultiplierOffset; }
+	void SetMapCombineWaveMultiplierOffset( int newMapCombineWaveMultiplierOffset ) { m_flMapCombineWaveMultiplierOffset = newMapCombineWaveMultiplierOffset; }
 #endif
 
 // Added support wave system
@@ -528,7 +539,18 @@ private:
 	int m_iNumEnemiesSpawned;
 	bool m_bPlayersDefeated;
 	CUtlVector<CAI_BaseNPC*> m_CurrentWaveNPCList;
-	int m_iMapPreferredWaveType;
+
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	bool m_bMapHeadcrabSupport;
+	bool m_bMapAntlionSupport;
+	bool m_bMapZombieSupport;
+	bool m_bMapCombineSupport;
+
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	float m_flMapHeadcrabWaveMultiplierOffset;
+	float m_flMapAntlionWaveMultiplierOffset;
+	float m_flMapZombieWaveMultiplierOffset;
+	float m_flMapCombineWaveMultiplierOffset;
 #endif
 
 	int m_iRestartDelay;

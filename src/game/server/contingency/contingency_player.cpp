@@ -24,21 +24,18 @@ LINK_ENTITY_TO_CLASS( player, CContingency_Player );
 extern void SendProxy_Origin( const SendProp *pProp, const void *pStruct, const void *pData, DVariant *pOut, int iElement, int objectID );
 
 BEGIN_SEND_TABLE_NOBASE( CContingency_Player, DT_SOLocalPlayerExclusive )
-	END_SEND_TABLE()
+END_SEND_TABLE()
 
-	BEGIN_SEND_TABLE_NOBASE( CContingency_Player, DT_SONonLocalPlayerExclusive )
-	END_SEND_TABLE()
+BEGIN_SEND_TABLE_NOBASE( CContingency_Player, DT_SONonLocalPlayerExclusive )
+END_SEND_TABLE()
 
-	IMPLEMENT_SERVERCLASS_ST( CContingency_Player, DT_Contingency_Player )
+IMPLEMENT_SERVERCLASS_ST( CContingency_Player, DT_Contingency_Player )
 	// Add a custom maximum health variable so that the client can get a player's maximum health
 	SendPropInt( SENDINFO( m_iHealthMax ) ),
+END_SEND_TABLE()
 
-	// Added loadout system
-	SendPropInt( SENDINFO( m_iCurrentLoadout ) ),
-	END_SEND_TABLE()
-
-	BEGIN_DATADESC( CContingency_Player )
-	END_DATADESC()
+BEGIN_DATADESC( CContingency_Player )
+END_DATADESC()
 
 #pragma warning( disable : 4355 )
 
@@ -55,10 +52,6 @@ CContingency_Player::CContingency_Player()
 	// Add pain sounds when a player takes damage
 	m_flMinTimeBtwnPainSounds = 0.0f;
 
-	// Added phase system
-	// By default, the player is a rebel soldier
-	m_iCurrentLoadout = LOADOUT_SOLDIER;
-
 	// Added loadout system
 	// Prevent players from being able to pick up weapons that don't belong to their loadout
 	// ...unless the game specifically wants us to, of course
@@ -69,6 +62,9 @@ CContingency_Player::CContingency_Player()
 
 	// Added chat bubble above players' heads while they type in chat
 	m_hChatBubble = NULL;
+
+	// Added loadout system
+	IsMarkedForLoadoutUpdate( false );
 }
 
 CContingency_Player::~CContingency_Player( void )
@@ -90,55 +86,23 @@ void CContingency_Player::ChangeTeam( int iTeam )
 }
 
 // Added loadout system
-const char *CContingency_Player::GetLoadoutName( int loadout )
+void CContingency_Player::ApplyLoadout( int requestedHealth )
 {
-	switch ( loadout )
-	{
-	case LOADOUT_SOLDIER:
-		return "Rebel Soldier";
-	case LOADOUT_SHOTGUN_SOLDIER:
-		return "Rebel Shotgun Soldier";
-	case LOADOUT_COMMANDER:
-		return "Rebel Commander";
-	case LOADOUT_MARKSMAN:
-		return "Rebel Marksman";
-	case LOADOUT_DEMOLITIONIST:
-		return "Rebel Demolitionist";
-	}
+	// Handle our player model 
+	// At least for now, give us a random one
+	SetModel( kContingencyPlayerModels[random->RandomInt(0, NUM_PLAYER_MODELS - 1)] );
 
-	return "";
-}
+	// Handle our current and maximum health
+	if ( (requestedHealth > 0) && (requestedHealth < CONTINGENCY_MAX_HEALTH) )
+		m_iHealth = requestedHealth;
+	else
+		m_iHealth = CONTINGENCY_MAX_HEALTH;
+	m_iHealthMax = m_iMaxHealth = CONTINGENCY_MAX_HEALTH;
 
-// Added loadout system
-void CContingency_Player::ApplyLoadout( int requestedLoadout, int requestedHealth, bool wasCalledDuringSpawn )
-{
-	if ( !ContingencyRules()->IsPlayerPlaying(this) )
-	{
-		if ( !wasCalledDuringSpawn )	// supress "error" messages when we're called via spawn code
-			ClientPrint( this, HUD_PRINTTALK, "Only living players can change their loadout." );
+	// Handle weapons and ammunition
 
-		return;
-	}
-
-	if ( (ContingencyRules()->GetCurrentPhase() != PHASE_INTERIM) && !wasCalledDuringSpawn )
-	{
-		if ( !wasCalledDuringSpawn )	// supress "error" messages when we're called via spawn code
-			ClientPrint( this, HUD_PRINTTALK, "You can only change your loadout during an interim phase." );
-
-		return;
-	}
-
-	// Allow players to do this anyway 'cause it's easy enough to do even with the check below
-	/*if ( (GetCurrentLoadout() == requestedLoadout) && !wasCalledDuringSpawn )
-	{
-		if ( !wasCalledDuringSpawn )	// supress "error" messages when we're called via spawn code
-			ClientPrint( this, HUD_PRINTTALK, UTIL_VarArgs("You are already a %s!", GetLoadoutName(requestedLoadout)) );
-
-		return;
-	}*/
-
-	ContingencyRules()->RemoveSatchelsAndTripmines(this);
-
+	// Remove any shit we have before we get new shit
+	ContingencyRules()->RemoveSatchelsAndTripmines( this );
 	RemoveAllWeapons();
 
 	// Added loadout system
@@ -148,184 +112,38 @@ void CContingency_Player::ApplyLoadout( int requestedLoadout, int requestedHealt
 
 	EquipSuit();
 
-	// All loadouts get the following weapons and ammo:
-	GiveNamedItem( "weapon_crowbar" );
-	GiveNamedItem( "weapon_pistol" );
-	GiveNamedItem( "weapon_frag" );
-	CBasePlayer::GiveAmmo( 99999, "Pistol" );
-	CBasePlayer::GiveAmmo( 99999, "grenade" );
-
-	switch ( requestedLoadout )
-	{
-	case LOADOUT_SOLDIER:
-		SetModel( kContingencyPlayerModels[LOADOUT_SOLDIER] );
-		// Add a custom maximum health variable so that the client can get a player's maximum health
-		if ( (requestedHealth > 0)  && (requestedHealth < LOADOUT_SOLDIER_MAXHEALTH) )
-		{
-			m_iHealth = requestedHealth;
-			m_iHealthMax = m_iMaxHealth = LOADOUT_SOLDIER_MAXHEALTH;
-		}
-		else
-			m_iHealthMax = m_iMaxHealth = m_iHealth = LOADOUT_SOLDIER_MAXHEALTH;
-		GiveNamedItem( "weapon_smg1" );
-		CBasePlayer::GiveAmmo( 99999, "SMG1" );
-		CBasePlayer::GiveAmmo( 99999, "SMG1_Grenade" );
-		Weapon_Switch( Weapon_OwnsThisType("weapon_smg1") );
-		break;
-	case LOADOUT_SHOTGUN_SOLDIER:
-		SetModel( kContingencyPlayerModels[LOADOUT_SHOTGUN_SOLDIER] );
-		// Add a custom maximum health variable so that the client can get a player's maximum health
-		if ( (requestedHealth > 0)  && (requestedHealth < LOADOUT_SHOTGUN_SOLDIER_MAXHEALTH) )
-		{
-			m_iHealth = requestedHealth;
-			m_iHealthMax = m_iMaxHealth = LOADOUT_SHOTGUN_SOLDIER_MAXHEALTH;
-		}
-		else
-			m_iHealthMax = m_iMaxHealth = m_iHealth = LOADOUT_SHOTGUN_SOLDIER_MAXHEALTH;
-		GiveNamedItem( "weapon_shotgun" );
-		CBasePlayer::GiveAmmo( 99999, "Buckshot" );
-		Weapon_Switch( Weapon_OwnsThisType("weapon_shotgun") );
-		break;
-	case LOADOUT_COMMANDER:
-		SetModel( kContingencyPlayerModels[LOADOUT_COMMANDER] );
-		// Add a custom maximum health variable so that the client can get a player's maximum health
-		if ( (requestedHealth > 0)  && (requestedHealth < LOADOUT_COMMANDER_MAXHEALTH) )
-		{
-			m_iHealth = requestedHealth;
-			m_iHealthMax = m_iMaxHealth = LOADOUT_COMMANDER_MAXHEALTH;
-		}
-		else
-			m_iHealthMax = m_iMaxHealth = m_iHealth = LOADOUT_COMMANDER_MAXHEALTH;
-		GiveNamedItem( "weapon_ar2" );
-		CBasePlayer::GiveAmmo( 99999, "AR2" );
-		CBasePlayer::GiveAmmo( 99999, "AR2AltFire" );
-		Weapon_Switch( Weapon_OwnsThisType("weapon_ar2") );
-		break;
-	case LOADOUT_MARKSMAN:
-		SetModel( kContingencyPlayerModels[LOADOUT_MARKSMAN] );
-		// Add a custom maximum health variable so that the client can get a player's maximum health
-		if ( (requestedHealth > 0)  && (requestedHealth < LOADOUT_MARKSMAN_MAXHEALTH) )
-		{
-			m_iHealth = requestedHealth;
-			m_iHealthMax = m_iMaxHealth = LOADOUT_MARKSMAN_MAXHEALTH;
-		}
-		else
-			m_iHealthMax = m_iMaxHealth = m_iHealth = LOADOUT_MARKSMAN_MAXHEALTH;
-		GiveNamedItem( "weapon_crossbow" );
-		CBasePlayer::GiveAmmo( 99999, "XBowBolt" );
-		Weapon_Switch( Weapon_OwnsThisType("weapon_crossbow") );
-		break;
-	case LOADOUT_DEMOLITIONIST:
-		SetModel( kContingencyPlayerModels[LOADOUT_DEMOLITIONIST] );
-		// Add a custom maximum health variable so that the client can get a player's maximum health
-		if ( (requestedHealth > 0)  && (requestedHealth < LOADOUT_DEMOLITIONIST_MAXHEALTH) )
-		{
-			m_iHealth = requestedHealth;
-			m_iHealthMax = m_iMaxHealth = LOADOUT_DEMOLITIONIST_MAXHEALTH;
-		}
-		else
-			m_iHealthMax = m_iMaxHealth = m_iHealth = LOADOUT_DEMOLITIONIST_MAXHEALTH;
-		GiveNamedItem( "weapon_physcannon" );
-		GiveNamedItem( "weapon_357" );
-		GiveNamedItem( "weapon_rpg" );
-		GiveNamedItem( "weapon_slam" );
-		CBasePlayer::GiveAmmo( 99999, "357" );
-		CBasePlayer::GiveAmmo( 99999, "rpg_round" );
-		CBasePlayer::GiveAmmo( 99999, "slam" );
-		Weapon_Switch( Weapon_OwnsThisType("weapon_physcannon") );
-		break;
-	default:
-		SetModel( kContingencyPlayerModels[LOADOUT_SOLDIER] );	// ...I guess?
-		// Add a custom maximum health variable so that the client can get a player's maximum health
-		if ( (requestedHealth > 0)  && (requestedHealth < 100) )
-		{
-			m_iHealth = requestedHealth;
-			m_iHealthMax = m_iMaxHealth = 100;
-		}
-		else
-			m_iHealthMax = m_iMaxHealth = m_iHealth = 100;	// any 'ol health value
-		Weapon_Switch( Weapon_OwnsThisType("weapon_crowbar") );
-	}
+	// Supply the player with their weapons
+	GiveNamedItem( GetPreferredPrimaryWeaponClassname() );
+	GiveNamedItem( GetPreferredSecondaryWeaponClassname() );
+	GiveNamedItem( GetPreferredMeleeWeaponClassname() );
+	GiveNamedItem( GetPreferredEquipmentClassname() );
 
 	// Added loadout system
 	// Prevent players from being able to pick up weapons that don't belong to their loadout
 	// ...unless the game specifically wants us to, of course
 	m_bGivingWeapons = false;
 
-	SetCurrentLoadout( requestedLoadout );
+	// Give players all the ammo they'll ever need
+	CBasePlayer::GiveAmmo( 99999, "Pistol", true );
+	CBasePlayer::GiveAmmo( 99999, "grenade", true );
+	CBasePlayer::GiveAmmo( 99999, "SMG1", true );
+	CBasePlayer::GiveAmmo( 99999, "SMG1_Grenade", true );
+	CBasePlayer::GiveAmmo( 99999, "Buckshot", true );
+	CBasePlayer::GiveAmmo( 99999, "AR2", true );
+	CBasePlayer::GiveAmmo( 99999, "AR2AltFire", true );
+	CBasePlayer::GiveAmmo( 99999, "XBowBolt", true );
+	CBasePlayer::GiveAmmo( 99999, "357", true );
+	CBasePlayer::GiveAmmo( 99999, "rpg_round", true );
+	CBasePlayer::GiveAmmo( 99999, "slam", true );
 
-	// Added phase system
-	// Force players to be observers during combat phases
-	if ( ContingencyRules()->GetCurrentPhase() != PHASE_COMBAT )
+	// Make sure we switch to our primary weapon at the end of all this madness
+	Weapon_Switch( Weapon_OwnsThisType(GetPreferredPrimaryWeaponClassname()) );
+
+	if ( IsMarkedForLoadoutUpdate() )
 	{
-		if ( wasCalledDuringSpawn )
-		{
-			ClientPrint( this, HUD_PRINTTALK, UTIL_VarArgs("You have spawned as a %s.", GetLoadoutName(requestedLoadout)) );
-
-			if ( ContingencyRules()->GetCurrentPhase() == PHASE_INTERIM )
-				ClientPrint( this, HUD_PRINTTALK, "You can change your loadout during an interim phase by pressing your loadout menu key (M by default)." );
-		}
-		else
-			ClientPrint( this, HUD_PRINTTALK, UTIL_VarArgs("You are now a %s.", GetLoadoutName(requestedLoadout)) );
+		ClientPrint( this, HUD_PRINTTALK, "Your saved loadout has been applied." );
+		IsMarkedForLoadoutUpdate( false );
 	}
-	else
-	{
-		StartObserverMode( OBS_MODE_ROAMING );
-		ClientPrint( this, HUD_PRINTTALK, "You are currently an observer." );
-		ClientPrint( this, HUD_PRINTTALK, "You will spawn at the start of the next interim phase." );
-	}
-}
-
-// Added loadout system
-void CContingency_Player::Replenish( void )
-{
-	// Added loadout system
-	// Prevent players from being able to pick up weapons that don't belong to their loadout
-	// ...unless the game specifically wants us to, of course
-	m_bGivingWeapons = true;
-
-	// All loadouts get the following weapons and ammo:
-	GiveNamedItem( "weapon_crowbar" );
-	GiveNamedItem( "weapon_pistol" );
-	GiveNamedItem( "weapon_frag" );
-	CBasePlayer::GiveAmmo( 99999, "Pistol" );
-	CBasePlayer::GiveAmmo( 99999, "grenade" );
-
-	switch ( GetCurrentLoadout() )
-	{
-	case LOADOUT_SOLDIER:
-		GiveNamedItem( "weapon_smg1" );
-		CBasePlayer::GiveAmmo( 99999, "SMG1" );
-		CBasePlayer::GiveAmmo( 99999, "SMG1_Grenade" );
-		break;
-	case LOADOUT_SHOTGUN_SOLDIER:
-		GiveNamedItem( "weapon_shotgun" );
-		CBasePlayer::GiveAmmo( 99999, "Buckshot" );
-		break;
-	case LOADOUT_COMMANDER:
-		GiveNamedItem( "weapon_ar2" );
-		CBasePlayer::GiveAmmo( 99999, "AR2" );
-		CBasePlayer::GiveAmmo( 99999, "AR2AltFire" );
-		break;
-	case LOADOUT_MARKSMAN:
-		GiveNamedItem( "weapon_crossbow" );
-		CBasePlayer::GiveAmmo( 99999, "XBowBolt" );
-		break;
-	case LOADOUT_DEMOLITIONIST:
-		GiveNamedItem( "weapon_physcannon" );
-		GiveNamedItem( "weapon_357" );
-		GiveNamedItem( "weapon_rpg" );
-		GiveNamedItem( "weapon_slam" );
-		CBasePlayer::GiveAmmo( 99999, "357" );
-		CBasePlayer::GiveAmmo( 99999, "rpg_round" );
-		CBasePlayer::GiveAmmo( 99999, "slam" );
-		break;
-	}
-
-	// Added loadout system
-	// Prevent players from being able to pick up weapons that don't belong to their loadout
-	// ...unless the game specifically wants us to, of course
-	m_bGivingWeapons = false;
 }
 
 // Reworked spawnpoint system
@@ -391,7 +209,7 @@ void CContingency_Player::Precache( void )
 	BaseClass::Precache();
 
 	// Precache player models
-	for ( int i = 0; i < NUM_LOADOUTS; ++i )
+	for ( int i = 0; i < NUM_PLAYER_MODELS; ++i )
 	   	 PrecacheModel( kContingencyPlayerModels[i] );
 
 	PrecacheScriptSound( "Male.Pain" );
@@ -412,7 +230,6 @@ void CContingency_Player::Spawn( void )
 
 	// Added a non-restorative health system
 	const char *steamID = engine->GetPlayerNetworkIDString( edict() );
-	int savedCurrentLoadout = GetCurrentLoadout();
 	int savedPlayerHealth = 0;
 	CContingency_Player_Info *pPlayerInfo = ContingencyRules()->FindPlayerInfoWithSteamID( steamID );
 	if ( pPlayerInfo && !pPlayerInfo->HasBeenAccessed() )
@@ -420,25 +237,49 @@ void CContingency_Player::Spawn( void )
 		// We've found a player info entry with our player's steamID in it,
 		// so use it to recall our player's loadout and health when they disconnected
 		pPlayerInfo->HasBeenAccessed( true );
-		savedCurrentLoadout = pPlayerInfo->GetLoadout();
 		savedPlayerHealth = pPlayerInfo->GetHealth();
 	}
 
-	ApplyLoadout( savedCurrentLoadout, savedPlayerHealth, true );
+	// Added loadout system
+	ApplyLoadout( savedPlayerHealth );
+
+	// Added phase system
+	if ( ContingencyRules()->GetCurrentPhase() == PHASE_INTERIM )
+	{
+		ClientPrint( this, HUD_PRINTTALK, "You have been spawned." );
+		ClientPrint( this, HUD_PRINTTALK, "Press your loadout menu key (M by default) to change your loadout." );
+	}
+	else	// force players to be observers during non-interim phases
+	{
+		StartObserverMode( OBS_MODE_ROAMING );
+
+		ClientPrint( this, HUD_PRINTTALK, "You are currently an observer." );
+		ClientPrint( this, HUD_PRINTTALK, "You will spawn at the start of the next interim phase." );
+		ClientPrint( this, HUD_PRINTTALK, "In the meantime, feel free to change your loadout by pressing your loadout menu key (M by default)." );
+	}
 }
 
 // Adjust players' max speed based on different factors
 void CContingency_Player::SetMaxSpeed( float flMaxSpeed )
 {
-	float newMaxSpeed = 0.0f;
+	float newMaxSpeed = flMaxSpeed;
+
+	// Added weapon weight system
+	// Cycle through the player's weapons and apply their respective weights
+	for ( int i = 0; i < MAX_WEAPONS; ++i ) 
+	{
+		CBaseCombatWeapon *pWeapon = GetWeapon(i);
+		if ( !pWeapon )
+			continue;
+
+		newMaxSpeed = newMaxSpeed - pWeapon->GetWeight();
+	}
 
 	if ( ContingencyRules()->IsPlayerPlaying(this) )
-		newMaxSpeed = flMaxSpeed - (m_iHealthMax - m_iHealth);
-	else
-		newMaxSpeed = flMaxSpeed;
+		newMaxSpeed = newMaxSpeed - (m_iHealthMax - m_iHealth);
 
-	if ( newMaxSpeed < 50 )
-		newMaxSpeed = 50;	// clamp to 50
+	if ( newMaxSpeed < CONTINGENCY_MINIMUM_SPEED )
+		newMaxSpeed = CONTINGENCY_MINIMUM_SPEED;	// clamp to CONTINGENCY_MINIMUM_SPEED
 
 	m_flMaxspeed = newMaxSpeed;
 }
@@ -502,6 +343,11 @@ bool CContingency_Player::HandleCommand_JoinTeam( int team )
 	return false;
 }
 
+bool CContingency_Player::ClientCommand( const CCommand &args )
+{
+	return BaseClass::ClientCommand( args );
+}
+
 // Added loadout system
 // Prevent players from being able to pick up weapons that don't belong to their loadout
 // ...unless the game specifically wants us to, of course
@@ -512,9 +358,9 @@ bool CContingency_Player::BumpWeapon( CBaseCombatWeapon *pWeapon )
 
 	// See if the weapon we're bumping into is a special weapon,
 	// in which case we should see if we can pick it up
-	for ( int i = 0; i < NUM_SPECIAL_WEAPONS; i++ )
+	for ( int i = 0; i < NUM_SPECIAL_WEAPON_TYPES; i++ )
 	{
-		if ( FClassnameIs(pWeapon, kSpecialWeapons[i]) && !Weapon_OwnsThisType(kSpecialWeapons[i]) )
+		if ( FClassnameIs(pWeapon, kSpecialWeaponTypes[i][0]) && !Weapon_OwnsThisType(kSpecialWeaponTypes[i][0]) )
 			return BaseClass::BumpWeapon( pWeapon );
 	}
 
@@ -578,9 +424,9 @@ void CContingency_Player::Event_Killed( const CTakeDamageInfo &info )
 
 	// Drop all special weapons when a player dies
 	CBaseCombatWeapon *pWeapon = NULL;
-	for ( int i = 0; i < NUM_SPECIAL_WEAPONS; i++ )
+	for ( int i = 0; i < NUM_SPECIAL_WEAPON_TYPES; i++ )
 	{
-		pWeapon = Weapon_OwnsThisType( kSpecialWeapons[i] );
+		pWeapon = Weapon_OwnsThisType( kSpecialWeaponTypes[i][0] );
 		if ( !pWeapon )
 			continue;
 
@@ -694,56 +540,6 @@ void CContingency_Player::PlayerDeathThink( void )
 	}
 }
 
-// Added loadout system
-void CC_CHANGELOADOUT( const CCommand &args )
-{
-	CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_GetCommandClient() );
-	if ( !pPlayer )
-		return;
-
-	const char *loadoutName = args.Arg(1);
-	int loadout;
-	if ( Q_strcmp(loadoutName, "soldier") == 0 )
-		loadout = LOADOUT_SOLDIER;
-	else if ( Q_strcmp(loadoutName, "shotgun_soldier") == 0 )
-		loadout = LOADOUT_SHOTGUN_SOLDIER;
-	else if ( Q_strcmp(loadoutName, "commander") == 0 )
-		loadout = LOADOUT_COMMANDER;
-	else if ( Q_strcmp(loadoutName, "marksman") == 0 )
-		loadout = LOADOUT_MARKSMAN;
-	else if ( Q_strcmp(loadoutName, "demolitionist") == 0 )
-		loadout = LOADOUT_DEMOLITIONIST;
-	else
-		return;
-
-	pPlayer->ApplyLoadout( loadout, pPlayer->GetHealth(), false );
-}
-static ConCommand changeloadout("changeloadout", CC_CHANGELOADOUT, "Used to change one's current loadout when permitted");
-
-// Added loadout system
-// Added loadout menu
-void CC_LOADOUTMENU( const CCommand &args )
-{
-	CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_GetCommandClient() );
-	if ( !pPlayer )
-		return;
-
-	if ( !ContingencyRules()->IsPlayerPlaying(pPlayer) )
-	{
-		ClientPrint( pPlayer, HUD_PRINTTALK, "Only living players can change their loadout." );
-		return;
-	}
-
-	if ( ContingencyRules()->GetCurrentPhase() != PHASE_INTERIM )
-	{
-		ClientPrint( pPlayer, HUD_PRINTTALK, "You can only change your loadout during an interim phase." );
-		return;
-	}
-
-	pPlayer->ShowViewPortPanel( "loadoutmenu", true, NULL );
-}
-static ConCommand showloadoutmenu("showloadoutmenu", CC_LOADOUTMENU, "Shows the loadout menu for changing one's loadout");
-
 // Added drop system
 void CC_Player_Drop( void )
 {
@@ -756,9 +552,9 @@ void CC_Player_Drop( void )
 		return;
 
 	// Only allow players to drop special weapons
-	for ( int i = 0; i < NUM_SPECIAL_WEAPONS; i++ )
+	for ( int i = 0; i < NUM_SPECIAL_WEAPON_TYPES; i++ )
 	{
-		if ( FClassnameIs(pWeapon, kSpecialWeapons[i]) )
+		if ( FClassnameIs(pWeapon, kSpecialWeaponTypes[i][0]) )
 		{
 			pPlayer->Weapon_Drop( pWeapon, NULL, NULL );
 			return;

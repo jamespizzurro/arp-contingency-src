@@ -219,6 +219,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
   <ItemGroup>
     <ClCompile Include="..\shared\contingency\contingency_gamerules.cpp" />
     <ClCompile Include="..\shared\contingency\contingency_player_shared.cpp" />
+    <ClCompile Include="..\shared\contingency\contingency_weapon_types.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_healthkit.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_nyangun.cpp" />
     <ClCompile Include="achievement_notification_panel.cpp" />
@@ -260,7 +261,6 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClCompile Include="contingency\hud_contingency_chat.cpp" />
     <ClCompile Include="contingency\hud_contingency_damageindicator.cpp" />
     <ClCompile Include="contingency\hud_contingency_ammo.cpp" />
-    <ClCompile Include="contingency\hud_contingency_loadoutdisplay.cpp" />
     <ClCompile Include="contingency\hud_contingency_phasedisplay.cpp" />
     <ClCompile Include="contingency\hud_contingency_playerstatus.cpp" />
     <ClCompile Include="contingency\hud_contingency_stamina.cpp" />
@@ -872,6 +872,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
   <ItemGroup>
     <ClInclude Include="..\shared\contingency\contingency_gamerules.h" />
     <ClInclude Include="..\shared\contingency\contingency_player_shared.h" />
+    <ClInclude Include="..\shared\contingency\contingency_weapon_types.h" />
     <ClInclude Include="achievement_notification_panel.h" />
     <ClInclude Include="..\shared\achievement_saverestore.h" />
     <ClInclude Include="..\shared\achievementmgr.h" />

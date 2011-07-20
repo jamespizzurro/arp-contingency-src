@@ -36,16 +36,6 @@ public:
 	// Add a custom maximum health variable so that the client can get a player's maximum health
 	int GetMaxHealth( void ) { return m_iHealthMax; }
 
-	// Added loadout system
-	int GetCurrentLoadout( void ) { return m_iCurrentLoadout; }
-	const char *GetLoadoutName( int loadout );
-	const char *GetCurrentLoadoutName( void ) { return GetLoadoutName( GetCurrentLoadout() ); }
-
-	// Added loadout system
-	// Added loadout menu
-	int GetSelectedLoadout( void ) { return m_iSelectedLoadout; }
-	void SetSelectedLoadout( int newSelectedLoadout ) { m_iSelectedLoadout = newSelectedLoadout; }
-
 	// Added player status HUD element
 	const char* GetHealthCondition( void );
 	Color GetHealthConditionColor( void );
@@ -55,13 +45,6 @@ private:
 
 	// Add a custom maximum health variable so that the client can get a player's maximum health
 	int m_iHealthMax;
-
-	// Added loadout system
-	int m_iCurrentLoadout;
-
-	// Added loadout system
-	// Added loadout menu
-	int m_iSelectedLoadout;
 };
 
 inline C_Contingency_Player *ToContingencyPlayer( CBaseEntity *pEntity )

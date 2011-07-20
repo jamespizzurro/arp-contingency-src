@@ -19,16 +19,12 @@ public:
 	const char *GetSteamID( void ) { return steamID; }
 	void SetSteamID( const char *newSteamID ) { steamID = newSteamID; }
 
-	int GetLoadout( void ) { return loadout; }
-	void SetLoadout( int newLoadout ) { loadout = newLoadout; }
-
 	int GetHealth( void ) { return health; }
 	void SetHealth( int newHealth ) { health = newHealth; }
 
 private:
 	bool accessed;
 	const char *steamID;
-	int loadout;
 	int health;
 };
 
@@ -56,8 +52,8 @@ public:
 	void ChangeTeam( int iTeam );
 
 	// Added loadout system
-	void ApplyLoadout( int requestedLoadout, int requestedHealth, bool wasCalledDuringSpawn );
-	void Replenish( void );
+	void ApplyLoadout( int requestedHealth );
+	void ReplenishAmmo( bool suppressSound );
 
 	// Reworked spawnpoint system
 	CBaseEntity* EntSelectSpawnPoint( void );
@@ -71,56 +67,14 @@ public:
 	// Adjust players' max speed based on different factors
 	float CContingency_Player::GetMaxWalkingSpeed( void )
 	{
-		switch ( GetCurrentLoadout() )
-		{
-		case LOADOUT_SOLDIER:
-			return LOADOUT_SOLDIER_WALK_SPEED;
-		case LOADOUT_SHOTGUN_SOLDIER:
-			return LOADOUT_SHOTGUN_SOLDIER_WALK_SPEED;
-		case LOADOUT_COMMANDER:
-			return LOADOUT_COMMANDER_WALK_SPEED;
-		case LOADOUT_MARKSMAN:
-			return LOADOUT_MARKSMAN_WALK_SPEED;
-		case LOADOUT_DEMOLITIONIST:
-			return LOADOUT_DEMOLITIONIST_WALK_SPEED;
-		}
-
 		return CONTINGENCY_WALK_SPEED;
 	}
 	float CContingency_Player::GetMaxNormalSpeed( void )
 	{
-		switch ( GetCurrentLoadout() )
-		{
-		case LOADOUT_SOLDIER:
-			return LOADOUT_SOLDIER_NORM_SPEED;
-		case LOADOUT_SHOTGUN_SOLDIER:
-			return LOADOUT_SHOTGUN_SOLDIER_NORM_SPEED;
-		case LOADOUT_COMMANDER:
-			return LOADOUT_COMMANDER_NORM_SPEED;
-		case LOADOUT_MARKSMAN:
-			return LOADOUT_MARKSMAN_NORM_SPEED;
-		case LOADOUT_DEMOLITIONIST:
-			return LOADOUT_DEMOLITIONIST_NORM_SPEED;
-		}
-
 		return CONTINGENCY_NORM_SPEED;
 	}
 	float CContingency_Player::GetMaxSprintingSpeed( void )
 	{
-		switch ( GetCurrentLoadout() )
-		{
-		case LOADOUT_SOLDIER:
-			return LOADOUT_SOLDIER_SPRINT_SPEED;
-		case LOADOUT_SHOTGUN_SOLDIER:
-			return LOADOUT_SHOTGUN_SOLDIER_SPRINT_SPEED;
-		case LOADOUT_COMMANDER:
-			return LOADOUT_COMMANDER_SPRINT_SPEED;
-		case LOADOUT_MARKSMAN:
-			return LOADOUT_MARKSMAN_SPRINT_SPEED;
-		case LOADOUT_DEMOLITIONIST:
-			return LOADOUT_DEMOLITIONIST_SPRINT_SPEED;
-		}
-
 		return CONTINGENCY_SPRINT_SPEED;
 	}
 	void SetMaxSpeed( float flMaxSpeed );
@@ -129,6 +83,8 @@ public:
 
 	// Do not allow players to change their team
 	bool HandleCommand_JoinTeam( int team );
+
+	bool ClientCommand( const CCommand &args );
 
 	// Added loadout system
 	// Prevent players from being able to pick up weapons that don't belong to their loadout
@@ -153,12 +109,6 @@ public:
 	int GetMaxHealth( void ) { return m_iHealthMax; }
 	void SetHealthMax( int newMaxHealth ) { m_iHealthMax = newMaxHealth; }
 
-	// Added loadout system
-	int GetCurrentLoadout( void ) { return m_iCurrentLoadout; }
-	void SetCurrentLoadout( int newLoadout ) { m_iCurrentLoadout = newLoadout; }
-	const char *GetLoadoutName( int loadout );
-	const char *GetCurrentLoadoutName( void ) { return GetLoadoutName( GetCurrentLoadout() ); }
-
 	// Added drop system
 	void Weapon_Drop( CBaseCombatWeapon *pWeapon, const Vector *pvecTarget, const Vector *pVelocity );
 
@@ -166,6 +116,16 @@ public:
 	void MakeChatBubble( int chatbubble );
 	void KillChatBubble();
 	void CheckChatBubble( CUserCmd *cmd );
+
+	// Added loadout system
+	const char *GetPreferredPrimaryWeaponClassname( void ) { return engine->GetClientConVarValue( entindex(), "contingency_client_preferredprimaryweapon" ); }
+	const char *GetPreferredSecondaryWeaponClassname( void ) { return engine->GetClientConVarValue( entindex(), "contingency_client_preferredsecondaryweapon" ); }
+	const char *GetPreferredMeleeWeaponClassname( void ) { return engine->GetClientConVarValue( entindex(), "contingency_client_preferredmeleeweapon" ); }
+	const char *GetPreferredEquipmentClassname( void ) { return engine->GetClientConVarValue( entindex(), "contingency_client_preferredequipment" ); }
+
+	// Added loadout system
+	bool IsMarkedForLoadoutUpdate( void ) { return m_bMarkedForLoadoutUpdate; }
+	void IsMarkedForLoadoutUpdate( bool boolean ) { m_bMarkedForLoadoutUpdate = boolean; }
 
 private:
 
@@ -179,9 +139,6 @@ private:
 	float m_flMinTimeBtwnPainSounds;
 
 	// Added loadout system
-	CNetworkVar( int, m_iCurrentLoadout );
-
-	// Added loadout system
 	// Prevent players from being able to pick up weapons that don't belong to their loadout
 	// ...unless the game specifically wants us to, of course
 	bool m_bGivingWeapons;
@@ -191,6 +148,9 @@ private:
 
 	// Added chat bubble above players' heads while they type in chat
 	EHANDLE m_hChatBubble;
+
+	// Added loadout system
+	bool m_bMarkedForLoadoutUpdate;
 };
 
 inline CContingency_Player *ToContingencyPlayer( CBaseEntity *pEntity )

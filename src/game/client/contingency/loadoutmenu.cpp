@@ -35,6 +35,12 @@ extern IGameUIFuncs *gameuifuncs; // for key binding details
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+extern ConVar contingency_client_preferredprimaryweapon;
+extern ConVar contingency_client_preferredsecondaryweapon;
+extern ConVar contingency_client_preferredmeleeweapon;
+extern ConVar contingency_client_preferredequipment;
+extern ConVar contingency_client_updateloadout;
+
 using namespace vgui;
 
 //-----------------------------------------------------------------------------
@@ -58,6 +64,22 @@ CLoadoutMenu::CLoadoutMenu(IViewPort *pViewPort) : Frame(NULL, PANEL_LOADOUT)
 	LoadControlSettings("Resource/UI/MainLoadoutMenu.res");
 
 	m_pPanel = new EditablePanel( this, PANEL_LOADOUT );
+
+	currentPrimaryWeaponIndex = 0;
+	currentPrimaryWeaponSelected[0] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][0];
+	currentPrimaryWeaponSelected[1] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][1];
+
+	currentSecondaryWeaponIndex = 0;
+	currentSecondaryWeaponSelected[0] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][0];
+	currentSecondaryWeaponSelected[1] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][1];
+
+	currentMeleeWeaponIndex = 0;
+	currentMeleeWeaponSelected[0] = kMeleeWeaponTypes[currentMeleeWeaponIndex][0];
+	currentMeleeWeaponSelected[1] = kMeleeWeaponTypes[currentMeleeWeaponIndex][1];
+
+	currentEquipmentIndex = 0;
+	currentEquipmentSelected[0] = kEquipmentTypes[currentEquipmentIndex][0];
+	currentEquipmentSelected[1] = kEquipmentTypes[currentEquipmentIndex][1];
 }
 
 //-----------------------------------------------------------------------------
@@ -82,6 +104,22 @@ CLoadoutMenu::CLoadoutMenu(IViewPort *pViewPort, const char *panelName) : Frame(
 	LoadControlSettings("Resource/UI/MainLoadoutMenu.res");
 
 	m_pPanel = new EditablePanel( this, PANEL_LOADOUT );
+
+	currentPrimaryWeaponIndex = 0;
+	currentPrimaryWeaponSelected[0] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][0];
+	currentPrimaryWeaponSelected[1] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][1];
+
+	currentSecondaryWeaponIndex = 0;
+	currentSecondaryWeaponSelected[0] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][0];
+	currentSecondaryWeaponSelected[1] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][1];
+
+	currentMeleeWeaponIndex = 0;
+	currentMeleeWeaponSelected[0] = kMeleeWeaponTypes[currentMeleeWeaponIndex][0];
+	currentMeleeWeaponSelected[1] = kMeleeWeaponTypes[currentMeleeWeaponIndex][1];
+
+	currentEquipmentIndex = 0;
+	currentEquipmentSelected[0] = kEquipmentTypes[currentEquipmentIndex][0];
+	currentEquipmentSelected[1] = kEquipmentTypes[currentEquipmentIndex][1];
 }
 
 //-----------------------------------------------------------------------------
@@ -139,39 +177,6 @@ void CLoadoutMenu::OnThink()
 	if ( !pLocalPlayer )
 		return;
 
-	int numButtonsHighlighted = 0;
-
-	// Cycle through each button and see if any are highlighted
-	for ( int i = 0; i < m_Buttons.Count(); i++ )
-	{
-		Button* pButton = m_Buttons[i];
-
-		if ( !pButton )
-			continue;
-
-		if ( pButton->IsCursorOver() )
-		{
-			const char *buttonName = pButton->GetName();
-
-			if ( strcmp( buttonName, "SoldierButton" ) == 0 )
-				pLocalPlayer->SetSelectedLoadout( LOADOUT_SOLDIER );
-			else if ( strcmp( buttonName, "ShotgunSoldierButton" ) == 0 )
-				pLocalPlayer->SetSelectedLoadout( LOADOUT_SHOTGUN_SOLDIER );
-			else if ( strcmp( buttonName, "CommanderButton" ) == 0 )
-				pLocalPlayer->SetSelectedLoadout( LOADOUT_COMMANDER );
-			else if ( strcmp( buttonName, "MarksmanButton" ) == 0 )
-				pLocalPlayer->SetSelectedLoadout( LOADOUT_MARKSMAN );
-			else if ( strcmp( buttonName, "DemolitionistButton" ) == 0 )
-				pLocalPlayer->SetSelectedLoadout( LOADOUT_DEMOLITIONIST );
-
-			numButtonsHighlighted = numButtonsHighlighted + 1;
-		}
-	}
-
-	if ( numButtonsHighlighted == 0 )	// when in doubt, we're not interested in any class
-		pLocalPlayer->SetSelectedLoadout( -1 );
-
-	// Display a description for the class we're considering
 	for ( int i = 0; i < m_Labels.Count(); i++ )
 	{
 		Label* pLabel = m_Labels[i];
@@ -180,44 +185,17 @@ void CLoadoutMenu::OnThink()
 
 		const char *labelName = pLabel->GetName();
 
-		if ( strcmp( labelName, "DescriptionArea" ) == 0 )
-		{
-			switch ( pLocalPlayer->GetSelectedLoadout() )
-			{
-			case LOADOUT_SOLDIER:
-				pLabel->SetText("#Contingency_Soldier_Description");
-				break;
-
-			case LOADOUT_SHOTGUN_SOLDIER:
-				pLabel->SetText("#Contingency_Shotgun_Soldier_Description");
-				break;
-
-			case LOADOUT_COMMANDER:
-				pLabel->SetText("#Contingency_Commander_Description");
-				break;
-
-			case LOADOUT_MARKSMAN:
-				pLabel->SetText("#Contingency_Marksman_Description");
-				break;
-
-			case LOADOUT_DEMOLITIONIST:
-				pLabel->SetText("#Contingency_Demolitionist_Description");
-				break;
-
-			default:
-				pLabel->SetText("");	// when in doubt, display nothing
-				break;
-			}
-		}
-		else if ( strcmp( labelName, "LoadoutName" ) == 0 )
-		{
-			char classDisplay[64];
-			Q_snprintf( classDisplay, sizeof(classDisplay), "%s", pLocalPlayer->GetLoadoutName(pLocalPlayer->GetSelectedLoadout()) );
-			pLabel->SetText( classDisplay );
-		}
+		// Update weapon name labels
+		if ( Q_strcmp(labelName, "PrimaryWeaponName") == 0 )
+			pLabel->SetText(currentPrimaryWeaponSelected[1]);
+		if ( Q_strcmp(labelName, "SecondaryWeaponName") == 0 )
+			pLabel->SetText(currentSecondaryWeaponSelected[1]);
+		if ( Q_strcmp(labelName, "MeleeWeaponName") == 0 )
+			pLabel->SetText(currentMeleeWeaponSelected[1]);
+		if ( Q_strcmp(labelName, "EquipmentName") == 0 )
+			pLabel->SetText(currentEquipmentSelected[1]);
 	}
 
-	// Display an image for the class we're considering
 	for ( int i = 0; i < m_ImagePanels.Count(); i++ )
 	{
 		ImagePanel* pImagePanel = m_ImagePanels[i];
@@ -226,39 +204,27 @@ void CLoadoutMenu::OnThink()
 
 		const char *imagePanelName = pImagePanel->GetName();
 
-		if ( strcmp( imagePanelName, "ImagePreview" ) == 0 )
+		// Update weapon images
+		char imagePath[256];
+		if ( Q_strcmp(imagePanelName, "PrimaryWeaponImage") == 0 )
 		{
-			switch ( pLocalPlayer->GetSelectedLoadout() )
-			{
-			case LOADOUT_SOLDIER:
-				pImagePanel->SetImage( scheme()->GetImage("playermodels/soldier", false) );
-				pImagePanel->SetAlpha(255);
-				break;
-
-			case LOADOUT_SHOTGUN_SOLDIER:
-				pImagePanel->SetImage( scheme()->GetImage("playermodels/shotgun_soldier", false) );
-				pImagePanel->SetAlpha(255);
-				break;
-
-			case LOADOUT_COMMANDER:
-				pImagePanel->SetImage( scheme()->GetImage("playermodels/commander", false) );
-				pImagePanel->SetAlpha(255);
-				break;
-
-			case LOADOUT_MARKSMAN:
-				pImagePanel->SetImage( scheme()->GetImage("playermodels/marksman", false) );
-				pImagePanel->SetAlpha(255);
-				break;
-
-			case LOADOUT_DEMOLITIONIST:
-				pImagePanel->SetImage( scheme()->GetImage("playermodels/demolitionist", false) );
-				pImagePanel->SetAlpha(255);
-				break;
-
-			default:
-				pImagePanel->SetAlpha(0);	// when in doubt, display nothing
-				break;
-			}
+			Q_snprintf( imagePath, sizeof(imagePath), "weapons/%s", currentPrimaryWeaponSelected[0] );
+			pImagePanel->SetImage( scheme()->GetImage(imagePath, false) );
+		}
+		if ( Q_strcmp(imagePanelName, "SecondaryWeaponImage") == 0 )
+		{
+			Q_snprintf( imagePath, sizeof(imagePath), "weapons/%s", currentSecondaryWeaponSelected[0] );
+			pImagePanel->SetImage( scheme()->GetImage(imagePath, false) );
+		}
+		if ( Q_strcmp(imagePanelName, "MeleeWeaponImage") == 0 )
+		{
+			Q_snprintf( imagePath, sizeof(imagePath), "weapons/%s", currentMeleeWeaponSelected[0] );
+			pImagePanel->SetImage( scheme()->GetImage(imagePath, false) );
+		}
+		if ( Q_strcmp(imagePanelName, "EquipmentImage") == 0 )
+		{
+			Q_snprintf( imagePath, sizeof(imagePath), "weapons/%s", currentEquipmentSelected[0] );
+			pImagePanel->SetImage( scheme()->GetImage(imagePath, false) );
 		}
 	}
 }
@@ -272,14 +238,108 @@ void CLoadoutMenu::OnCommand( const char *command )
 	if ( !pLocalPlayer )
 		return;
 
-	if ( Q_stricmp( command, "vguicancel" ) )
+	if ( Q_stricmp(command, "nextprimaryweapon") == 0 )
 	{
-		engine->ClientCmd( const_cast<char *>( command ) );
-	}
+		// Bounds check
+		if ( (currentPrimaryWeaponIndex + 1) >= NUM_PRIMARY_WEAPON_TYPES )
+			return;
 
-	Close();
-	gViewPortInterface->ShowBackGround( false );
-	pLocalPlayer->SetSelectedLoadout( -1 );
+		currentPrimaryWeaponIndex = currentPrimaryWeaponIndex + 1;
+		currentPrimaryWeaponSelected[0] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][0];
+		currentPrimaryWeaponSelected[1] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][1];
+	}
+	else if ( Q_stricmp(command, "previousprimaryweapon") == 0 )
+	{
+		// Bounds check
+		if ( (currentPrimaryWeaponIndex - 1) < 0 )
+			return;
+
+		currentPrimaryWeaponIndex = currentPrimaryWeaponIndex - 1;
+		currentPrimaryWeaponSelected[0] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][0];
+		currentPrimaryWeaponSelected[1] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][1];
+	}
+	else if ( Q_stricmp(command, "nextsecondaryweapon") == 0 )
+	{
+		// Bounds check
+		if ( (currentSecondaryWeaponIndex + 1) >= NUM_SECONDARY_WEAPON_TYPES )
+			return;
+
+		currentSecondaryWeaponIndex = currentSecondaryWeaponIndex + 1;
+		currentSecondaryWeaponSelected[0] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][0];
+		currentSecondaryWeaponSelected[1] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][1];
+	}
+	else if ( Q_stricmp(command, "previoussecondaryweapon") == 0 )
+	{
+		// Bounds check
+		if ( (currentSecondaryWeaponIndex - 1) < 0 )
+			return;
+
+		currentSecondaryWeaponIndex = currentSecondaryWeaponIndex - 1;
+		currentSecondaryWeaponSelected[0] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][0];
+		currentSecondaryWeaponSelected[1] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][1];
+	}
+	else if ( Q_stricmp(command, "nextmeleeweapon") == 0 )
+	{
+		// Bounds check
+		if ( (currentMeleeWeaponIndex + 1) >= NUM_SECONDARY_WEAPON_TYPES )
+			return;
+
+		currentMeleeWeaponIndex = currentMeleeWeaponIndex + 1;
+		currentMeleeWeaponSelected[0] = kMeleeWeaponTypes[currentMeleeWeaponIndex][0];
+		currentMeleeWeaponSelected[1] = kMeleeWeaponTypes[currentMeleeWeaponIndex][1];
+	}
+	else if ( Q_stricmp(command, "previousmeleeweapon") == 0 )
+	{
+		// Bounds check
+		if ( (currentMeleeWeaponIndex - 1) < 0 )
+			return;
+
+		currentMeleeWeaponIndex = currentMeleeWeaponIndex - 1;
+		currentMeleeWeaponSelected[0] = kMeleeWeaponTypes[currentMeleeWeaponIndex][0];
+		currentMeleeWeaponSelected[1] = kMeleeWeaponTypes[currentMeleeWeaponIndex][1];
+	}
+	else if ( Q_stricmp(command, "nextequipment") == 0 )
+	{
+		// Bounds check
+		if ( (currentEquipmentIndex + 1) >= NUM_EQUIPMENT_TYPES )
+			return;
+
+		currentEquipmentIndex = currentEquipmentIndex + 1;
+		currentEquipmentSelected[0] = kEquipmentTypes[currentEquipmentIndex][0];
+		currentEquipmentSelected[1] = kEquipmentTypes[currentEquipmentIndex][1];
+	}
+	else if ( Q_stricmp(command, "previousequipment") == 0 )
+	{
+		// Bounds check
+		if ( (currentEquipmentIndex - 1) < 0 )
+			return;
+
+		currentEquipmentIndex = currentEquipmentIndex - 1;
+		currentEquipmentSelected[0] = kEquipmentTypes[currentEquipmentIndex][0];
+		currentEquipmentSelected[1] = kEquipmentTypes[currentEquipmentIndex][1];
+	}
+	else if ( Q_stricmp(command, "saveloadout") == 0 )
+	{
+		const char *currentPrimaryWeaponSelectedClassname = currentPrimaryWeaponSelected[0];
+		const char *currentSecondaryWeaponSelectedClassname = currentSecondaryWeaponSelected[0];
+		const char *currentMeleeWeaponSelectedClassname = currentMeleeWeaponSelected[0];
+		const char *currentEquipmentSelectedClassname = currentEquipmentSelected[0];
+
+		// Update our preferred weapon/equipment ConVars according to our selection
+		contingency_client_preferredprimaryweapon.SetValue( currentPrimaryWeaponSelectedClassname );
+		contingency_client_preferredsecondaryweapon.SetValue( currentSecondaryWeaponSelectedClassname );
+		contingency_client_preferredmeleeweapon.SetValue( currentMeleeWeaponSelectedClassname );
+		contingency_client_preferredequipment.SetValue( currentEquipmentSelectedClassname );
+		contingency_client_updateloadout.SetValue( 1 );	// tells the server (gamerules) that our loadout needs to be updated
+
+		Close();
+		gViewPortInterface->ShowBackGround( false );
+	}
+	else
+	{
+		Close();
+		gViewPortInterface->ShowBackGround( false );
+	}
 
 	BaseClass::OnCommand( command );
 }
@@ -293,24 +353,6 @@ void CLoadoutMenu::ShowPanel(bool bShow)
 	{
 		Activate();
 		SetMouseInputEnabled( true );
-
-		/*// load a default class page
-		for ( int i=0; i<m_mouseoverButtons.Count(); ++i )
-		{
-			if ( i == 0 )
-			{
-				m_mouseoverButtons[i]->ShowPage();	// Show the first page
-			}
-			else
-			{
-				m_mouseoverButtons[i]->HidePage();	// Hide the rest
-			}
-		}
-		
-		if ( m_iScoreBoardKey == BUTTON_CODE_INVALID ) 
-		{
-			m_iScoreBoardKey = gameuifuncs->GetButtonCodeForBind( "showscores" );
-		}*/
 	}
 	else
 	{

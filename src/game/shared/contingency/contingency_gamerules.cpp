@@ -83,18 +83,26 @@ IMPLEMENT_NETWORKCLASS_ALIASED( ContingencyRulesProxy, DT_ContingencyRulesProxy 
 	ConVar contingency_wave_support( "contingency_wave_support", "1", FCVAR_GAMEDLL | FCVAR_NOTIFY, "Toggles the spawning support NPCs during interim phases when server isn't full" );
 
 	// Added wave system
-	ConVar contingency_wave_preferredtype( "contingency_wave_preferredtype", "0", FCVAR_GAMEDLL | FCVAR_NOTIFY, "Defines the preferred type of wave (if any) to use, where 0 forces wave randomization (maps have final say as to which wave type is used though, so this preference may be disregarded)" );
-	ConVar contingency_wave_maxlivingnpcs( "contingency_wave_maxlivingnpcs", "30", FCVAR_GAMEDLL | FCVAR_NOTIFY, "Defines the maximum number of NPCs spawned during a wave that are allowed to be on the server at any given time" );
-	ConVar contingency_wave_multiplier_headcrabs( "contingency_wave_multiplier_headcrabs", "3", FCVAR_GAMEDLL | FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during headcrab waves" );
-	ConVar contingency_wave_multiplier_antlions( "contingency_wave_multiplier_antlions", "4", FCVAR_GAMEDLL | FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during antlion waves" );
-	ConVar contingency_wave_multiplier_zombies( "contingency_wave_multiplier_zombies", "5", FCVAR_GAMEDLL | FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during zombie waves" );
-	ConVar contingency_wave_multiplier_combine( "contingency_wave_multiplier_combine", "2", FCVAR_GAMEDLL | FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during combine waves" );
+	ConVar contingency_wave_maxlivingnpcs( "contingency_wave_maxlivingnpcs", "30", FCVAR_NOTIFY, "Defines the maximum number of NPCs spawned during a wave that are allowed to be on the server at any given time" );
+	ConVar contingency_wave_multiplier_headcrabs( "contingency_wave_multiplier_headcrabs", "3", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during headcrab waves" );
+	ConVar contingency_wave_multiplier_antlions( "contingency_wave_multiplier_antlions", "4", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during antlion waves" );
+	ConVar contingency_wave_multiplier_zombies( "contingency_wave_multiplier_zombies", "5", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during zombie waves" );
+	ConVar contingency_wave_multiplier_combine( "contingency_wave_multiplier_combine", "2", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during combine waves" );
 #else
 	ConVar contingency_client_heartbeatsounds( "contingency_client_heartbeatsounds", "1", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Toggles heartbeat sounds when health is low" );
 
 	// Added sound cue and background music system
-	ConVar contingency_client_backgroundmusic( "contingency_client_backgroundmusic", "1", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Toggles background music during combat phases" );
-	ConVar contingency_client_backgroundmusic_volume( "contingency_client_backgroundmusic_volume", "0.5", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Defines the normalized loudness of background music (0.0 to 1.0)" );
+	ConVar contingency_client_backgroundmusic( "contingency_client_backgroundmusic", "1", FCVAR_ARCHIVE, "Toggles background music during combat phases" );
+	ConVar contingency_client_backgroundmusic_volume( "contingency_client_backgroundmusic_volume", "0.5", FCVAR_ARCHIVE, "Defines the normalized loudness of background music (0.0 to 1.0)" );
+
+	// Added loadout system
+	// These are for storing players' loadouts so that they carry over from game to game and server to server
+	// I've found they aren't very reliable with regards to getting and setting via the server, so another system handles that
+	ConVar contingency_client_preferredprimaryweapon( "contingency_client_preferredprimaryweapon", "weapon_smg1", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_SERVER_CAN_EXECUTE, "Defines the classname of the preferred primary weapon to use" );
+	ConVar contingency_client_preferredsecondaryweapon( "contingency_client_preferredsecondaryweapon", "weapon_pistol", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_SERVER_CAN_EXECUTE, "Defines the classname of the preferred secondary weapon to use" );
+	ConVar contingency_client_preferredmeleeweapon( "contingency_client_preferredmeleeweapon", "weapon_crowbar", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_SERVER_CAN_EXECUTE, "Defines the classname of the preferred melee weapon to use" );
+	ConVar contingency_client_preferredequipment( "contingency_client_preferredequipment", "weapon_frag", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_SERVER_CAN_EXECUTE, "Defines the classname of the preferred equipment to use" );
+	ConVar contingency_client_updateloadout( "contingency_client_updateloadout", "0", FCVAR_USERINFO | FCVAR_SERVER_CAN_EXECUTE, "Requests a manual update to the preferred loadout" );
 #endif
 
 #ifdef CLIENT_DLL
@@ -131,11 +139,22 @@ CContingencyRules::CContingencyRules()
 
 	m_iRestartDelay = 0;
 
-	// Added wave system
-	SetMapPreferredWaveType( WAVE_NONE );
-
 	// Added support wave system
 	PurgeCurrentSupportWave();
+
+	// Added wave system
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	m_bMapHeadcrabSupport = true;
+	m_bMapAntlionSupport = true;
+	m_bMapZombieSupport = true;
+	m_bMapCombineSupport = true;
+
+	// Added wave system
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	m_flMapHeadcrabWaveMultiplierOffset = 0.0f;
+	m_flMapAntlionWaveMultiplierOffset = 0.0f;
+	m_flMapZombieWaveMultiplierOffset = 0.0f;
+	m_flMapCombineWaveMultiplierOffset = 0.0f;
 #endif
 }
 	
@@ -262,10 +281,44 @@ void CContingencyRules::ClientSettingsChanged( CBasePlayer *pPlayer )
 	if ( !pContingencyPlayer )
 		return;
 
-	if ( sv_report_client_settings.GetInt() == 1 )
-		UTIL_LogPrintf( "\"%s\" cl_cmdrate = \"%s\"\n", pContingencyPlayer->GetPlayerName(), engine->GetClientConVarValue( pContingencyPlayer->entindex(), "cl_cmdrate" ));
+	if ( Q_stricmp(engine->GetClientConVarValue(engine->IndexOfEdict(pContingencyPlayer->edict()), "contingency_client_updateloadout"), "1") == 0 )
+	{
+		// This player's loadout needs to be updated according to
+		// their preferred weapons/equipment, so do so
 
-	CTeamplayRules::ClientSettingsChanged( pPlayer );	// skip over CHL2MPRules::ClientSettingsChanged
+		// See if we can apply the updated loadout right away
+		// If not, that's fine, because it can always be applied automatically later
+
+		if ( IsPlayerPlaying(pContingencyPlayer) )
+		{
+			if ( GetCurrentPhase() == PHASE_INTERIM )
+			{
+				// We can apply the updated loadout now, so do so
+				pContingencyPlayer->ApplyLoadout( pContingencyPlayer->GetHealth() );
+
+				ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Your loadout has been saved and applied." );
+			}
+			else
+			{
+				ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Loadout saved. Any changes will be applied at the start of the next interim phase." );
+				pContingencyPlayer->IsMarkedForLoadoutUpdate( true );
+			}
+		}
+		else
+		{
+			ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Loadout saved. Any changes will be applied next time you spawn." );
+			pContingencyPlayer->IsMarkedForLoadoutUpdate( true );
+		}
+
+		// Update successful, so update the value of our ConVar to reflect this
+		// This will in turn call this function again, but this block won't because of the first condition
+		engine->ClientCommand( pContingencyPlayer->edict(), "contingency_client_updateloadout 0" );
+	}
+
+	if ( sv_report_client_settings.GetInt() == 1 )
+		UTIL_LogPrintf( "\"%s\" cl_cmdrate = \"%s\"\n", pContingencyPlayer->GetPlayerName(), engine->GetClientConVarValue(pContingencyPlayer->entindex(), "cl_cmdrate") );
+
+	CTeamplayRules::ClientSettingsChanged( pContingencyPlayer );	// skip over CHL2MPRules::ClientSettingsChanged
 #endif
 }
 
@@ -284,7 +337,6 @@ void CContingencyRules::ClientDisconnected( edict_t *pClient )
 			// We've found a player info entry with our player's steamID in it,
 			// so update that entry with our player's new information
 			pPlayerInfo->HasBeenAccessed( false );
-			pPlayerInfo->SetLoadout( pPlayer->GetCurrentLoadout() );
 			if ( !pPlayer->IsAlive() )
 				pPlayerInfo->SetHealth( 0 );
 			else
@@ -299,7 +351,6 @@ void CContingencyRules::ClientDisconnected( edict_t *pClient )
 			{
 				pPlayerInfo->HasBeenAccessed( false );
 				pPlayerInfo->SetSteamID( steamID );
-				pPlayerInfo->SetLoadout( pPlayer->GetCurrentLoadout() );
 				if ( !pPlayer->IsAlive() )
 					pPlayerInfo->SetHealth( 0 );
 				else
@@ -326,29 +377,30 @@ void CContingencyRules::ClientDisconnected( edict_t *pClient )
 #ifndef CLIENT_DLL
 void CContingencyRules::PerformWaveCalculations( void )
 {
-	// See what wave type our current map prefers
+	// See what wave types our current map supports
 	// via our custom contingency_configuration entity
 	// (if a map doesn't have one, then we're assuming
-	// it does not prefer a wave type)
+	// it supports all wave types)
 
-	int waveSelected = GetMapPreferredWaveType();
-	if ( (waveSelected <= WAVE_NONE) || (waveSelected >= NUM_WAVES) )
+	if ( !DoesMapSupportHeadcrabs() && !DoesMapSupportAntlions() && !DoesMapSupportZombies() && !DoesMapSupportCombine() )
 	{
-		// Our current map does not prefer a wave type,
-		// so our server has the final word
+		// The current map does not appear to support any type of wave
+		// This isn't allowed, so just pretend we support all of them
 
-		waveSelected = contingency_wave_preferredtype.GetInt();
+		Warning("The current map is set not to allow any waves. This is not allowed, and to prevent the game from breaking, all waves have been enabled. Please check your contingency_configuration entity flags!\n");
 
-		if ( (waveSelected <= WAVE_NONE) || (waveSelected >= NUM_WAVES) )
-		{
-			// Choose a random wave type and choose from a pre-defined
-			// list of NPC types and weapon types associated with
-			// that wave type, saving our changes so that we make make use
-			// of them when we go to spawn NPCs for this wave
-
-			waveSelected = random->RandomInt( WAVE_NONE + 1, NUM_WAVES - 1 );
-		}
+		DoesMapSupportHeadcrabs(true);
+		DoesMapSupportAntlions(true);
+		DoesMapSupportZombies(true);
+		DoesMapSupportCombine(true);
 	}
+
+	int waveSelected = random->RandomInt( WAVE_NONE + 1, NUM_WAVES - 1 );
+	while ( ((waveSelected == WAVE_HEADCRABS) && !DoesMapSupportHeadcrabs()) ||
+			((waveSelected == WAVE_ANTLIONS) && !DoesMapSupportAntlions()) ||
+			((waveSelected == WAVE_ZOMBIES) && !DoesMapSupportZombies()) ||
+			((waveSelected == WAVE_COMBINE) && !DoesMapSupportCombine()) )
+		waveSelected = random->RandomInt( WAVE_NONE + 1, NUM_WAVES - 1 );
 
 	SetWaveType( waveSelected );
 
@@ -375,19 +427,19 @@ void CContingencyRules::PerformWaveCalculations( void )
 	{
 	case WAVE_HEADCRABS:
 		numEnemiesToSpawnThisWave = numEnemiesToSpawnThisWave *
-			contingency_wave_multiplier_headcrabs.GetFloat();
+			(contingency_wave_multiplier_headcrabs.GetFloat() + GetMapHeadcrabWaveMultiplierOffset());
 		break;
 	case WAVE_ANTLIONS:
 		numEnemiesToSpawnThisWave = numEnemiesToSpawnThisWave *
-			contingency_wave_multiplier_antlions.GetFloat();
+			(contingency_wave_multiplier_antlions.GetFloat() + GetMapAntlionWaveMultiplierOffset());
 		break;
 	case WAVE_ZOMBIES:
 		numEnemiesToSpawnThisWave = numEnemiesToSpawnThisWave *
-			contingency_wave_multiplier_zombies.GetFloat();
+			(contingency_wave_multiplier_zombies.GetFloat() + GetMapZombieWaveMultiplierOffset());
 		break;
 	case WAVE_COMBINE:
 		numEnemiesToSpawnThisWave = numEnemiesToSpawnThisWave *
-			contingency_wave_multiplier_combine.GetFloat();
+			(contingency_wave_multiplier_combine.GetFloat() + GetMapCombineWaveMultiplierOffset());
 		break;
 	}
 

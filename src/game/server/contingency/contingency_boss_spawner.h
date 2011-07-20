@@ -42,6 +42,8 @@ public:
 	CContingencyRallyPoint*	pRallyPoint;
 	string_t rallyPointName;
 
+	float m_flMaximumDistanceFromNearestPlayer;
+
 private:
 	bool m_bHasSpawnedBoss;
 };

@@ -219,8 +219,10 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClCompile Include="..\shared\activitylist.cpp" />
     <ClCompile Include="..\shared\contingency\contingency_gamerules.cpp" />
     <ClCompile Include="..\shared\contingency\contingency_player_shared.cpp" />
+    <ClCompile Include="..\shared\contingency\contingency_weapon_types.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_healthkit.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_nyangun.cpp" />
+    <ClCompile Include="..\shared\hl2mp\hl2mp_weapon_parse.cpp" />
     <ClCompile Include="ai_activity.cpp" />
     <ClCompile Include="ai_baseactor.cpp" />
     <ClCompile Include="ai_basehumanoid.cpp" />
@@ -894,7 +896,6 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClCompile Include="hl2mp\hl2mp_player.cpp" />
     <ClCompile Include="..\shared\hl2mp\hl2mp_player_shared.cpp" />
     <ClCompile Include="..\shared\hl2mp\hl2mp_playeranimstate.cpp" />
-    <ClCompile Include="..\shared\hl2mp\hl2mp_weapon_parse.cpp" />
     <ClCompile Include="hl2mp\grenade_satchel.cpp" />
     <ClCompile Include="hl2mp\grenade_tripmine.cpp" />
     <ClCompile Include="hl2mp\te_hl2mp_shotgun_shot.cpp" />
@@ -925,7 +926,9 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClInclude Include="..\shared\activitylist.h" />
     <ClInclude Include="..\shared\ai_activity.h" />
     <ClInclude Include="..\shared\contingency\contingency_gamerules.h" />
+    <ClInclude Include="..\shared\contingency\contingency_weapon_types.h" />
     <ClInclude Include="..\shared\contingency\contingency_player_shared.h" />
+    <ClInclude Include="..\shared\hl2mp\hl2mp_weapon_parse.h" />
     <ClInclude Include="ai_baseactor.h" />
     <ClInclude Include="ai_basehumanoid.h" />
     <ClInclude Include="ai_basenpc.h" />
@@ -1273,7 +1276,6 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClInclude Include="hl2mp\hl2mp_player.h" />
     <ClInclude Include="..\shared\hl2mp\hl2mp_player_shared.h" />
     <ClInclude Include="..\shared\hl2mp\hl2mp_playeranimstate.h" />
-    <ClInclude Include="..\shared\hl2mp\hl2mp_weapon_parse.h" />
     <ClInclude Include="hl2mp\grenade_satchel.h" />
     <ClInclude Include="hl2mp\grenade_tripmine.h" />
     <ClInclude Include="hl2mp\te_hl2mp_shotgun_shot.h" />

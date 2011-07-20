@@ -20,9 +20,6 @@ END_RECV_TABLE()
 IMPLEMENT_CLIENTCLASS_DT( C_Contingency_Player, DT_Contingency_Player, CContingency_Player )
 	// Add a custom maximum health variable so that the client can get a player's maximum health
 	RecvPropInt( RECVINFO( m_iHealthMax ) ),
-
-	// Added loadout system
-	RecvPropInt( RECVINFO( m_iCurrentLoadout ) ),
 END_RECV_TABLE()
 
 BEGIN_PREDICTION_DATA( C_Contingency_Player )
@@ -30,9 +27,6 @@ END_PREDICTION_DATA()
 
 C_Contingency_Player::C_Contingency_Player()
 {
-	// Added loadout system
-	// Added loadout menu
-	m_iSelectedLoadout = -1;
 }
 
 C_Contingency_Player::~C_Contingency_Player()
@@ -85,26 +79,6 @@ void C_Contingency_Player::TraceAttack( const CTakeDamageInfo &info, const Vecto
 			TraceBleed( flDistance, vecDir, ptr, info.GetDamageType() );
 		}
 	}
-}
-
-// Added loadout system
-const char *C_Contingency_Player::GetLoadoutName( int loadout )
-{
-	switch ( loadout )
-	{
-	case LOADOUT_SOLDIER:
-		return "Rebel Soldier";
-	case LOADOUT_SHOTGUN_SOLDIER:
-		return "Rebel Shotgun Soldier";
-	case LOADOUT_COMMANDER:
-		return "Rebel Commander";
-	case LOADOUT_MARKSMAN:
-		return "Rebel Marksman";
-	case LOADOUT_DEMOLITIONIST:
-		return "Rebel Demolitionist";
-	}
-
-	return "";
 }
 
 // Added player status HUD element

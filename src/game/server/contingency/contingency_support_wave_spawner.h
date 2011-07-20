@@ -38,6 +38,8 @@ public:
 	// Add a custom rally point entity for wave spawners
 	CContingencyRallyPoint*	pRallyPoint;
 	string_t rallyPointName;
+
+	float m_flMaximumDistanceFromNearestPlayer;
 };
 
 #endif // CONTINGENCY_SUPPORT_WAVE_SPAWNER_H

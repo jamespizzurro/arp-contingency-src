@@ -18,6 +18,8 @@
 
 #include <vgui_controls/Button.h>
 
+#include "contingency_weapon_types.h"
+
 namespace vgui
 {
 	class TextEntry;
@@ -72,6 +74,15 @@ protected:
 	CUtlVector< vgui::Button * > m_Buttons;
 	CUtlVector< vgui::Label * > m_Labels;
 	CUtlVector< vgui::ImagePanel * > m_ImagePanels;
+
+	int currentPrimaryWeaponIndex;
+	const char *currentPrimaryWeaponSelected[NUM_WEAPON_TYPE_PARAMETERS];
+	int currentSecondaryWeaponIndex;
+	const char *currentSecondaryWeaponSelected[NUM_WEAPON_TYPE_PARAMETERS];
+	int currentMeleeWeaponIndex;
+	const char *currentMeleeWeaponSelected[NUM_WEAPON_TYPE_PARAMETERS];
+	int currentEquipmentIndex;
+	const char *currentEquipmentSelected[NUM_WEAPON_TYPE_PARAMETERS];
 };
 
 #endif // LOADOUTMENU_H
