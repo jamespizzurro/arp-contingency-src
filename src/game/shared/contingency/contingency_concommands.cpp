@@ -64,4 +64,36 @@ void CC_ShowLoadoutMenu( const CCommand &args )
 }
 static ConCommand showloadoutmenu( "showloadoutmenu", CC_ShowLoadoutMenu, "Shows the loadout menu for changing one's loadout (when permitted)" );
 
+// Added shout system
+void CC_ShowShoutMenu( const CCommand &args )
+{
+	CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_GetCommandClient() );
+	if ( !pPlayer )
+		return;
+
+	if ( !ContingencyRules()->IsPlayerPlaying(pPlayer) )
+	{
+		ClientPrint( pPlayer, HUD_PRINTTALK, "You must be alive to shout!" );
+		return;
+	}
+
+	if ( gpGlobals->curtime < pPlayer->GetShoutDelay() )
+	{
+		ClientPrint( pPlayer, HUD_PRINTTALK, "You've already shouted recently! Wait a few seconds, then try again." );
+		return;
+	}
+
+	pPlayer->ShouldShowShoutMenu( true );
+	CSingleUserRecipientFilter user( pPlayer );
+	user.MakeReliable();
+
+	UserMessageBegin( user, "ShowMenu" );
+		WRITE_WORD( (1<<0) | (1<<1) | (1<<2) | (1<<3) | (1<<4) | (1<<5) | (1<<6) | (1<<7) | (1<<8) | (1<<9) );
+		WRITE_CHAR( 15 );
+		WRITE_BYTE( false );
+		WRITE_STRING("-=[ SHOUT MENU ]=-\n \n[1] Incoming!\n[2] Run!\n[3] Let's go!\n[4] Lead the way!\n[5] Take cover!\n[6] Ready!\n[7] Headcrabs!\n[8] Zombies!\n[9] Combine!\n \n[0] EXIT\n");
+	MessageEnd();
+}
+static ConCommand showshoutmenu( "showshoutmenu", CC_ShowShoutMenu, "Shows the shout menu (when permitted)" );
+
 #endif

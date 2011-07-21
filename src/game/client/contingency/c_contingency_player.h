@@ -40,11 +40,18 @@ public:
 	const char* GetHealthCondition( void );
 	Color GetHealthConditionColor( void );
 
+	// Added sound cue and background music system
+	int GetAmbientSoundGUID( void ) { return m_iAmbientSoundGUID; }
+	void SetAmbientSoundGUID( int newAmbientSoundGUID ) { m_iAmbientSoundGUID = newAmbientSoundGUID; }
+
 private:
 	C_Contingency_Player( const C_Contingency_Player & );
 
 	// Add a custom maximum health variable so that the client can get a player's maximum health
 	int m_iHealthMax;
+
+	// Added sound cue and background music system
+	int m_iAmbientSoundGUID;
 };
 
 inline C_Contingency_Player *ToContingencyPlayer( CBaseEntity *pEntity )

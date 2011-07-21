@@ -228,6 +228,90 @@ void CContingencyRules::PrecacheWaveNPCs( void )
 		UTIL_PrecacheOther( kSupportWaveSupportNPCTypes[i] );
 }
 
+bool CContingencyRules::ClientCommand( CBaseEntity *pEdict, const CCommand &args )
+{
+#ifndef CLIENT_DLL
+	// Added shout system
+	if ( FStrEq(args[0], "menuselect") )
+	{
+		CContingency_Player *pPlayer = ToContingencyPlayer( pEdict );
+		if ( !pPlayer )
+			return true;
+
+		if ( pPlayer->IsShowingShoutMenu() )
+		{
+			int choice = atoi( args.Arg(1) );
+			const char *playerName = pPlayer->GetPlayerName();
+
+			switch ( choice )
+			{
+			case 1:
+				pPlayer->EmitSound( "Male.Incoming" );
+				pPlayer->SetShoutDelay( gpGlobals->curtime + 5.0f );
+				UTIL_ClientPrintAll( HUD_PRINTTALK, "%s1 says 'Incoming!'", playerName );
+				break;
+
+			case 2:
+				pPlayer->EmitSound( "Male.Run" );
+				pPlayer->SetShoutDelay( gpGlobals->curtime + 5.0f );
+				UTIL_ClientPrintAll( HUD_PRINTTALK, "%s1 says 'Run!'", playerName );
+				break;
+
+			case 3:
+				pPlayer->EmitSound( "Male.Go" );
+				pPlayer->SetShoutDelay( gpGlobals->curtime + 5.0f );
+				UTIL_ClientPrintAll( HUD_PRINTTALK, "%s1 says 'Let's go!'", playerName );
+				break;
+
+			case 4:
+				pPlayer->EmitSound( "Male.Lead" );
+				pPlayer->SetShoutDelay( gpGlobals->curtime + 5.0f );
+				UTIL_ClientPrintAll( HUD_PRINTTALK, "%s1 says 'Lead the way!'", playerName );
+				break;
+
+			case 5:
+				pPlayer->EmitSound( "Male.Cover" );
+				pPlayer->SetShoutDelay( gpGlobals->curtime + 5.0f );
+				UTIL_ClientPrintAll( HUD_PRINTTALK, "%s1 says 'Take cover!'", playerName );
+				break;
+
+			case 6:
+				pPlayer->EmitSound( "Male.Ready" );
+				pPlayer->SetShoutDelay( gpGlobals->curtime + 5.0f );
+				UTIL_ClientPrintAll( HUD_PRINTTALK, "%s1 says 'Ready!'", playerName );
+				break;
+
+			case 7:
+				pPlayer->EmitSound( "Male.Headcrabs" );
+				pPlayer->SetShoutDelay( gpGlobals->curtime + 5.0f );
+				UTIL_ClientPrintAll( HUD_PRINTTALK, "%s1 says 'Headcrabs!'", playerName );
+				break;
+
+			case 8:
+				pPlayer->EmitSound( "Male.Zombies" );
+				pPlayer->SetShoutDelay( gpGlobals->curtime + 5.0f );
+				UTIL_ClientPrintAll( HUD_PRINTTALK, "%s1 says 'Zombies!'", playerName );
+				break;
+
+			case 9:
+				pPlayer->EmitSound( "Male.Combine" );
+				pPlayer->SetShoutDelay( gpGlobals->curtime + 5.0f );
+				UTIL_ClientPrintAll( HUD_PRINTTALK, "%s1 says 'Combine!'", playerName );
+				break;
+			}
+		}
+
+		pPlayer->ShouldShowShoutMenu( false );
+		return true;
+	}
+#endif
+
+	if( BaseClass::ClientCommand(pEdict, args) )
+		return true;
+
+	return false;
+}
+
 // Added loadout system
 // Prevent players from being able to change their player models
 void CContingencyRules::ClientSettingsChanged( CBasePlayer *pPlayer )
@@ -1915,17 +1999,16 @@ void CContingencyRules::PlayBackgroundMusic( void )
 
 	// Stop whatever background music might be playing
 	// (only one should be playing at a time)
-	StopPlayingBackgroundMusic();
+	if ( pLocalPlayer->GetAmbientSoundGUID() != -1 )
+		enginesound->StopSoundByGuid( pLocalPlayer->GetAmbientSoundGUID() );
 
 	if ( !contingency_client_backgroundmusic.GetBool() )
-	{
-		// This client does not want us playing background music for them, so don't
-		return;
-	}
+		return;	// this client does not want us playing background music for them, so don't
 
 	// Play a random background sound from our list of background sounds
 	// WARNING/TODO: This may interfere with map-specific background sound systems...
 	enginesound->EmitAmbientSound( kBackgroundMusic[random->RandomInt(0, NUM_BACKGROUND_MUSIC - 1)], contingency_client_backgroundmusic_volume.GetFloat() );
+	pLocalPlayer->SetAmbientSoundGUID( enginesound->GetGuidForLastSoundEmitted() );
 }
 
 // Added sound cue and background music system
@@ -1937,8 +2020,7 @@ void CContingencyRules::StopPlayingBackgroundMusic( void )
 
 	// Play a dummy sound (audio file w/ silence) to stop any background sounds that are playing
 	// WARNING/TODO: This may interfere with map-specific background sound systems...
-	enginesound->StopAllSounds( false );
-	//enginesound->StopAllSounds( true );
-	//enginesound->EmitAmbientSound( "hud/dummysound.wav", 0.5f );
+	if ( pLocalPlayer->GetAmbientSoundGUID() != -1 )
+		enginesound->StopSoundByGuid( pLocalPlayer->GetAmbientSoundGUID() );
 }
 #endif

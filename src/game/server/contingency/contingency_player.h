@@ -127,6 +127,12 @@ public:
 	bool IsMarkedForLoadoutUpdate( void ) { return m_bMarkedForLoadoutUpdate; }
 	void IsMarkedForLoadoutUpdate( bool boolean ) { m_bMarkedForLoadoutUpdate = boolean; }
 
+	// Added shout system
+	bool IsShowingShoutMenu( void ) { return m_bShowShoutMenu; }
+	void ShouldShowShoutMenu( bool boolean ) { m_bShowShoutMenu = boolean; }
+	float GetShoutDelay( void ) { return m_flShoutDelay; }
+	void SetShoutDelay( float newShoutDelay ) { m_flShoutDelay = newShoutDelay; }
+
 private:
 
 	// Health regeneration system
@@ -151,6 +157,10 @@ private:
 
 	// Added loadout system
 	bool m_bMarkedForLoadoutUpdate;
+
+	// Added shout system
+	bool m_bShowShoutMenu;
+	float m_flShoutDelay;
 };
 
 inline CContingency_Player *ToContingencyPlayer( CBaseEntity *pEntity )

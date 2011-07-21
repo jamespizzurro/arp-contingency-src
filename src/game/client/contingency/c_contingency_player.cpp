@@ -27,6 +27,8 @@ END_PREDICTION_DATA()
 
 C_Contingency_Player::C_Contingency_Player()
 {
+	// Added sound cue and background music system
+	m_iAmbientSoundGUID = -1;
 }
 
 C_Contingency_Player::~C_Contingency_Player()

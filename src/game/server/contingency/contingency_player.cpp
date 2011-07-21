@@ -65,6 +65,10 @@ CContingency_Player::CContingency_Player()
 
 	// Added loadout system
 	IsMarkedForLoadoutUpdate( false );
+
+	// Added shout system
+	m_bShowShoutMenu = false;
+	m_flShoutDelay = 0.0f;
 }
 
 CContingency_Player::~CContingency_Player( void )
@@ -219,6 +223,17 @@ void CContingency_Player::Precache( void )
 	// Precache all NPC models that are to be used here to ensure
 	// players don't experience any annoying loading delays later
 	ContingencyRules()->PrecacheWaveNPCs();
+
+	// Added shout system
+	PrecacheScriptSound( "Male.Incoming" );
+	PrecacheScriptSound( "Male.Run" );
+	PrecacheScriptSound( "Male.Go" );
+	PrecacheScriptSound( "Male.Lead" );
+	PrecacheScriptSound( "Male.Cover" );
+	PrecacheScriptSound( "Male.Ready" );
+	PrecacheScriptSound( "Male.Headcrabs" );
+	PrecacheScriptSound( "Male.Zombies" );
+	PrecacheScriptSound( "Male.Combine" );
 }
 
 void CContingency_Player::Spawn( void )

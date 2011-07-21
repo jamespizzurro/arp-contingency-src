@@ -204,6 +204,8 @@ public:
 
 	void CreateStandardEntities( void );
 
+	bool ClientCommand( CBaseEntity *pEdict, const CCommand &args );
+
 	// Added loadout system
 	// Prevent players from being able to change their player models
 	void ClientSettingsChanged( CBasePlayer *pPlayer );
