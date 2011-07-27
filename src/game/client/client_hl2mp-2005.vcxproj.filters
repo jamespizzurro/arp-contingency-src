@@ -67,6 +67,9 @@
     <Filter Include="Source Files\Contingency\Weapons">
       <UniqueIdentifier>{80cabfc1-acff-4904-a3a7-294b0508013c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Source Shader Editor">
+      <UniqueIdentifier>{d77afabc-1510-4468-ac38-220066f620ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="achievement_notification_panel.cpp">
@@ -975,12 +978,6 @@
     <ClCompile Include="viewdebug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="viewpostprocess.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="viewrender.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\shared\voice_banmgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1577,6 +1574,21 @@
     </ClCompile>
     <ClCompile Include="..\shared\contingency\contingency_concommands.cpp">
       <Filter>Source Files\Contingency</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderEditor\SEdit_ModelRender.cpp">
+      <Filter>Source Files\Source Shader Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderEditor\ShaderEditorSystem.cpp">
+      <Filter>Source Files\Source Shader Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="viewrender.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
+    <ClCompile Include="viewpostprocess.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
+    <ClCompile Include="contingency\hud_contingency_wavedisplay.cpp">
+      <Filter>Source Files\Contingency\HUD</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3391,6 +3403,18 @@
     </ClInclude>
     <ClInclude Include="..\shared\contingency\contingency_weapon_types.h">
       <Filter>Source Files\Contingency</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderEditor\ISEdit_ModelRender.h">
+      <Filter>Source Files\Source Shader Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderEditor\IVShaderEditor.h">
+      <Filter>Source Files\Source Shader Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderEditor\SEdit_ModelRender.h">
+      <Filter>Source Files\Source Shader Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderEditor\ShaderEditorSystem.h">
+      <Filter>Source Files\Source Shader Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -734,6 +734,9 @@ void CContingencyRules::RestartGame()
 
 		gameeventmanager->FireEvent( event );
 	}
+
+	// Stop any left-over sounds now before it gets out of hand...
+	engine->ServerCommand( "snd_restart" );
 }
 #endif
 

@@ -68,6 +68,16 @@
 // Projective textures
 #include "c_env_projected_texture.h"
 
+/////
+
+	// Contingency - James
+	// Added Source Shader Editor
+	// http://developer.valvesoftware.com/wiki/SourceShaderEditor/Installation
+
+#include "ShaderEditor/ShaderEditorSystem.h"
+
+/////
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -1895,6 +1905,17 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 		if ( ( bDrew3dSkybox = pSkyView->Setup( view, &nClearFlags, &nSkyboxVisible ) ) != false )
 		{
 			AddViewToScene( pSkyView );
+
+/////
+
+	// Contingency - James
+	// Added Source Shader Editor
+	// http://developer.valvesoftware.com/wiki/SourceShaderEditor/Installation
+
+			g_ShaderEditorSystem->UpdateSkymask();
+
+/////
+
 		}
 		SafeRelease( pSkyView );
 
@@ -1949,6 +1970,16 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 		// Now actually draw the viewmodel
 		DrawViewModels( view, whatToDraw & RENDERVIEW_DRAWVIEWMODEL );
 
+/////
+
+	// Contingency - James
+	// Added Source Shader Editor
+	// http://developer.valvesoftware.com/wiki/SourceShaderEditor/Installation
+
+		g_ShaderEditorSystem->UpdateSkymask( bDrew3dSkybox );
+
+/////
+
 		DrawUnderwaterOverlay();
 
 		PixelVisibility_EndScene();
@@ -1985,6 +2016,16 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 			}
 			pRenderContext.SafeRelease();
 		}
+
+/////
+
+	// Contingency - James
+	// Added Source Shader Editor
+	// http://developer.valvesoftware.com/wiki/SourceShaderEditor/Installation
+
+		g_ShaderEditorSystem->CustomPostRender();
+
+/////
 
 		// And here are the screen-space effects
 

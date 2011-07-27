@@ -265,6 +265,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClCompile Include="contingency\hud_contingency_playerstatus.cpp" />
     <ClCompile Include="contingency\hud_contingency_stamina.cpp" />
     <ClCompile Include="contingency\hud_contingency_target_id.cpp" />
+    <ClCompile Include="contingency\hud_contingency_wavedisplay.cpp" />
     <ClCompile Include="contingency\loadoutmenu.cpp" />
     <ClCompile Include="c_ai_basehumanoid.cpp" />
     <ClCompile Include="c_ai_basenpc.cpp" />
@@ -615,6 +616,8 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ShaderEditor\SEdit_ModelRender.cpp" />
+    <ClCompile Include="ShaderEditor\ShaderEditorSystem.cpp" />
     <ClCompile Include="simple_keys.cpp" />
     <ClCompile Include="..\..\public\simple_physics.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -891,6 +894,10 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClInclude Include="..\shared\particle_property.h" />
     <ClInclude Include="..\shared\point_bonusmaps_accessor.h" />
     <ClInclude Include="..\shared\predicted_viewmodel.h" />
+    <ClInclude Include="ShaderEditor\ISEdit_ModelRender.h" />
+    <ClInclude Include="ShaderEditor\IVShaderEditor.h" />
+    <ClInclude Include="ShaderEditor\SEdit_ModelRender.h" />
+    <ClInclude Include="ShaderEditor\ShaderEditorSystem.h" />
     <ClInclude Include="vgui_avatarimage.h" />
     <ClInclude Include="viewdebug.h" />
     <ClInclude Include="viewpostprocess.h" />
