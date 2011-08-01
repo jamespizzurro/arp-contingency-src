@@ -70,6 +70,15 @@
     <Filter Include="Source Files\Source Shader Editor">
       <UniqueIdentifier>{d77afabc-1510-4468-ac38-220066f620ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Contingency\Entities">
+      <UniqueIdentifier>{55e35555-d21c-4624-9c39-3b522ae7b4a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contingency\Entities\NPCs">
+      <UniqueIdentifier>{6064cf6d-64d1-4c56-b92b-ec6839dd1271}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Contingency\Systems">
+      <UniqueIdentifier>{c382f2d2-c808-4268-a587-9971a0257439}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="achievement_notification_panel.cpp">
@@ -177,13 +186,7 @@
     <ClCompile Include="c_basedoor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="c_baseentity.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="c_baseflex.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="c_baseplayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="c_baseviewmodel.cpp">
@@ -900,9 +903,6 @@
     <ClCompile Include="..\shared\usermessages.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\util_shared.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\public\vallocator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1329,9 +1329,6 @@
     <ClCompile Include="episodic\c_vort_charge_token.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
-    <ClCompile Include="hl2\c_weapon__stubs_hl2.cpp">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClCompile>
     <ClCompile Include="hl2\c_weapon_crossbow.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
@@ -1375,9 +1372,6 @@
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
     <ClCompile Include="hud_squadstatus.cpp">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="hl2\hud_weaponselection.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
     <ClCompile Include="hl2\hud_zoom.cpp">
@@ -1589,6 +1583,39 @@
     </ClCompile>
     <ClCompile Include="contingency\hud_contingency_wavedisplay.cpp">
       <Filter>Source Files\Contingency\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\contingency\weapon_pistols.cpp">
+      <Filter>Source Files\Contingency\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\contingency\weapon_alyxgun.cpp">
+      <Filter>Source Files\Contingency\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="hl2\c_weapon__stubs_hl2.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\contingency\weapon_axe.cpp">
+      <Filter>Source Files\Contingency\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="hl2\hud_weaponselection.cpp">
+      <Filter>Source Files\HL2 DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\contingency\weapon_deployableturret.cpp">
+      <Filter>Source Files\Contingency\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="contingency\c_npc_contingency_turret.cpp">
+      <Filter>Source Files\Contingency\Entities\NPCs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\util_shared.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_baseentity.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
+    <ClCompile Include="c_baseplayer.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
+    <ClCompile Include="contingency\c_npc_citizen17.cpp">
+      <Filter>Source Files\Contingency\Entities\NPCs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3401,9 +3428,6 @@
     <ClInclude Include="..\shared\hl2mp\hl2mp_weapon_parse.h">
       <Filter>Source Files\HL2MP</Filter>
     </ClInclude>
-    <ClInclude Include="..\shared\contingency\contingency_weapon_types.h">
-      <Filter>Source Files\Contingency</Filter>
-    </ClInclude>
     <ClInclude Include="ShaderEditor\ISEdit_ModelRender.h">
       <Filter>Source Files\Source Shader Editor</Filter>
     </ClInclude>
@@ -3415,6 +3439,21 @@
     </ClInclude>
     <ClInclude Include="ShaderEditor\ShaderEditorSystem.h">
       <Filter>Source Files\Source Shader Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="contingency\c_npc_contingency_turret.h">
+      <Filter>Source Files\Contingency\Entities\NPCs</Filter>
+    </ClInclude>
+    <ClInclude Include="contingency\c_npc_citizen17.h">
+      <Filter>Source Files\Contingency\Entities\NPCs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\contingency\contingency_system_loadout.h">
+      <Filter>Source Files\Contingency\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\contingency\contingency_system_wave.h">
+      <Filter>Source Files\Contingency\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\contingency\contingency_system_phase.h">
+      <Filter>Source Files\Contingency\Systems</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

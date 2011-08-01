@@ -474,6 +474,16 @@ BEGIN_RECV_TABLE_NOBASE(C_BaseEntity, DT_BaseEntity)
 	RecvPropInt		( RECVINFO( m_bAnimatedEveryTick ), 0, RecvProxy_InterpolationAmountChanged ),
 	RecvPropBool	( RECVINFO( m_bAlternateSorting ) ),
 
+/////
+
+	// Contingency - James
+	// Update health values for client-side entity classes
+
+	RecvPropInt( RECVINFO(m_iHealth) ),
+	RecvPropInt( RECVINFO(m_iMaxHealth) ),
+
+/////
+
 END_RECV_TABLE()
 
 BEGIN_PREDICTION_DATA_NO_BASE( C_BaseEntity )

@@ -239,7 +239,15 @@ END_RECV_TABLE()
 		RecvPropEHandle( RECVINFO(m_hVehicle) ),
 		RecvPropEHandle( RECVINFO(m_hUseEntity) ),
 
-		RecvPropInt		(RECVINFO(m_iHealth)),
+/////
+
+	// Contingency - James
+	// Update health values for client-side entity classes
+
+		//RecvPropInt		(RECVINFO(m_iHealth)),
+
+/////
+
 		RecvPropInt		(RECVINFO(m_lifeState)),
 
 		RecvPropInt		(RECVINFO(m_iBonusProgress)),

@@ -25,6 +25,9 @@ public:
 public:
 	void ClientThink( void );
 
+	int GetHealth() { return m_iHealth; }
+	int GetMaxHealth() { return m_iMaxHealth; }
+
 	// Do not allow players to hurt each other
 	// Refrain from using any blood effects in such instances to reinforce this idea
 	// Largely the same as C_HL2MP_Player::TraceAttack with a few modifications
@@ -32,9 +35,6 @@ public:
 
 	// Revert to HL2 footsteps
 	void PlayStepSound( Vector &vecOrigin, surfacedata_t *psurface, float fvol, bool force );
-
-	// Add a custom maximum health variable so that the client can get a player's maximum health
-	int GetMaxHealth( void ) { return m_iHealthMax; }
 
 	// Added player status HUD element
 	const char* GetHealthCondition( void );
@@ -46,9 +46,6 @@ public:
 
 private:
 	C_Contingency_Player( const C_Contingency_Player & );
-
-	// Add a custom maximum health variable so that the client can get a player's maximum health
-	int m_iHealthMax;
 
 	// Added sound cue and background music system
 	int m_iAmbientSoundGUID;

@@ -92,7 +92,10 @@ void CContingencyWaveSpawner::MakeNPC( void )
 		if ( !HasSpawnFlags(SF_WAVESPAWNER_HEADCRABS) )
 			return;
 
-		NPCClassName = kWaveHeadcrabsNPCTypes[random->RandomInt( 0, NUM_HEADCRAB_NPCS - 1 )];
+		if ( HasSpawnFlags(SF_WAVESPAWNER_FLYINGNPCSONLY) )
+			return;	// there are no flying headcrab NPCs (yet)
+		else
+			NPCClassName = kWaveHeadcrabsNPCTypes[random->RandomInt(0, NUM_HEADCRAB_NPCS - 1)];
 	}
 	else if ( currentWaveType == WAVE_ANTLIONS )
 	{
@@ -100,7 +103,10 @@ void CContingencyWaveSpawner::MakeNPC( void )
 		if ( !HasSpawnFlags(SF_WAVESPAWNER_ANTLIONS) )
 			return;
 
-		NPCClassName = kWaveAntlionsNPCTypes[random->RandomInt( 0, NUM_ANTLION_NPCS - 1 )];
+		if ( HasSpawnFlags(SF_WAVESPAWNER_FLYINGNPCSONLY) )
+			NPCClassName = kWaveAntlionsFlyingNPCTypes[random->RandomInt(0, NUM_ANTLION_FLYING_NPCS - 1)];
+		else
+			NPCClassName = kWaveAntlionsNPCTypes[random->RandomInt(0, NUM_ANTLION_NPCS - 1)];
 	}
 	else if ( currentWaveType == WAVE_ZOMBIES )
 	{
@@ -108,7 +114,10 @@ void CContingencyWaveSpawner::MakeNPC( void )
 		if ( !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIES) )
 			return;
 
-		NPCClassName = kWaveZombiesNPCTypes[random->RandomInt( 0, NUM_ZOMBIE_NPCS - 1 )];
+		if ( HasSpawnFlags(SF_WAVESPAWNER_FLYINGNPCSONLY) )
+			return;	// there are no flying zombie NPCs (yet)
+		else
+			NPCClassName = kWaveZombiesNPCTypes[random->RandomInt(0, NUM_ZOMBIE_NPCS - 1)];
 	}
 	else if ( currentWaveType == WAVE_COMBINE )
 	{
@@ -116,7 +125,10 @@ void CContingencyWaveSpawner::MakeNPC( void )
 		if ( !HasSpawnFlags(SF_WAVESPAWNER_COMBINE) )
 			return;
 
-		NPCClassName = kWaveCombineNPCTypes[random->RandomInt( 0, NUM_COMBINE_NPCS - 1 )];
+		if ( HasSpawnFlags(SF_WAVESPAWNER_FLYINGNPCSONLY) )
+			NPCClassName = kWaveCombineFlyingNPCTypes[random->RandomInt(0, NUM_COMBINE_FLYING_NPCS - 1)];
+		else
+			NPCClassName = kWaveCombineNPCTypes[random->RandomInt(0, NUM_COMBINE_NPCS - 1)];
 
 		if ( Q_strcmp(NPCClassName, "npc_combine_s") == 0 )
 			equipmentName = MAKE_STRING(kWaveCombineSWeaponTypes[random->RandomInt( 0, NUM_COMBINE_S_WEAPONS - 1 )]);

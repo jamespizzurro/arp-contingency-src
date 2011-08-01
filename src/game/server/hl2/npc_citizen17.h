@@ -66,6 +66,10 @@ enum CitizenExpressionTypes_t
 class CNPC_Citizen : public CNPC_PlayerCompanion
 {
 	DECLARE_CLASS( CNPC_Citizen, CNPC_PlayerCompanion );
+
+	// Implement client-side citizen NPC class
+	DECLARE_SERVERCLASS();
+
 public:
 	CNPC_Citizen()
 	 :	m_iHead( -1 )

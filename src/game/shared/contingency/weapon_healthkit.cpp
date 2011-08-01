@@ -127,7 +127,7 @@ void CWeaponHealthKit::Drop( const Vector &vecVelocity )
 		BaseClass::Drop( vecVelocity );
 #ifndef CLIENT_DLL
 	else
-		UTIL_Remove( this );
+		Delete();
 #endif
 }
 
@@ -140,9 +140,23 @@ void CWeaponHealthKit::Precache( void )
 
 void CWeaponHealthKit::ItemPostFrame( void )
 {
-	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+	CContingency_Player *pOwner = ToContingencyPlayer( GetOwner() );
 	if ( !pOwner )
 		return;
+
+	if ( m_bSuccessfulHeal )
+	{
+		if ( gpGlobals->curtime >= (m_flNextPrimaryAttack - 0.25f) )
+		{
+			pOwner->SwitchToNextBestWeapon( this );
+
+#ifndef CLIENT_DLL
+			Delete();	// health kits can only be used once
+#endif
+		}
+
+		return;	// we're done here
+	}
 
 	if ( (pOwner->m_nButtons & IN_ATTACK2) && (gpGlobals->curtime >= m_flNextSecondaryAttack) )
 	{
@@ -151,17 +165,6 @@ void CWeaponHealthKit::ItemPostFrame( void )
 	}
 
 	BaseClass::ItemPostFrame();
-
-	if ( m_bSuccessfulHeal && (gpGlobals->curtime >= (m_flNextPrimaryAttack - 0.25f)) )
-	{
-#ifndef CLIENT_DLL
-		// Switch to a weapon we always have, like a crowbar
-		if ( pOwner )
-			pOwner->Weapon_Switch( pOwner->Weapon_OwnsThisType("weapon_crowbar") );
-
-		UTIL_Remove( this );	// health kits can only be used once
-#endif
-	}
 }
 
 // Heals the player who is currently in possession of the health kit
@@ -278,7 +281,7 @@ void CWeaponHealthKit::SecondaryAttack()
 //-----------------------------------------------------------------------------
 bool CWeaponHealthKit::ReloadOrSwitchWeapons( void )
 {
-	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+	CContingency_Player *pOwner = ToContingencyPlayer( GetOwner() );
 	Assert( pOwner );
 
 	m_bFireOnEmpty = false;
@@ -289,15 +292,13 @@ bool CWeaponHealthKit::ReloadOrSwitchWeapons( void )
 		// weapon isn't useable, switch.
 		if ( (GetWeaponFlags() & ITEM_FLAG_NOAUTOSWITCHEMPTY) == false )
 		{
-#ifndef CLIENT_DLL
-			// Switch to a weapon we always have, like a crowbar
 			if ( pOwner )
-				pOwner->Weapon_Switch( pOwner->Weapon_OwnsThisType("weapon_crowbar") );
+				pOwner->SwitchToNextBestWeapon( this );
 
-			UTIL_Remove( this );	// health kits can only be used once
+#ifndef CLIENT_DLL
+			Delete();	// health kits can only be used once
 #endif
 
-			m_flNextPrimaryAttack = gpGlobals->curtime + 0.3;
 			return true;
 		}
 	}

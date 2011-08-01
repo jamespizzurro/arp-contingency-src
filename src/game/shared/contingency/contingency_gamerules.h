@@ -7,7 +7,14 @@
 #include "teamplay_gamerules.h"
 #include "gamevars_shared.h"
 
-#include "contingency_weapon_types.h"
+// Added phase system
+#include "contingency_system_phase.h"
+
+// Added wave system
+#include "contingency_system_wave.h"
+
+// Added loadout system
+#include "contingency_system_loadout.h"
 
 #ifndef CLIENT_DLL
 	#include "contingency_player.h"
@@ -31,84 +38,6 @@ enum CONTINGENCY_TEAMS
 	TEAM_PLAYER = 0,
 
 	NUM_TEAMS
-};
-
-// Added phase system
-enum CONTINGENCY_PHASES
-{
-	PHASE_WAITING_FOR_PLAYERS = -1,
-	PHASE_INTERIM,
-	PHASE_COMBAT,
-
-	NUM_PHASES
-};
-
-// Added wave system
-enum CONTINGENCY_WAVES
-{
-	WAVE_NONE = -1,
-	WAVE_HEADCRABS,
-	WAVE_ANTLIONS,
-	WAVE_ZOMBIES,
-	WAVE_COMBINE,
-
-	NUM_WAVES
-};
-
-// Added wave system
-static const int NUM_HEADCRAB_NPCS = 3;
-static const char* kWaveHeadcrabsNPCTypes[NUM_HEADCRAB_NPCS] =
-{
-	"npc_headcrab",
-	"npc_headcrab_fast",
-	"npc_headcrab_black"
-};
-static const int NUM_ANTLION_NPCS = 1;
-static const char* kWaveAntlionsNPCTypes[NUM_ANTLION_NPCS] =
-{
-	"npc_antlion"
-};
-static const int NUM_ZOMBIE_NPCS = 4;
-static const char* kWaveZombiesNPCTypes[NUM_ZOMBIE_NPCS] =
-{
-	"npc_zombie",
-	"npc_zombie_torso",
-	"npc_fastzombie",
-	"npc_poisonzombie"
-};
-static const int NUM_COMBINE_NPCS = 5;
-static const char* kWaveCombineNPCTypes[NUM_COMBINE_NPCS] =
-{
-	"npc_combine_s",
-	"npc_metropolice",
-	"npc_cscanner",
-	"npc_manhack",
-	"npc_stalker"
-};
-static const int NUM_COMBINE_S_WEAPONS = 3;
-static const char* kWaveCombineSWeaponTypes[NUM_COMBINE_S_WEAPONS] =
-{
-	"weapon_shotgun",
-	"weapon_smg1",
-	"weapon_ar2"
-};
-static const int NUM_METROPOLICE_WEAPONS = 2;
-static const char* kWaveMetropoliceWeaponTypes[NUM_METROPOLICE_WEAPONS] =
-{
-	"weapon_pistol",
-	"weapon_smg1"
-};
-static const int NUM_SUPPORT_NPCS = 1;
-static const char* kSupportWaveSupportNPCTypes[NUM_SUPPORT_NPCS] =
-{
-	"npc_citizen"
-};
-static const int NUM_CITIZEN_WEAPONS = 3;
-static const char* kSupportWaveCitizenWeaponTypes[NUM_CITIZEN_WEAPONS] =
-{
-	"weapon_shotgun",
-	"weapon_smg1",
-	"weapon_ar2"
 };
 
 // Added sound cue and background music system
@@ -165,9 +94,6 @@ public:
 	bool FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 
 	bool IsPlayerPlaying( CContingency_Player *pPlayer = NULL );
-
-	// Do not allow players to respawn when they shouldn't be able to do so
-	bool CanPlayersRespawn( void );
 
 #ifndef CLIENT_DLL
 	int GetTotalNumPlayers( void );
@@ -246,12 +172,10 @@ public:
 		// is reset everything, which should be done before
 		// this function is called, so do nothing more here
 		if ( m_iCurrentPhase == PHASE_WAITING_FOR_PLAYERS )
+		{
+			Warning( "There are currently no players on the server. Standby mode has been activated and will remain active until at least one player joins the server.\n" );
 			return;
-
-		// Phase changes warrant respawning dead players
-		// to make sure they aren't left behind during
-		// important game logic
-		RespawnDeadPlayers();
+		}
 
 		if ( m_iCurrentPhase == PHASE_INTERIM )
 		{
@@ -264,13 +188,19 @@ public:
 
 			RemoveSatchelsAndTripmines();	// more cleaning (all players' satchels and tripmines)
 
-			// Added loadout system
-			UpdatePlayerLoadouts();
-
 			SetInterimPhaseTimeLeft( contingency_phase_interimtime.GetInt() );
 
 			// Added sound cue and background music system
-			engine->ServerCommand( "stopplayingbackgroundmusic\n" );
+			int i;
+			CContingency_Player *pPlayer;
+			for ( i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex(i) );
+				if ( !pPlayer )
+					continue;
+
+				engine->ClientCommand( pPlayer->edict(), "stopplayingbackgroundmusic" );
+			}
 		}
 		else if ( m_iCurrentPhase == PHASE_COMBAT )
 		{
@@ -278,8 +208,22 @@ public:
 			SetInterimPhaseTimeLeft( 0 );
 			m_flInterimPhaseTime = 0.0f;
 
+			// Added loadout system
+			UpdatePlayerLoadouts();
+
+			RespawnDeadPlayers();
+
 			// Added sound cue and background music system
-			engine->ServerCommand( "playbackgroundmusic\n" );
+			int i;
+			CContingency_Player *pPlayer;
+			for ( i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex(i) );
+				if ( !pPlayer )
+					continue;
+
+				engine->ClientCommand( pPlayer->edict(), "playbackgroundmusic" );
+			}
 		}
 	}
 #endif
@@ -288,7 +232,7 @@ public:
 		switch ( m_iCurrentPhase )
 		{
 		case PHASE_WAITING_FOR_PLAYERS:
-			return "Waiting for players...";
+			return "WAITING FOR PLAYERS";
 		case PHASE_INTERIM:
 			return "INTERIM PHASE";
 		case PHASE_COMBAT:

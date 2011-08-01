@@ -23,11 +23,6 @@ extern bool	g_fGameOver;
 
 void FinishClientPutInServer( CContingency_Player *pPlayer )
 {
-	// Added phase system
-	// Now that we have a player on the server, set the phase to interim and begin the game
-	if ( ContingencyRules()->GetCurrentPhase() == PHASE_WAITING_FOR_PLAYERS )
-		ContingencyRules()->RestartGame();
-
 	pPlayer->InitialSpawn();
 	pPlayer->Spawn();
 

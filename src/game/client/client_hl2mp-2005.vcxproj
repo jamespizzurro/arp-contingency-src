@@ -220,8 +220,12 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClCompile Include="..\shared\contingency\contingency_concommands.cpp" />
     <ClCompile Include="..\shared\contingency\contingency_gamerules.cpp" />
     <ClCompile Include="..\shared\contingency\contingency_player_shared.cpp" />
+    <ClCompile Include="..\shared\contingency\weapon_alyxgun.cpp" />
+    <ClCompile Include="..\shared\contingency\weapon_axe.cpp" />
+    <ClCompile Include="..\shared\contingency\weapon_deployableturret.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_healthkit.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_nyangun.cpp" />
+    <ClCompile Include="..\shared\contingency\weapon_pistols.cpp" />
     <ClCompile Include="achievement_notification_panel.cpp" />
     <ClCompile Include="..\shared\achievement_saverestore.cpp" />
     <ClCompile Include="..\shared\achievementmgr.cpp" />
@@ -258,6 +262,8 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     </ClCompile>
     <ClCompile Include="contingency\contingency_loadingtips.cpp" />
     <ClCompile Include="contingency\c_contingency_player.cpp" />
+    <ClCompile Include="contingency\c_npc_citizen17.cpp" />
+    <ClCompile Include="contingency\c_npc_contingency_turret.cpp" />
     <ClCompile Include="contingency\hud_contingency_chat.cpp" />
     <ClCompile Include="contingency\hud_contingency_damageindicator.cpp" />
     <ClCompile Include="contingency\hud_contingency_ammo.cpp" />
@@ -875,13 +881,17 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
   <ItemGroup>
     <ClInclude Include="..\shared\contingency\contingency_gamerules.h" />
     <ClInclude Include="..\shared\contingency\contingency_player_shared.h" />
-    <ClInclude Include="..\shared\contingency\contingency_weapon_types.h" />
+    <ClInclude Include="..\shared\contingency\contingency_system_loadout.h" />
+    <ClInclude Include="..\shared\contingency\contingency_system_phase.h" />
+    <ClInclude Include="..\shared\contingency\contingency_system_wave.h" />
     <ClInclude Include="achievement_notification_panel.h" />
     <ClInclude Include="..\shared\achievement_saverestore.h" />
     <ClInclude Include="..\shared\achievementmgr.h" />
     <ClInclude Include="..\shared\baseachievement.h" />
     <ClInclude Include="contingency\contingency_loadingtips.h" />
     <ClInclude Include="contingency\c_contingency_player.h" />
+    <ClInclude Include="contingency\c_npc_citizen17.h" />
+    <ClInclude Include="contingency\c_npc_contingency_turret.h" />
     <ClInclude Include="contingency\hud_contingency_chat.h" />
     <ClInclude Include="contingency\hud_contingency_stamina.h" />
     <ClInclude Include="contingency\loadoutmenu.h" />

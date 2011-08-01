@@ -16,8 +16,8 @@
 void CServerGameClients::GetPlayerLimits( int& minplayers, int& maxplayers, int &defaultMaxPlayers ) const
 {
 	// Change the maximum number of players
-	minplayers = defaultMaxPlayers = 2; 
-	maxplayers = ContingencyRules()->GetMaxNumPlayers();
+	minplayers = 2; 
+	maxplayers = defaultMaxPlayers = ContingencyRules()->GetMaxNumPlayers();
 }
 
 // -------------------------------------------------------------------------------------------- //

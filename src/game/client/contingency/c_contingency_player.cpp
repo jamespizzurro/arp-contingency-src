@@ -18,8 +18,6 @@ BEGIN_RECV_TABLE_NOBASE( C_Contingency_Player, DT_SONonLocalPlayerExclusive )
 END_RECV_TABLE()
 
 IMPLEMENT_CLIENTCLASS_DT( C_Contingency_Player, DT_Contingency_Player, CContingency_Player )
-	// Add a custom maximum health variable so that the client can get a player's maximum health
-	RecvPropInt( RECVINFO( m_iHealthMax ) ),
 END_RECV_TABLE()
 
 BEGIN_PREDICTION_DATA( C_Contingency_Player )
@@ -90,7 +88,7 @@ const char* C_Contingency_Player::GetHealthCondition( void )
 	if ( !ContingencyRules()->IsPlayerPlaying(this) )
 		return "DEAD";
 
-	float ratio = ((float)GetHealth()) / ((float)GetMaxHealth());
+	float ratio = ((float)m_iHealth) / ((float)m_iMaxHealth);
 	if ( (ratio <= 1.00) && (ratio >= 0.00) )
 	{
 		if ( ratio >= 0.75 )
@@ -103,7 +101,7 @@ const char* C_Contingency_Player::GetHealthCondition( void )
 			return "Near Death";
 	}
 
-	return "Undetermined";
+	return "Condition Unknown";
 }
 
 // Added player status HUD element
@@ -113,7 +111,7 @@ Color C_Contingency_Player::GetHealthConditionColor( void )
 	if ( !ContingencyRules()->IsPlayerPlaying(this) )
 		return Color( 204, 0, 0, 255 );	// dark(er) red
 
-	float ratio = ((float)GetHealth()) / ((float)GetMaxHealth());
+	float ratio = ((float)m_iHealth) / ((float)m_iMaxHealth);
 	if ( (ratio <= 1.00) && (ratio >= 0.00) )
 	{
 		if ( ratio >= 0.75 )

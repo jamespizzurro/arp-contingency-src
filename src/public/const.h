@@ -202,7 +202,19 @@ enum SolidFlags_t
 	FSOLID_ROOT_PARENT_ALIGNED	= 0x0100,	// Collisions are defined in root parent's local coordinate space
 	FSOLID_TRIGGER_TOUCH_DEBRIS	= 0x0200,	// This trigger will touch debris objects
 
-	FSOLID_MAX_BITS	= 10
+/////
+
+	// Contingency - James
+	// Added a modified version of Valve's floor turret
+
+	//FSOLID_MAX_BITS	= 10
+
+	FSOLID_ALLOW_OWNER_TRACING   = 0X0400,	// Allows tracelines involving m_hOwner to function as expected
+
+	FSOLID_MAX_BITS	= 11
+
+/////
+
 };
 
 //-----------------------------------------------------------------------------

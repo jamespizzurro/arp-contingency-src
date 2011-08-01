@@ -272,6 +272,16 @@ IMPLEMENT_SERVERCLASS_ST_NOBASE( CBaseEntity, DT_BaseEntity )
 	SendPropInt		(SENDINFO(m_bAnimatedEveryTick),		1, SPROP_UNSIGNED ),
 	SendPropBool( SENDINFO( m_bAlternateSorting )),
 
+/////
+
+	// Contingency - James
+	// Update health values for client-side entity classes
+
+	SendPropInt( SENDINFO(m_iHealth), 10 ),
+	SendPropInt( SENDINFO(m_iMaxHealth), 10 ),
+
+/////
+
 END_SEND_TABLE()
 
 

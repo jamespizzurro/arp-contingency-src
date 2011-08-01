@@ -164,7 +164,7 @@ CContingencyRules::~CContingencyRules( void )
 	g_Teams.Purge();
 
 	// Added a non-restorative health system
-	m_PlayerInfoList.Purge();
+	m_PlayerInfoList.PurgeAndDeleteElements();
 #endif
 }
 
@@ -326,29 +326,15 @@ void CContingencyRules::ClientSettingsChanged( CBasePlayer *pPlayer )
 		// This player's loadout needs to be updated according to
 		// their preferred weapons/equipment, so do so
 
-		// See if we can apply the updated loadout right away
-		// If not, that's fine, because it can always be applied automatically later
+		// Loadouts are not applied right away, but rather at the start of a combat phase
+		// or when the player respawns (whatever comes first)
 
 		if ( IsPlayerPlaying(pContingencyPlayer) )
-		{
-			if ( GetCurrentPhase() == PHASE_INTERIM )
-			{
-				// We can apply the updated loadout now, so do so
-				pContingencyPlayer->ApplyLoadout( pContingencyPlayer->GetHealth() );
-
-				ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Your loadout has been saved and applied." );
-			}
-			else
-			{
-				ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Loadout saved. Any changes will be applied at the start of the next interim phase." );
-				pContingencyPlayer->IsMarkedForLoadoutUpdate( true );
-			}
-		}
+			ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Loadout saved. Any changes will be applied at the start of the next combat phase." );
 		else
-		{
-			ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Loadout saved. Any changes will be applied next time you spawn." );
-			pContingencyPlayer->IsMarkedForLoadoutUpdate( true );
-		}
+			ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Loadout saved. Any changes will be applied when you respawn at the start of the next combat phase." );
+
+		pContingencyPlayer->IsMarkedForLoadoutUpdate( true );
 
 		// Update successful, so update the value of our ConVar to reflect this
 		// This will in turn call this function again, but this block won't because of the first condition
@@ -400,14 +386,6 @@ void CContingencyRules::ClientDisconnected( edict_t *pClient )
 		}
 	}
 
-	// Added phase system
-	// If there are no players on the server, restart the game and switch to our dummy phase
-	if ( GetTotalNumPlayers() <= 0 )
-	{
-		if ( GetCurrentPhase() != PHASE_WAITING_FOR_PLAYERS )
-			RestartGame();
-	}
-
 	BaseClass::ClientDisconnected( pClient );
 #endif
 }
@@ -449,7 +427,7 @@ void CContingencyRules::PerformWaveCalculations( void )
 	// the type of NPCs we're going to be spawning, the ladder
 	// of which was just determined above
 
-	// For this task, I've chosen to use some simple multiplers,
+	// For this task, I've chosen to use some simple multiplers for each wave type,
 	// each of which is tied to its own ConVar for easy editing
 	// (maps can now manipulate these ConVars using addition/subtraction-based offsets too)
 
@@ -457,11 +435,12 @@ void CContingencyRules::PerformWaveCalculations( void )
 	// on the server so as not to overwhelm (or underwhelm) folks
 	// so quickly that we turn them off from the game entirely...
 
-	// ...so instead of just using multipliers, I've opted for
-	// multipying the current wave number by the total number of players
+	// ...so instead of just using wave multipliers, I've opted for
+	// multiplying the current wave number by the total number of players
 	// on the server as a base...
 
-	// I imagine this is going be changed in the (near?) future, but we'll see!
+	// ...which seems kind of random, and it is, so I would imagine
+	// this is going to be changed eventually, but we'll see!
 
 	int numEnemiesToSpawnThisWave = GetWaveNumber() * GetTotalNumPlayers();
 
@@ -552,9 +531,11 @@ void CContingencyRules::Think( void )
 	float flFragLimit = fraglimit.GetFloat();
 	if ( flFragLimit )
 	{
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		int i;
+		CBasePlayer *pPlayer;
+		for ( i = 1; i <= gpGlobals->maxClients; i++ )
 		{
-			CBasePlayer *pPlayer = UTIL_PlayerByIndex( i );
+			pPlayer = UTIL_PlayerByIndex( i );
 			if ( !pPlayer )
 				continue;
 
@@ -642,8 +623,21 @@ void CContingencyRules::Think( void )
 
 void CContingencyRules::CheckRestartGame( void )
 {
-	// Restart the game if specified by the server
+	// Added phase system
+	// If there are no players on the server, restart the game and switch to our dummy phase
+	// If there are players on the server, restart the game and switch out of our dummy phase
+#ifndef CLIENT_DLL
+	if ( ((GetTotalNumPlayers() <= 0) && (GetCurrentPhase() != PHASE_WAITING_FOR_PLAYERS)) ||
+		 ((GetTotalNumPlayers() > 0) && (GetCurrentPhase() == PHASE_WAITING_FOR_PLAYERS)) )
+	{
+		m_flRestartGameTime = gpGlobals->curtime;	// restart right away
+		m_bCompleteReset = true;
+		m_iRestartDelay = 0;	// cancel any pending timed restarts in favor of an immediate one
+		return;
+	}
+#endif
 
+	// Restart the game if specified by the server
 	if ( m_iRestartDelay > 0 )
 	{
 		if ( m_iRestartDelay > 60 )
@@ -671,13 +665,15 @@ void CContingencyRules::RestartGame()
 	}
 
 	// Added a non-restorative health system
-	m_PlayerInfoList.Purge();	// purge all player infos when the game is restarted
+	m_PlayerInfoList.PurgeAndDeleteElements();	// purge all player infos when the game is restarted
 
 	// Pre-cleanup stuff:
 
-	for (int i = 1; i <= gpGlobals->maxClients; i++ )
+	int i;
+	CContingency_Player *pPlayer;
+	for ( i = 1; i <= gpGlobals->maxClients; i++ )
 	{
-		CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex(i) );
+		pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex(i) );
 		if ( !pPlayer )
 			continue;
 
@@ -709,11 +705,13 @@ void CContingencyRules::RestartGame()
 	// Post-cleanup stuff:
 
 	// Added phase system
+	// If there are no players on the server, restart the game and switch to our dummy phase
+	// If there are players on the server, restart the game and switch out of our dummy phase
 	if ( GetTotalNumPlayers() <= 0 )
 		ResetPhaseVariables();
 	else
 		SetCurrentPhase( PHASE_INTERIM );
-
+	
 	// Added support wave system
 	PurgeCurrentSupportWave();
 
@@ -736,7 +734,7 @@ void CContingencyRules::RestartGame()
 	}
 
 	// Stop any left-over sounds now before it gets out of hand...
-	engine->ServerCommand( "snd_restart" );
+	engine->ServerCommand( "snd_restart\n" );
 }
 #endif
 
@@ -796,19 +794,26 @@ CAmmoDef *GetAmmoDef()
 		// The "99999"s are all the changes I've made in this department
 
 		// Other unrelated changes have probably been made here too...
+		// (e.g. reduced the effectiveness of all projectile weapons when wieled by an NPC)
+
+		// Remember: player damage is defined in weapon scripts, NOT here (hence most if not all values for "plr dmg" below being '0')
 //																								plr dmg		npc dmg	max carry	impulse
-		def.AddAmmoType("AR2",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			11,		99999,		BULLET_IMPULSE(200, 1225),	0 );
-		def.AddAmmoType("AR2AltFire",		DMG_DISSOLVE,				TRACER_NONE,			0,			100,		1,			0,							0 );
-		def.AddAmmoType("Pistol",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			8,		99999,		BULLET_IMPULSE(200, 1225),	0 );
-		def.AddAmmoType("SMG1",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			5,		99999,		BULLET_IMPULSE(200, 1225),	0 );
-		def.AddAmmoType("357",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			75,		99999,		BULLET_IMPULSE(800, 5000),	0 );
-		def.AddAmmoType("XBowBolt",			DMG_BULLET,					TRACER_LINE,			0,			100,	99999,		BULLET_IMPULSE(800, 8000),	0 );
-		def.AddAmmoType("Buckshot",			DMG_BULLET | DMG_BUCKSHOT,	TRACER_LINE,			0,			9,		99999,		BULLET_IMPULSE(400, 1200),	0 );
-		def.AddAmmoType("RPG_Round",		DMG_BURN,					TRACER_NONE,			0,			150,	3,			0,							0 );
-		def.AddAmmoType("SMG1_Grenade",		DMG_BURN,					TRACER_NONE,			0,			100,	1,			0,							0 );
-		def.AddAmmoType("Grenade",			DMG_BURN,					TRACER_NONE,			0,			150,	3,			0,							0 );
-		def.AddAmmoType("slam",				DMG_BURN,					TRACER_NONE,			0,			100,		3,			0,							0 );
+		def.AddAmmoType("AR2",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			5,		99999,		BULLET_IMPULSE(200, 1225),	0 );
+		def.AddAmmoType("AR2AltFire",		DMG_DISSOLVE,				TRACER_NONE,			0,			50,		1,			0,							0 );
+		def.AddAmmoType("Pistol",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			4,		99999,		BULLET_IMPULSE(200, 1225),	0 );
+		def.AddAmmoType("SMG1",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			2,		99999,		BULLET_IMPULSE(200, 1225),	0 );
+		def.AddAmmoType("357",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			37,		99999,		BULLET_IMPULSE(800, 5000),	0 );
+		def.AddAmmoType("XBowBolt",			DMG_BULLET,					TRACER_LINE,			0,			50,		99999,		BULLET_IMPULSE(800, 8000),	0 );
+		def.AddAmmoType("Buckshot",			DMG_BULLET | DMG_BUCKSHOT,	TRACER_LINE,			0,			4,		99999,		BULLET_IMPULSE(400, 1200),	0 );
+		def.AddAmmoType("RPG_Round",		DMG_BURN,					TRACER_NONE,			0,			50,		3,			0,							0 );
+		def.AddAmmoType("SMG1_Grenade",		DMG_BURN,					TRACER_NONE,			0,			50,		1,			0,							0 );
+		def.AddAmmoType("Grenade",			DMG_BURN,					TRACER_NONE,			0,			75,		3,			0,							0 );
+		def.AddAmmoType("slam",				DMG_BURN,					TRACER_NONE,			0,			50,		3,			0,							0 );
 		
+		// Added a modified version of Valve's floor turret
+		// New ammo type for turrets
+		def.AddAmmoType("TURRET",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			5,		99999,		BULLET_IMPULSE(200, 1225),	0 );	// based on the AR2 ammo type
+
 		def.AddAmmoType("AlyxGun",			DMG_BULLET,					TRACER_LINE,			"sk_plr_dmg_alyxgun",		"sk_npc_dmg_alyxgun",		"sk_max_alyxgun",		BULLET_IMPULSE(200, 1225), 0 );
 		def.AddAmmoType("SniperRound",		DMG_BULLET | DMG_SNIPER,	TRACER_NONE,			"sk_plr_dmg_sniper_round",	"sk_npc_dmg_sniper_round",	"sk_max_sniper_round",	BULLET_IMPULSE(650, 6000), 0 );
 		def.AddAmmoType("SniperPenetratedRound", DMG_BULLET | DMG_SNIPER, TRACER_NONE,			"sk_dmg_sniper_penetrate_plr", "sk_dmg_sniper_penetrate_npc", "sk_max_sniper_round", BULLET_IMPULSE(150, 6000), 0 );
@@ -1794,24 +1799,16 @@ bool CContingencyRules::IsPlayerPlaying( CContingency_Player *pPlayer )
 	return true;
 }
 
-// Do not allow players to respawn when they shouldn't be able to do so
-bool CContingencyRules::CanPlayersRespawn( void )
-{
-	// Added phase system
-	if ( GetCurrentPhase() == PHASE_COMBAT )
-		return false;
-
-	return true;
-}
-
 #ifndef CLIENT_DLL
 int CContingencyRules::GetTotalNumPlayers( void )
 {
 	int iNumPlayers = 0;
 
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	int i;
+	CBasePlayer *pClient;
+	for ( i = 1; i <= gpGlobals->maxClients; i++ )
 	{
-		CBasePlayer *pClient = UTIL_PlayerByIndex( i );
+		pClient = UTIL_PlayerByIndex( i );
 
 		if ( !pClient || !pClient->edict() )
 			continue;
@@ -1829,9 +1826,11 @@ int CContingencyRules::GetNumPlayingPlayers( void )
 {
 	int iNumPlayers = 0;
 
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	int i;
+	CContingency_Player *pClient;
+	for ( i = 1; i <= gpGlobals->maxClients; i++ )
 	{
-		CContingency_Player *pClient = ToContingencyPlayer( UTIL_PlayerByIndex(i) );
+		pClient = ToContingencyPlayer( UTIL_PlayerByIndex(i) );
 
 		if ( !pClient || !pClient->edict() )
 			continue;
@@ -1851,31 +1850,41 @@ int CContingencyRules::GetNumPlayingPlayers( void )
 // Added loadout system
 void CContingencyRules::UpdatePlayerLoadouts( void )
 {
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	int i;
+	CContingency_Player *pPlayer;
+	for ( i = 1; i <= gpGlobals->maxClients; i++ )
 	{
-		CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex( i ) );
+		pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex( i ) );
 		if ( !pPlayer )
 			continue;
 
 		if ( !IsPlayerPlaying(pPlayer) )
-			continue;	// dead players' loadouts will be updated when they spawn
+			continue;	// dead players' loadouts are updated when they respawn (see RespawnDeadPlayers)
 
-		pPlayer->ApplyLoadout( pPlayer->GetHealth() );
+		pPlayer->ApplyLoadout();
 	}
 }
 
 void CContingencyRules::RespawnDeadPlayers( void )
 {
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	int i;
+	CContingency_Player *pPlayer;
+	for ( i = 1; i <= gpGlobals->maxClients; i++ )
 	{
-		CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex( i ) );
+		pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex( i ) );
 		if ( !pPlayer )
 			continue;
 
 		if ( IsPlayerPlaying(pPlayer) )
 			continue;
 
+		// Added phase system
+		pPlayer->IsAllowedToSpawn( true );
+
 		pPlayer->Spawn();	// spawning will also update our loadout
+
+		// Added phase system
+		pPlayer->IsAllowedToSpawn( false );
 	}
 }
 

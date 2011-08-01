@@ -300,6 +300,10 @@ LINK_ENTITY_TO_CLASS( npc_citizen, CNPC_Citizen );
 
 //---------------------------------------------------------
 
+// Implement client-side citizen NPC class
+IMPLEMENT_SERVERCLASS_ST( CNPC_Citizen, DT_NPC_Citizen )
+END_SEND_TABLE()
+
 BEGIN_DATADESC( CNPC_Citizen )
 
 	DEFINE_CUSTOM_FIELD( m_nInspectActivity,		ActivityDataOps() ),

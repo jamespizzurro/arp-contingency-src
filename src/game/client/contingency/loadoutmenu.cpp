@@ -65,21 +65,7 @@ CLoadoutMenu::CLoadoutMenu(IViewPort *pViewPort) : Frame(NULL, PANEL_LOADOUT)
 
 	m_pPanel = new EditablePanel( this, PANEL_LOADOUT );
 
-	currentPrimaryWeaponIndex = 0;
-	currentPrimaryWeaponSelected[0] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][0];
-	currentPrimaryWeaponSelected[1] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][1];
-
-	currentSecondaryWeaponIndex = 0;
-	currentSecondaryWeaponSelected[0] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][0];
-	currentSecondaryWeaponSelected[1] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][1];
-
-	currentMeleeWeaponIndex = 0;
-	currentMeleeWeaponSelected[0] = kMeleeWeaponTypes[currentMeleeWeaponIndex][0];
-	currentMeleeWeaponSelected[1] = kMeleeWeaponTypes[currentMeleeWeaponIndex][1];
-
-	currentEquipmentIndex = 0;
-	currentEquipmentSelected[0] = kEquipmentTypes[currentEquipmentIndex][0];
-	currentEquipmentSelected[1] = kEquipmentTypes[currentEquipmentIndex][1];
+	Reset();
 }
 
 //-----------------------------------------------------------------------------
@@ -105,21 +91,7 @@ CLoadoutMenu::CLoadoutMenu(IViewPort *pViewPort, const char *panelName) : Frame(
 
 	m_pPanel = new EditablePanel( this, PANEL_LOADOUT );
 
-	currentPrimaryWeaponIndex = 0;
-	currentPrimaryWeaponSelected[0] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][0];
-	currentPrimaryWeaponSelected[1] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][1];
-
-	currentSecondaryWeaponIndex = 0;
-	currentSecondaryWeaponSelected[0] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][0];
-	currentSecondaryWeaponSelected[1] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][1];
-
-	currentMeleeWeaponIndex = 0;
-	currentMeleeWeaponSelected[0] = kMeleeWeaponTypes[currentMeleeWeaponIndex][0];
-	currentMeleeWeaponSelected[1] = kMeleeWeaponTypes[currentMeleeWeaponIndex][1];
-
-	currentEquipmentIndex = 0;
-	currentEquipmentSelected[0] = kEquipmentTypes[currentEquipmentIndex][0];
-	currentEquipmentSelected[1] = kEquipmentTypes[currentEquipmentIndex][1];
+	Reset();
 }
 
 //-----------------------------------------------------------------------------
@@ -169,6 +141,59 @@ Panel *CLoadoutMenu::CreateControlByName(const char *controlName)
 //-----------------------------------------------------------------------------
 void CLoadoutMenu::Reset()
 {
+	C_Contingency_Player *pLocalPlayer = ToContingencyPlayer( C_BasePlayer::GetLocalPlayer() );
+	if ( !pLocalPlayer )
+		return;
+
+	int i;
+
+	currentPrimaryWeaponIndex = 0;
+	for ( i = 0; i < NUM_PRIMARY_WEAPON_TYPES; i++ )
+	{
+		if ( Q_strcmp(kPrimaryWeaponTypes[i][0], contingency_client_preferredprimaryweapon.GetString()) == 0 )
+		{
+			currentPrimaryWeaponIndex = i;
+			break;
+		}
+	}
+	currentPrimaryWeaponSelected[0] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][0];
+	currentPrimaryWeaponSelected[1] = kPrimaryWeaponTypes[currentPrimaryWeaponIndex][1];
+
+	currentSecondaryWeaponIndex = 0;
+	for ( i = 0; i < NUM_SECONDARY_WEAPON_TYPES; i++ )
+	{
+		if ( Q_strcmp(kSecondaryWeaponTypes[i][0], contingency_client_preferredsecondaryweapon.GetString()) == 0 )
+		{
+			currentSecondaryWeaponIndex = i;
+			break;
+		}
+	}
+	currentSecondaryWeaponSelected[0] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][0];
+	currentSecondaryWeaponSelected[1] = kSecondaryWeaponTypes[currentSecondaryWeaponIndex][1];
+
+	currentMeleeWeaponIndex = 0;
+	for ( i = 0; i < NUM_MELEE_WEAPON_TYPES; i++ )
+	{
+		if ( Q_strcmp(kMeleeWeaponTypes[i][0], contingency_client_preferredmeleeweapon.GetString()) == 0 )
+		{
+			currentMeleeWeaponIndex = i;
+			break;
+		}
+	}
+	currentMeleeWeaponSelected[0] = kMeleeWeaponTypes[currentMeleeWeaponIndex][0];
+	currentMeleeWeaponSelected[1] = kMeleeWeaponTypes[currentMeleeWeaponIndex][1];
+
+	currentEquipmentIndex = 0;
+	for ( i = 0; i < NUM_EQUIPMENT_TYPES; i++ )
+	{
+		if ( Q_strcmp(kEquipmentTypes[i][0], contingency_client_preferredequipment.GetString()) == 0 )
+		{
+			currentEquipmentIndex = i;
+			break;
+		}
+	}
+	currentEquipmentSelected[0] = kEquipmentTypes[currentEquipmentIndex][0];
+	currentEquipmentSelected[1] = kEquipmentTypes[currentEquipmentIndex][1];
 }
 
 void CLoadoutMenu::OnThink()
@@ -351,6 +376,7 @@ void CLoadoutMenu::ShowPanel(bool bShow)
 {
 	if ( bShow )
 	{
+		Reset();
 		Activate();
 		SetMouseInputEnabled( true );
 	}

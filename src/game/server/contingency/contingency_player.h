@@ -7,6 +7,9 @@ class CContingency_Player;
 #include "hl2mp_player.h"
 #include "contingency_player_shared.h"
 
+// Added a modified version of Valve's floor turret
+#include "npc_contingency_turret.h"
+
 // Added a non-restorative health system
 // A class dedicated to storing a player's information based on their SteamID
 // for recall purposes even after they disconnect from the server
@@ -48,11 +51,14 @@ public:
 
 public:
 
+	int GetHealth() { return m_iHealth; }
+	int GetMaxHealth() { return m_iMaxHealth; }
+
 	void PickDefaultSpawnTeam( void );
 	void ChangeTeam( int iTeam );
 
 	// Added loadout system
-	void ApplyLoadout( int requestedHealth );
+	void ApplyLoadout( void );
 	void ReplenishAmmo( bool suppressSound );
 
 	// Reworked spawnpoint system
@@ -105,10 +111,6 @@ public:
 	bool StartObserverMode( int mode );
 	void PlayerDeathThink( void );
 
-	// Add a custom maximum health variable so that the client can get a player's maximum health
-	int GetMaxHealth( void ) { return m_iHealthMax; }
-	void SetHealthMax( int newMaxHealth ) { m_iHealthMax = newMaxHealth; }
-
 	// Added drop system
 	void Weapon_Drop( CBaseCombatWeapon *pWeapon, const Vector *pvecTarget, const Vector *pVelocity );
 
@@ -133,13 +135,24 @@ public:
 	float GetShoutDelay( void ) { return m_flShoutDelay; }
 	void SetShoutDelay( float newShoutDelay ) { m_flShoutDelay = newShoutDelay; }
 
+	// Added phase system
+	bool IsAllowedToSpawn( void ) { return m_bAllowedToSpawn; }
+	void IsAllowedToSpawn( bool boolean ) { m_bAllowedToSpawn = boolean; }
+
+	// Added a modified version of Valve's floor turret
+	CNPC_FloorTurret *GetDeployedTurret( void ) { return m_hDeployedTurret; }
+	void SetDeployedTurret( CNPC_FloorTurret *pNewDeployedTurret ) { m_hDeployedTurret = pNewDeployedTurret; }
+
+	// Added loadout system
+	// Prevent players from being able to pick up weapons that don't belong to their loadout
+	// ...unless the game specifically wants us to, of course
+	bool IsGivingWeapons( void ) { return m_bGivingWeapons; }
+	void IsGivingWeapons( bool boolean ) { m_bGivingWeapons = boolean; }
+
 private:
 
 	// Health regeneration system
 	float m_flHealthRegenDelay;
-
-	// Add a custom maximum health variable so that the client can get a player's maximum health
-	CNetworkVar( int, m_iHealthMax );
 
 	// Add pain sounds when a player takes damage
 	float m_flMinTimeBtwnPainSounds;
@@ -161,6 +174,12 @@ private:
 	// Added shout system
 	bool m_bShowShoutMenu;
 	float m_flShoutDelay;
+
+	// Added phase system
+	bool m_bAllowedToSpawn;
+
+	// Added a modified version of Valve's floor turret
+	CHandle<CNPC_FloorTurret> m_hDeployedTurret;
 };
 
 inline CContingency_Player *ToContingencyPlayer( CBaseEntity *pEntity )

@@ -1,5 +1,5 @@
 // Contingency - James
-// A modified version of Valve's stalker
+// Added a modified version of Valve's stalker
 // Not much is commented here, so...
 
 #include "cbase.h"

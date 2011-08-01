@@ -7800,7 +7800,16 @@ void SendProxy_CropFlagsToPlayerFlagBitsLength( const SendProp *pProp, const voi
 
 		SendPropEHandle(SENDINFO(m_hVehicle)),
 		SendPropEHandle(SENDINFO(m_hUseEntity)),
-		SendPropInt		(SENDINFO(m_iHealth), 10 ),
+
+/////
+
+	// Contingency - James
+	// Update health values for client-side entity classes
+
+		//SendPropInt		(SENDINFO(m_iHealth), 10 ),
+
+/////
+
 		SendPropInt		(SENDINFO(m_lifeState), 3, SPROP_UNSIGNED ),
 		SendPropInt		(SENDINFO(m_iBonusProgress), 15 ),
 		SendPropInt		(SENDINFO(m_iBonusChallenge), 4 ),

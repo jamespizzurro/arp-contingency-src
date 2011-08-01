@@ -1293,6 +1293,15 @@ public:
 
 	int								m_iHealth;
 
+/////
+
+	// Contingency - James
+	// Update health values for client-side entity classes
+
+	int m_iMaxHealth;
+
+/////
+
 	// was pev->speed
 	float							m_flSpeed;
 

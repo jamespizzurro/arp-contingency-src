@@ -97,7 +97,7 @@ public:
 	bool GenerateChildNodes( Node *pNode );
 	void InitiateNodeGeneration( void );
 
-protected:
+//protected:
 	CUtlVector<Node*> m_CompleteNodeList;
 
 private:
@@ -177,7 +177,7 @@ bool NodeGenerator::GenerateChildNodes( Node *pParentNode )
 		NDebugOverlay::Line( pParentNode->GetPosition(), pChildNode->GetPosition(), 0, 0, 255, true, 99999.0f );
 		NDebugOverlay::Box( pChildNode->GetPosition(), Vector(-5, -5, -5), Vector(5, 5, 5), 0, 255, 0, 255, 99999.0f );
 		
-		GenerateChildNodes( pChildNode );
+		//GenerateChildNodes( pChildNode );
 	}
 
 	return true;
@@ -212,3 +212,14 @@ void CC_InitiateNodeGeneration( void )
 	pNodeGenerator->InitiateNodeGeneration();
 }
 static ConCommand initiatenodegeneration( "initiatenodegeneration", CC_InitiateNodeGeneration, "Initiates node generation", 0 );
+
+void CC_NodeStep( void )
+{
+	NodeGenerator *pNodeGenerator = new NodeGenerator();
+	if ( !pNodeGenerator )
+		return;
+
+	for ( int i = 0; i < pNodeGenerator->m_CompleteNodeList.Count(); i++ )
+		pNodeGenerator->GenerateChildNodes( pNodeGenerator->m_CompleteNodeList[i] );
+}
+static ConCommand nodestep( "nodestep", CC_NodeStep, "nodestep", 0 );

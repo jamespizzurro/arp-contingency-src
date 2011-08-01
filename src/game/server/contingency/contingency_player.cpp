@@ -30,8 +30,6 @@ BEGIN_SEND_TABLE_NOBASE( CContingency_Player, DT_SONonLocalPlayerExclusive )
 END_SEND_TABLE()
 
 IMPLEMENT_SERVERCLASS_ST( CContingency_Player, DT_Contingency_Player )
-	// Add a custom maximum health variable so that the client can get a player's maximum health
-	SendPropInt( SENDINFO( m_iHealthMax ) ),
 END_SEND_TABLE()
 
 BEGIN_DATADESC( CContingency_Player )
@@ -69,6 +67,12 @@ CContingency_Player::CContingency_Player()
 	// Added shout system
 	m_bShowShoutMenu = false;
 	m_flShoutDelay = 0.0f;
+
+	// Added phase system
+	m_bAllowedToSpawn = false;
+
+	// Added a modified version of Valve's floor turret
+	m_hDeployedTurret = NULL;
 }
 
 CContingency_Player::~CContingency_Player( void )
@@ -90,18 +94,16 @@ void CContingency_Player::ChangeTeam( int iTeam )
 }
 
 // Added loadout system
-void CContingency_Player::ApplyLoadout( int requestedHealth )
+void CContingency_Player::ApplyLoadout( void )
 {
-	// Handle our player model 
-	// At least for now, give us a random one
-	SetModel( kContingencyPlayerModels[random->RandomInt(0, NUM_PLAYER_MODELS - 1)] );
-
-	// Handle our current and maximum health
-	if ( (requestedHealth > 0) && (requestedHealth < CONTINGENCY_MAX_HEALTH) )
-		m_iHealth = requestedHealth;
-	else
-		m_iHealth = CONTINGENCY_MAX_HEALTH;
-	m_iHealthMax = m_iMaxHealth = CONTINGENCY_MAX_HEALTH;
+	CBaseCombatWeapon *pDeployableTurret = Weapon_OwnsThisType( "weapon_deployableturret" );
+	bool hadDeployableTurret = false;
+	//int previousDeployableTurretHealth = CONTINGENCY_TURRET_MAX_HEALTH;
+	if ( pDeployableTurret )
+	{
+		hadDeployableTurret = true;
+		//previousDeployableTurretHealth = pDeployableTurret->GetHealth();
+	}
 
 	// Handle weapons and ammunition
 
@@ -114,13 +116,54 @@ void CContingency_Player::ApplyLoadout( int requestedHealth )
 	// ...unless the game specifically wants us to, of course
 	m_bGivingWeapons = true;
 
-	EquipSuit();
+	EquipSuit( false );
 
 	// Supply the player with their weapons
 	GiveNamedItem( GetPreferredPrimaryWeaponClassname() );
 	GiveNamedItem( GetPreferredSecondaryWeaponClassname() );
 	GiveNamedItem( GetPreferredMeleeWeaponClassname() );
-	GiveNamedItem( GetPreferredEquipmentClassname() );
+
+	// Added a modified version of Valve's floor turret
+	const char *szPreferredEquipmentClassname = GetPreferredEquipmentClassname();
+	CNPC_FloorTurret *pDeployedTurret = GetDeployedTurret();
+	if ( Q_strcmp(szPreferredEquipmentClassname, "weapon_deployableturret") == 0 )
+	{
+		// We want a deployable turret
+
+		if ( pDeployedTurret )
+		{
+			// We already have a deployed turret, so don't give us another deployable one
+			// unless we already had both before all of our weapons were removed at the beginning of this function
+			
+			// This allows players to pick up turrets that may have been explicitly placed
+			// on the map by level designers without fear of them being removed
+
+			if ( hadDeployableTurret )
+			{
+				CBaseEntity *pDeployableTurret = GiveNamedItem( szPreferredEquipmentClassname );
+				if ( pDeployableTurret )
+				{
+					// TODO: Get the health carry over to work? :s
+					//pDeployableTurret->SetHealth( previousDeployableTurretHealth );	// carry over health of previous deployable turret
+				}
+			}
+		}
+		else
+		{
+			// We do not yet have a deployed turret, so give us a deployable one per our request
+			GiveNamedItem( szPreferredEquipmentClassname );
+		}
+	}
+	else
+	{
+		// We do not want a deployable turret
+
+		if ( pDeployedTurret )
+			pDeployedTurret->Explode();	// we prefer new equipment but currently have a deployed turret in the world,
+										// so explode that turret before giving us our new equipment
+
+		GiveNamedItem( szPreferredEquipmentClassname );
+	}
 
 	// Added loadout system
 	// Prevent players from being able to pick up weapons that don't belong to their loadout
@@ -243,34 +286,55 @@ void CContingency_Player::Spawn( void )
 	// Added chat bubble above players' heads while they type in chat
 	KillChatBubble();
 
-	// Added a non-restorative health system
-	const char *steamID = engine->GetPlayerNetworkIDString( edict() );
-	int savedPlayerHealth = 0;
-	CContingency_Player_Info *pPlayerInfo = ContingencyRules()->FindPlayerInfoBySteamID( steamID );
-	if ( pPlayerInfo && !pPlayerInfo->HasBeenAccessed() )
-	{
-		// We've found a player info entry with our player's steamID in it,
-		// so use it to recall our player's loadout and health when they disconnected
-		pPlayerInfo->HasBeenAccessed( true );
-		savedPlayerHealth = pPlayerInfo->GetHealth();
-	}
-
-	// Added loadout system
-	ApplyLoadout( savedPlayerHealth );
+	// Handle our player model 
+	// At least for now, give us a random one
+	SetModel( kContingencyPlayerModels[random->RandomInt(0, NUM_PLAYER_MODELS - 1)] );
 
 	// Added phase system
-	if ( ContingencyRules()->GetCurrentPhase() == PHASE_INTERIM )
+	if ( IsAllowedToSpawn() )
 	{
 		ClientPrint( this, HUD_PRINTTALK, "You have been spawned." );
-		ClientPrint( this, HUD_PRINTTALK, "Press your loadout menu key (M by default) to change your loadout." );
-	}
-	else	// force players to be observers during non-interim phases
-	{
-		StartObserverMode( OBS_MODE_ROAMING );
 
-		ClientPrint( this, HUD_PRINTTALK, "You are currently an observer." );
-		ClientPrint( this, HUD_PRINTTALK, "You will spawn at the start of the next interim phase." );
-		ClientPrint( this, HUD_PRINTTALK, "In the meantime, feel free to change your loadout by pressing your loadout menu key (M by default)." );
+		// Added a non-restorative health system
+		const char *steamID = engine->GetPlayerNetworkIDString( edict() );
+		int savedPlayerHealth = 0;
+		CContingency_Player_Info *pPlayerInfo = ContingencyRules()->FindPlayerInfoBySteamID( steamID );
+		if ( pPlayerInfo && !pPlayerInfo->HasBeenAccessed() )
+		{
+			// We've found a player info entry with our player's steamID in it,
+			// so use it to recall our player's loadout and health when they disconnected
+			pPlayerInfo->HasBeenAccessed( true );
+			savedPlayerHealth = pPlayerInfo->GetHealth();
+		}
+
+		// Handle our current and maximum health
+		if ( (savedPlayerHealth > 0) && (savedPlayerHealth < CONTINGENCY_MAX_HEALTH) )
+			m_iHealth = savedPlayerHealth;
+		else
+			m_iHealth = CONTINGENCY_MAX_HEALTH;
+		m_iMaxHealth = CONTINGENCY_MAX_HEALTH;
+
+		// Prevent suit gloves admiration animation from showing
+		CBaseViewModel *pViewModel = GetViewModel();
+		if ( pViewModel )
+			pViewModel->RemoveEffects( EF_NODRAW );
+
+		// Added loadout system
+		ApplyLoadout();
+	}
+	else	// by default, players are forced to be observers
+	{
+		ClientPrint( this, HUD_PRINTTALK, "You are currently an observer. You will spawn at the start of the next combat phase." );
+	
+		// Handle our current and maximum health
+		m_iHealth = m_iMaxHealth = CONTINGENCY_MAX_HEALTH;
+
+		// Prevent suit gloves admiration animation from showing
+		CBaseViewModel *pViewModel = GetViewModel();
+		if ( pViewModel )
+			pViewModel->AddEffects( EF_NODRAW );
+
+		StartObserverMode( OBS_MODE_ROAMING );
 	}
 }
 
@@ -291,7 +355,7 @@ void CContingency_Player::SetMaxSpeed( float flMaxSpeed )
 	}
 
 	if ( ContingencyRules()->IsPlayerPlaying(this) )
-		newMaxSpeed = newMaxSpeed - (m_iHealthMax - m_iHealth);
+		newMaxSpeed = newMaxSpeed - (m_iMaxHealth - m_iHealth);
 
 	if ( newMaxSpeed < CONTINGENCY_MINIMUM_SPEED )
 		newMaxSpeed = CONTINGENCY_MINIMUM_SPEED;	// clamp to CONTINGENCY_MINIMUM_SPEED
@@ -538,20 +602,9 @@ void CContingency_Player::PlayerDeathThink( void )
 
 	if ( gpGlobals->curtime >= (m_flDeathTime + DEATH_ANIMATION_TIME) )
 	{
-		if ( ContingencyRules()->CanPlayersRespawn() )
-		{
-			m_nButtons = 0;
-			m_iRespawnFrames = 0;
-
-			Spawn();	// respawn the player
-
-			SetNextThink( TICK_NEVER_THINK );
-		}
-		else if ( !IsObserver() )
-		{
-			// Since we can't respawn, allow us to start roaming around as an observer
-			StartObserverMode( OBS_MODE_ROAMING );
-		}
+		// Now we wait for our gamerules to respawn us
+		// In the meantime, allow us to start roaming around the map as an observer
+		StartObserverMode( OBS_MODE_ROAMING );
 	}
 }
 

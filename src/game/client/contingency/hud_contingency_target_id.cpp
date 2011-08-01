@@ -9,6 +9,12 @@
 #include "vgui/ILocalize.h"
 #include "contingency_gamerules.h"
 
+// Added turret status HUD element
+#include "c_npc_contingency_turret.h"
+
+// Added citizen status HUD element
+#include "c_npc_citizen17.h"
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -108,26 +114,75 @@ void CTargetID::Paint()
 	// Is this an entindex sent by the server?
 	if ( iEntIndex )
 	{
+		// Added player status HUD element
 		C_Contingency_Player *pTargetPlayer = ToContingencyPlayer( cl_entitylist->GetEnt(iEntIndex) );
-		if ( !pTargetPlayer )
-			return;	// as of right now, we only generate target IDs for players, not NPCs or other stuff
+		
+		// Added turret status HUD element
+		C_NPC_FloorTurret *pTargetTurret = dynamic_cast<C_NPC_FloorTurret*>( cl_entitylist->GetEnt(iEntIndex) );
+		
+		// Added citizen status HUD element
+		C_NPC_Citizen *pTargetCitizen = dynamic_cast<C_NPC_Citizen*>( cl_entitylist->GetEnt(iEntIndex) );
+		
+		// Added player status HUD element
+		if ( pTargetPlayer )
+		{
+			int wide, tall;
 
-		int wide, tall;
+			wchar_t wszPlayerName[256];
+			g_pVGuiLocalize->ConvertANSIToUnicode( pTargetPlayer->GetPlayerName(), wszPlayerName, sizeof(wszPlayerName) );
+			vgui::surface()->GetTextSize( m_hFont, wszPlayerName, wide, tall );
+			vgui::surface()->DrawSetTextFont( m_hFont );
+			vgui::surface()->DrawSetTextPos( (ScreenWidth() - wide) / 2, YRES(260) );
+			vgui::surface()->DrawSetTextColor( GetColorForTargetTeam(pTargetPlayer->GetTeamNumber()) );
+			vgui::surface()->DrawPrintText( wszPlayerName, wcslen(wszPlayerName) );
 
-		wchar_t wszPlayerName[ MAX_PLAYER_NAME_LENGTH ];
-		g_pVGuiLocalize->ConvertANSIToUnicode( pTargetPlayer->GetPlayerName(), wszPlayerName, sizeof(wszPlayerName) );
-		vgui::surface()->GetTextSize( m_hFont, wszPlayerName, wide, tall );
-		vgui::surface()->DrawSetTextFont( m_hFont );
-		vgui::surface()->DrawSetTextPos( (ScreenWidth() - wide) / 2, YRES(260) );
-		vgui::surface()->DrawSetTextColor( GetColorForTargetTeam(pTargetPlayer->GetTeamNumber()) );
-		vgui::surface()->DrawPrintText( wszPlayerName, wcslen(wszPlayerName) );
+			wchar_t wszHealthConditionText[256];
+			g_pVGuiLocalize->ConvertANSIToUnicode( pTargetPlayer->GetHealthCondition(), wszHealthConditionText, sizeof(wszHealthConditionText) );
+			vgui::surface()->GetTextSize( m_hFont, wszHealthConditionText, wide, tall );
+			vgui::surface()->DrawSetTextFont( m_hFont );
+			vgui::surface()->DrawSetTextPos( (ScreenWidth() - wide) / 2, YRES(280) );
+			vgui::surface()->DrawSetTextColor( pTargetPlayer->GetHealthConditionColor() );
+			vgui::surface()->DrawPrintText( wszHealthConditionText, wcslen(wszHealthConditionText) );
+		}
+		// Added turret status HUD element
+		else if ( pTargetTurret )
+		{
+			int wide, tall;
 
-		wchar_t wszHealthConditionText[ MAX_PLAYER_NAME_LENGTH ];
-		g_pVGuiLocalize->ConvertANSIToUnicode( pTargetPlayer->GetHealthCondition(), wszHealthConditionText, sizeof(wszHealthConditionText) );
-		vgui::surface()->GetTextSize( m_hFont, wszHealthConditionText, wide, tall );
-		vgui::surface()->DrawSetTextFont( m_hFont );
-		vgui::surface()->DrawSetTextPos( (ScreenWidth() - wide) / 2, YRES(280) );
-		vgui::surface()->DrawSetTextColor( pTargetPlayer->GetHealthConditionColor() );
-		vgui::surface()->DrawPrintText( wszHealthConditionText, wcslen(wszHealthConditionText) );
+			wchar_t wszTurretOwnerName[256];
+			g_pVGuiLocalize->ConvertANSIToUnicode( pTargetTurret->GetOwnerDisplay(), wszTurretOwnerName, sizeof(wszTurretOwnerName) );
+			vgui::surface()->GetTextSize( m_hFont, wszTurretOwnerName, wide, tall );
+			vgui::surface()->DrawSetTextFont( m_hFont );
+			vgui::surface()->DrawSetTextPos( (ScreenWidth() - wide) / 2, YRES(260) );
+			vgui::surface()->DrawSetTextColor( GetColorForTargetTeam(pTargetTurret->GetTeamNumber()) );
+			vgui::surface()->DrawPrintText( wszTurretOwnerName, wcslen(wszTurretOwnerName) );
+
+			wchar_t wszHealthConditionText[256];
+			g_pVGuiLocalize->ConvertANSIToUnicode( pTargetTurret->GetHealthCondition(), wszHealthConditionText, sizeof(wszHealthConditionText) );
+			vgui::surface()->GetTextSize( m_hFont, wszHealthConditionText, wide, tall );
+			vgui::surface()->DrawSetTextFont( m_hFont );
+			vgui::surface()->DrawSetTextPos( (ScreenWidth() - wide) / 2, YRES(280) );
+			vgui::surface()->DrawSetTextColor( pTargetTurret->GetHealthConditionColor() );
+			vgui::surface()->DrawPrintText( wszHealthConditionText, wcslen(wszHealthConditionText) );
+		}
+		// Added citizen status HUD element
+		else if ( pTargetCitizen )
+		{
+			int wide, tall;
+
+			vgui::surface()->GetTextSize( m_hFont, L"Citizen", wide, tall );
+			vgui::surface()->DrawSetTextFont( m_hFont );
+			vgui::surface()->DrawSetTextPos( (ScreenWidth() - wide) / 2, YRES(260) );
+			vgui::surface()->DrawSetTextColor( GetColorForTargetTeam(pTargetCitizen->GetTeamNumber()) );
+			vgui::surface()->DrawPrintText( L"Citizen", wcslen(L"Citizen") );
+
+			wchar_t wszHealthConditionText[256];
+			g_pVGuiLocalize->ConvertANSIToUnicode( pTargetCitizen->GetHealthCondition(), wszHealthConditionText, sizeof(wszHealthConditionText) );
+			vgui::surface()->GetTextSize( m_hFont, wszHealthConditionText, wide, tall );
+			vgui::surface()->DrawSetTextFont( m_hFont );
+			vgui::surface()->DrawSetTextPos( (ScreenWidth() - wide) / 2, YRES(280) );
+			vgui::surface()->DrawSetTextColor( pTargetCitizen->GetHealthConditionColor() );
+			vgui::surface()->DrawPrintText( wszHealthConditionText, wcslen(wszHealthConditionText) );
+		}
 	}
 }

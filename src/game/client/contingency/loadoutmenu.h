@@ -18,7 +18,7 @@
 
 #include <vgui_controls/Button.h>
 
-#include "contingency_weapon_types.h"
+#include "contingency_system_loadout.h"
 
 namespace vgui
 {
