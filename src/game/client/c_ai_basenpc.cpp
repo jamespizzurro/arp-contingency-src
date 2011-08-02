@@ -19,6 +19,15 @@
 
 #define PING_MAX_TIME	2.0
 
+/////
+
+	// Contingency - James
+	// Create a list that stores all instances of NPCs
+
+CUtlVector<C_AI_BaseNPC*> m_NPCList;
+
+/////
+
 IMPLEMENT_CLIENTCLASS_DT( C_AI_BaseNPC, DT_AI_BaseNPC, CAI_BaseNPC )
 	RecvPropInt( RECVINFO( m_lifeState ) ),
 	RecvPropBool( RECVINFO( m_bPerformAvoidance ) ),
@@ -47,6 +56,31 @@ bool NPC_IsImportantNPC( C_BaseAnimating *pAnimating )
 
 C_AI_BaseNPC::C_AI_BaseNPC()
 {
+
+/////
+
+	// Contingency - James
+	// Create a list that stores all instances of NPCs
+
+	if ( m_NPCList.Find(this) == -1 )
+		m_NPCList.AddToTail( this );
+
+/////
+
+}
+
+C_AI_BaseNPC::~C_AI_BaseNPC()
+{
+
+/////
+
+	// Contingency - James
+	// Create a list that stores all instances of NPCs
+
+	m_NPCList.FindAndRemove( this );
+
+/////
+
 }
 
 //-----------------------------------------------------------------------------

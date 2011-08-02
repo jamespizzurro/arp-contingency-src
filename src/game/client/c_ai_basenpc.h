@@ -23,6 +23,8 @@ public:
 	DECLARE_CLIENTCLASS();
 
 	C_AI_BaseNPC();
+	~C_AI_BaseNPC();
+
 	virtual unsigned int	PhysicsSolidMaskForEntity( void ) const;
 	virtual bool			IsNPC( void ) { return true; }
 	bool					IsMoving( void ){ return m_bIsMoving; }
@@ -57,5 +59,13 @@ private:
 	bool m_bImportanRagdoll;
 };
 
+/////
+
+	// Contingency - James
+	// Create a list that stores all instances of NPCs
+
+extern CUtlVector<C_AI_BaseNPC*> m_NPCList;
+
+/////
 
 #endif // C_AI_BASENPC_H

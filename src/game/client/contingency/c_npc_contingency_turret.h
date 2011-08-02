@@ -3,6 +3,10 @@
 // Implement client-side turret NPC class
 // Not much is commented here, so...
 
+#ifndef C_NPC_CONTINGENCY_TURRET_H
+#define C_NPC_CONTINGENCY_TURRET_H
+#pragma once
+
 #include "cbase.h"
 #include "c_ai_basenpc.h"
 
@@ -28,3 +32,5 @@ public:
 private:
 	C_NPC_FloorTurret( const C_NPC_FloorTurret & ); // not defined, not accessible
 };
+
+#endif // C_NPC_CONTINGENCY_TURRET_H

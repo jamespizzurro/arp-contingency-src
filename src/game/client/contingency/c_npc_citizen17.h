@@ -1,5 +1,9 @@
 // Contingency - James
 
+#ifndef C_NPC_CITIZEN17_H
+#define C_NPC_CITIZEN17_H
+#pragma once
+
 #include "cbase.h"
 #include "c_ai_basenpc.h"
 
@@ -22,3 +26,5 @@ public:
 private:
 	C_NPC_Citizen( const C_NPC_Citizen & ); // not defined, not accessible
 };
+
+#endif // C_NPC_CITIZEN17_H

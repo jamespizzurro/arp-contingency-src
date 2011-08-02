@@ -171,9 +171,6 @@
     <ClCompile Include="c_ai_basehumanoid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="c_ai_basenpc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="c_baseanimatingoverlay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1617,6 +1614,12 @@
     <ClCompile Include="contingency\c_npc_citizen17.cpp">
       <Filter>Source Files\Contingency\Entities\NPCs</Filter>
     </ClCompile>
+    <ClCompile Include="contingency\hud_contingency_radar.cpp">
+      <Filter>Source Files\Contingency\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="c_ai_basenpc.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="achievement_notification_panel.h">
@@ -1776,9 +1779,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bone_merge_cache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="c_ai_basenpc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="c_baseanimatingoverlay.h">
@@ -3454,6 +3454,9 @@
     </ClInclude>
     <ClInclude Include="..\shared\contingency\contingency_system_phase.h">
       <Filter>Source Files\Contingency\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="c_ai_basenpc.h">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

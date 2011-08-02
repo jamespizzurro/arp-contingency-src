@@ -269,6 +269,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClCompile Include="contingency\hud_contingency_ammo.cpp" />
     <ClCompile Include="contingency\hud_contingency_phasedisplay.cpp" />
     <ClCompile Include="contingency\hud_contingency_playerstatus.cpp" />
+    <ClCompile Include="contingency\hud_contingency_radar.cpp" />
     <ClCompile Include="contingency\hud_contingency_stamina.cpp" />
     <ClCompile Include="contingency\hud_contingency_target_id.cpp" />
     <ClCompile Include="contingency\hud_contingency_wavedisplay.cpp" />
