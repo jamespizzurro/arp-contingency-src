@@ -59,6 +59,15 @@
 
 /////
 
+/////
+
+	// Contingency - James
+	// Added a fully-automated nodegraph generation system
+
+#include "navgen_display.h"
+
+/////
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -254,6 +263,15 @@ void CBaseViewport::CreateDefaultPanels( void )
 
 /////
 
+/////
+
+	// Contingency - James
+	// Added a fully-automated nodegraph generation system
+
+	AddNewPanel( CreatePanelByName(PANEL_NAVGEN_DISPLAY), PANEL_NAVGEN_DISPLAY );
+
+/////
+
 #endif
 }
 
@@ -316,6 +334,18 @@ IViewPortPanel* CBaseViewport::CreatePanelByName(const char *szPanelName)
 	else if ( Q_strcmp(PANEL_LOADOUT, szPanelName) == 0 )
 	{
 		newpanel = new CLoadoutMenu( this );
+	}
+
+/////
+
+/////
+
+	// Contingency - James
+	// Added a fully-automated nodegraph generation system
+
+	else if ( Q_strcmp(PANEL_NAVGEN_DISPLAY, szPanelName) == 0 )
+	{
+		newpanel = new CNavGenDisplay( this );
 	}
 
 /////

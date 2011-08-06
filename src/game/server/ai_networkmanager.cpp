@@ -894,7 +894,7 @@ void CAI_NetworkManager::InitializeAINetworks()
 /////
 
 	// Contingency - James
-	// Add an in-game manual node placement system
+	// Added a fully-automated nodegraph generation system
 	// http://developer.valvesoftware.com/wiki/Node_graphs_for_deathmatch_maps
 
 	/*if ( CAI_NetworkManager::IsAIFileCurrent( STRING( gpGlobals->mapname ) ) )
@@ -1040,7 +1040,7 @@ bool CAI_NetworkManager::IsAIFileCurrent ( const char *szMapName )
 /////
 
 	// Contingency - James
-	// Add an in-game manual node placement system
+	// Added a fully-automated nodegraph generation system
 	// http://developer.valvesoftware.com/wiki/Node_graphs_for_deathmatch_maps
 
 //-----------------------------------------------------------------------------

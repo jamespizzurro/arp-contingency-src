@@ -61,7 +61,7 @@ public:
 /////
 
 	// Contingency - James
-	// Add an in-game manual node placement system
+	// Added a fully-automated nodegraph generation system
 	// http://developer.valvesoftware.com/wiki/Node_graphs_for_deathmatch_maps
 
 	void SetRebuildNeeded( bool b = true ) { m_bNeedGraphRebuild = b; }
@@ -82,7 +82,7 @@ private:
 /////
 
 	// Contingency - James
-	// Add an in-game manual node placement system
+	// Added a fully-automated nodegraph generation system
 	// http://developer.valvesoftware.com/wiki/Node_graphs_for_deathmatch_maps
 
 	static bool	IsTextFileNewer( const char *szMapName );

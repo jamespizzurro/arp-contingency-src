@@ -45,4 +45,13 @@
 
 /////
 
+/////
+
+	// Contingency - James
+	// Added a fully-automated nodegraph generation system
+
+#define PANEL_NAVGEN_DISPLAY "navgen_display"
+
+/////
+
 #endif // VIEWPORT_PANEL_NAMES_H

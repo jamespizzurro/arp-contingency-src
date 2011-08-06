@@ -299,7 +299,16 @@ public:
 		m_CurrentWaveNPCList.Purge();
 	}
 #endif
+
+	// Added radar display
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	bool DoesMapAllowRadars( void ) { return m_bMapAllowsRadars; }
 #ifndef CLIENT_DLL
+	void DoesMapAllowRadars( bool boolean ) { m_bMapAllowsRadars = boolean; }
+#endif
+
+#ifndef CLIENT_DLL
+	// Added wave system
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
 	bool DoesMapSupportHeadcrabs( void ) { return m_bMapHeadcrabSupport; }
 	void DoesMapSupportHeadcrabs( bool boolean ) { m_bMapHeadcrabSupport = boolean; }
@@ -310,6 +319,7 @@ public:
 	bool DoesMapSupportCombine( void ) { return m_bMapCombineSupport; }
 	void DoesMapSupportCombine( bool boolean ) { m_bMapCombineSupport = boolean; }
 
+	// Added wave system
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
 	int GetMapHeadcrabWaveMultiplierOffset( void ) { return m_flMapHeadcrabWaveMultiplierOffset; }
 	void SetMapHeadcrabWaveMultiplierOffset( int newMapHeadcrabWaveMultiplierOffset ) { m_flMapHeadcrabWaveMultiplierOffset = newMapHeadcrabWaveMultiplierOffset; }
@@ -368,13 +378,21 @@ private:
 	int m_iNumEnemiesSpawned;
 	bool m_bPlayersDefeated;
 	CUtlVector<CAI_BaseNPC*> m_CurrentWaveNPCList;
+#endif
 
+	// Added radar display
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	CNetworkVar( bool, m_bMapAllowsRadars );
+
+#ifndef CLIENT_DLL
+	// Added wave system
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
 	bool m_bMapHeadcrabSupport;
 	bool m_bMapAntlionSupport;
 	bool m_bMapZombieSupport;
 	bool m_bMapCombineSupport;
 
+	// Added wave system
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
 	float m_flMapHeadcrabWaveMultiplierOffset;
 	float m_flMapAntlionWaveMultiplierOffset;

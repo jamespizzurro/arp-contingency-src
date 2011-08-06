@@ -26,6 +26,9 @@ public:
 	void GamemodeCheckThink( void );
 
 private:	// map-defined stuff
+	// Added radar display
+	bool m_bAllowRadars;
+
 	// Added wave system
 	float m_flHeadcrabWaveMultiplierOffset;
 	float m_flAntlionWaveMultiplierOffset;
@@ -44,6 +47,9 @@ private:
 LINK_ENTITY_TO_CLASS( contingency_configuration, CContingencyConfiguration );
 
 BEGIN_DATADESC( CContingencyConfiguration )
+	// Added radar display
+	DEFINE_KEYFIELD( m_bAllowRadars, FIELD_BOOLEAN, "AllowRadars" ),
+	
 	// Added wave system
 	DEFINE_KEYFIELD( m_flHeadcrabWaveMultiplierOffset, FIELD_FLOAT, "HeadcrabWaveMultiplierOffset" ),
 	DEFINE_KEYFIELD( m_flAntlionWaveMultiplierOffset, FIELD_FLOAT, "AntlionWaveMultiplierOffset" ),
@@ -67,6 +73,9 @@ CContingencyConfiguration::CContingencyConfiguration()
 
 void CContingencyConfiguration::Spawn( void )
 {
+	// Added radar display
+	ContingencyRules()->DoesMapAllowRadars( m_bAllowRadars );
+
 	// Added wave system
 	// Check to see what types of waves our map supports by its spawnflags
 	// and update our gamerules accordingly

@@ -17,13 +17,22 @@
 
 #include <vgui_controls/ImagePanel.h>
 
-#include "tier0/memdbgon.h"
+#include "in_buttons.h"
+#include <vgui_controls/AnimationController.h>
+#include "iinput.h"
+#include "input.h"
 
-#define RADAR_SCALE 20	// this seems to be an appropriate base scale for the radar
+#include "tier0/memdbgon.h"
 
 using namespace vgui;
 
-class CHudRadarDisplay : public CHudElement, public Panel
+class IRadarDisplayPanel
+{
+public:
+	virtual void Toggle( void ) = 0;
+};
+
+class CHudRadarDisplay : public CHudElement, public Panel, public IRadarDisplayPanel
 {
 	DECLARE_CLASS_SIMPLE( CHudRadarDisplay, Panel );
 
@@ -31,10 +40,16 @@ public:
 	CHudRadarDisplay( const char *pElementName );
 
 	void DrawRadarDot( CBaseEntity *pTarget, Color dotColor );
+	bool ShouldDraw( void );
 	void Paint( void );
-	void OnThink( void );
+	void Toggle( void );
 
 private:
+	int wide;
+	int tall;
+	bool m_bDisplayed;
+	float m_flTimeToPreventDisplay;
+	int i;
 	int panelHeight;
 	int panelWidth;
 	float distanceOffsetX;
@@ -53,17 +68,21 @@ private:
 	ImagePanel *m_pRadarImagePanel;
 };
 
+IRadarDisplayPanel *g_pRadarDisplay = NULL;
+
 DECLARE_HUDELEMENT( CHudRadarDisplay );
 
 CHudRadarDisplay::CHudRadarDisplay( const char *pElementName ) : CHudElement( pElementName ), BaseClass( NULL, "HudRadarDisplay" )
 {
-	// Hide the radar if the player is dead
-	SetHiddenBits( HIDEHUD_PLAYERDEAD );
-
 	Panel *pParent = g_pClientMode->GetViewport();
 	SetParent( pParent );
 
 	// Initialize variables
+	wide = 0;
+	tall = 0;
+	m_bDisplayed = true;
+	m_flTimeToPreventDisplay = 0.0f;
+	i = 0;
 	panelHeight = 0;
 	panelWidth = 0;
 	distanceOffsetX = 0.0f;
@@ -74,17 +93,22 @@ CHudRadarDisplay::CHudRadarDisplay( const char *pElementName ) : CHudElement( pE
 
 	// Draw our radar image and show it
 	m_pRadarImagePanel = new ImagePanel( this, "RadarImage" );
-	m_pRadarImagePanel->SetImage( scheme()->GetImage("HUDicons/radar_display", false) );
-	m_pRadarImagePanel->SetPos( 0, 0 );
-	m_pRadarImagePanel->SetSize( GetWide(), GetTall() );
-	m_pRadarImagePanel->SetProportional( true );
-	m_pRadarImagePanel->SetShouldScaleImage( true );
-	m_pRadarImagePanel->SetAlpha( 255 );
-	m_pRadarImagePanel->SetVisible( true );
+	if ( m_pRadarImagePanel )
+	{
+		m_pRadarImagePanel->SetProportional( true );
+		m_pRadarImagePanel->SetPos( 0, 0 );
+		m_pRadarImagePanel->SetImage( scheme()->GetImage("hud/radar_display", false) );
+		m_pRadarImagePanel->SetSize( GetWide(), GetTall() );
+		m_pRadarImagePanel->SetShouldScaleImage( true );
+		m_pRadarImagePanel->SetVisible( true );
+		m_pRadarImagePanel->SetAlpha( 100 );
+	}
 
 	SetProportional( true );
-	SetPaintBorderEnabled( false );
+	SetPaintBorderEnabled( true );
 	SetVisible( true );
+
+	g_pRadarDisplay = this;	// for ConCommand access (assumes only one radar display)
 }
 
 void CHudRadarDisplay::DrawRadarDot( CBaseEntity *pTarget, Color dotColor )
@@ -101,7 +125,7 @@ void CHudRadarDisplay::DrawRadarDot( CBaseEntity *pTarget, Color dotColor )
 
 	// Get the x and y distance between the local player and the other player
 	distanceOffsetX = pLocalPlayer->EyePosition().x - pTarget->EyePosition().x;
-	distanceOffsetY = pLocalPlayer->EyePosition().y - pTarget->EyePosition().y;
+	distanceOffsetY = pTarget->EyePosition().y - pLocalPlayer->EyePosition().y;
 
 	// Turn these differences in distances into a vector
 	distanceOffset = Vector( distanceOffsetX, distanceOffsetY, 0 );
@@ -125,13 +149,37 @@ void CHudRadarDisplay::DrawRadarDot( CBaseEntity *pTarget, Color dotColor )
 	surface()->DrawFilledRect( drawX - 2, drawY - 2, drawX + 2, drawY + 2 );
 }
 
+bool CHudRadarDisplay::ShouldDraw( void )
+{
+	if ( ContingencyRules() && !ContingencyRules()->DoesMapAllowRadars() )
+		return false;
+
+	return true;
+}
+
 void CHudRadarDisplay::Paint()
 {
 	pLocalPlayer = C_BasePlayer::GetLocalPlayer();
 	if ( !pLocalPlayer )
 		return;
 
-	int i;
+	if ( m_pRadarImagePanel )
+	{
+		m_pRadarImagePanel->SetSize( wide, tall );
+		m_pRadarImagePanel->SetShouldScaleImage( true );
+		m_pRadarImagePanel->SetAlpha( 100 );
+	}
+
+	if ( m_bDisplayed )
+	{
+		if ( gpGlobals->curtime < m_flTimeToPreventDisplay )
+			return;
+
+		wide = GetWide();
+		tall = GetTall();
+	}
+	else
+		return;
 
 	// Update any players on radar
 	for ( i = 1; i <= gpGlobals->maxClients; i++ )
@@ -140,7 +188,7 @@ void CHudRadarDisplay::Paint()
 		if ( !pTargetPlayer )
 			continue;
 
-		if ( !ContingencyRules()->IsPlayerPlaying(pTargetPlayer) )
+		if ( ContingencyRules() && !ContingencyRules()->IsPlayerPlaying(pTargetPlayer) )
 			continue;	// don't show players who aren't playing
 
 		// Don't show ourselves (that would be silly!)
@@ -156,6 +204,9 @@ void CHudRadarDisplay::Paint()
 		pTargetCitizen = dynamic_cast<C_NPC_Citizen*>( m_NPCList[i] );
 		if ( pTargetCitizen )
 		{
+			if ( !pTargetCitizen->IsAlive() )
+				continue;
+
 			DrawRadarDot( pTargetCitizen, COLOR_GREEN );
 			continue;
 		}
@@ -163,17 +214,61 @@ void CHudRadarDisplay::Paint()
 		pTargetTurret = dynamic_cast<C_NPC_FloorTurret*>( m_NPCList[i] );
 		if ( pTargetTurret )
 		{
+			if ( !pTargetTurret->IsAlive() )
+				continue;
+
 			DrawRadarDot( pTargetTurret, COLOR_YELLOW );
 			continue;
 		}
 
 		pTargetNPC = dynamic_cast<C_AI_BaseNPC*>( m_NPCList[i] );
 		if ( pTargetNPC )
+		{
+			if ( !pTargetNPC->IsAlive() )
+				continue;
+
 			DrawRadarDot( pTargetNPC, COLOR_RED );	// all other NPCs are assumed to be EVIL (hence the red)
+			continue;
+		}
 	}
 }
 
-void CHudRadarDisplay::OnThink()
+void CHudRadarDisplay::Toggle( void )
 {
-	BaseClass::OnThink();
+	pLocalPlayer = C_BasePlayer::GetLocalPlayer();
+	if ( !pLocalPlayer )
+		return;
+
+	if ( m_bDisplayed )
+	{
+		m_bDisplayed = false;
+		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "RadarDisplayHide" );
+	}
+	else
+	{
+		m_bDisplayed = true;
+		m_flTimeToPreventDisplay = gpGlobals->curtime + g_pClientMode->GetViewportAnimationController()->GetAnimationSequenceLength( "RadarDisplayShow" ) + 0.25f;	// extra time buffer (just in case?)
+		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "RadarDisplayShow" );
+	}
 }
+
+// Added radar display
+void CC_ToggleRadarDisplay( void )
+{
+	C_BasePlayer *pLocalPlayer = C_BasePlayer::GetLocalPlayer();
+	if ( !pLocalPlayer )
+		return;
+
+	if ( !g_pRadarDisplay )
+		return;
+
+	if ( ContingencyRules() && !ContingencyRules()->DoesMapAllowRadars() )
+	{
+		// ClientPrint doesn't seem to work client-side??
+		//ClientPrint( pLocalPlayer, HUD_PRINTTALK, "This map does not allow the use of radars." );
+		return;
+	}
+
+	g_pRadarDisplay->Toggle();
+}
+static ConCommand toggleradardisplay( "toggleradardisplay", CC_ToggleRadarDisplay, "Toggles radar display (if possible)", 0 );

@@ -267,6 +267,9 @@ void CContingency_Player::Precache( void )
 	// players don't experience any annoying loading delays later
 	ContingencyRules()->PrecacheWaveNPCs();
 
+	// Added a modified version of Valve's floor turret
+	UTIL_PrecacheOther( "npc_turret_floor" );
+
 	// Added shout system
 	PrecacheScriptSound( "Male.Incoming" );
 	PrecacheScriptSound( "Male.Run" );

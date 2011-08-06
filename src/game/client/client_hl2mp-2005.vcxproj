@@ -267,6 +267,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClCompile Include="contingency\hud_contingency_chat.cpp" />
     <ClCompile Include="contingency\hud_contingency_damageindicator.cpp" />
     <ClCompile Include="contingency\hud_contingency_ammo.cpp" />
+    <ClCompile Include="contingency\navgen_display.cpp" />
     <ClCompile Include="contingency\hud_contingency_phasedisplay.cpp" />
     <ClCompile Include="contingency\hud_contingency_playerstatus.cpp" />
     <ClCompile Include="contingency\hud_contingency_radar.cpp" />
@@ -894,6 +895,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClInclude Include="contingency\c_npc_citizen17.h" />
     <ClInclude Include="contingency\c_npc_contingency_turret.h" />
     <ClInclude Include="contingency\hud_contingency_chat.h" />
+    <ClInclude Include="contingency\navgen_display.h" />
     <ClInclude Include="contingency\hud_contingency_stamina.h" />
     <ClInclude Include="contingency\loadoutmenu.h" />
     <ClInclude Include="c_props.h" />

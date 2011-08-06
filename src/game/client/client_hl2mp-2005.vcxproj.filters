@@ -1620,6 +1620,9 @@
     <ClCompile Include="c_ai_basenpc.cpp">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClCompile>
+    <ClCompile Include="contingency\navgen_display.cpp">
+      <Filter>Source Files\Contingency\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="achievement_notification_panel.h">
@@ -3457,6 +3460,9 @@
     </ClInclude>
     <ClInclude Include="c_ai_basenpc.h">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClInclude>
+    <ClInclude Include="contingency\navgen_display.h">
+      <Filter>Source Files\Contingency\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

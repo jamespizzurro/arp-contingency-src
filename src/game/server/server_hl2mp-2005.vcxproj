@@ -1033,6 +1033,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClInclude Include="..\..\public\collisionutils.h" />
     <ClInclude Include="contingency\contingency_boss_spawner.h" />
     <ClInclude Include="contingency\contingency_gameinterface.h" />
+    <ClInclude Include="contingency\contingency_nodeplacer.h" />
     <ClInclude Include="contingency\contingency_player.h" />
     <ClInclude Include="contingency\contingency_rallypoint.h" />
     <ClInclude Include="contingency\contingency_support_wave_spawner.h" />

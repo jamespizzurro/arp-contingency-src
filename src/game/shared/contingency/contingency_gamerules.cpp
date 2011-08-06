@@ -49,6 +49,10 @@ BEGIN_NETWORK_TABLE_NOBASE( CContingencyRules, DT_ContingencyRules )
 	RecvPropInt( RECVINFO( m_iWaveNum ) ),
 	RecvPropInt( RECVINFO( m_iWaveType ) ),
 	RecvPropInt( RECVINFO( m_iNumEnemiesRemaining ) ),
+
+	// Added radar display
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	RecvPropInt( RECVINFO( m_bMapAllowsRadars ) ),
 #else
 	// Added phase system
 	SendPropInt( SENDINFO( m_iCurrentPhase ) ),
@@ -58,6 +62,10 @@ BEGIN_NETWORK_TABLE_NOBASE( CContingencyRules, DT_ContingencyRules )
 	SendPropInt( SENDINFO( m_iWaveNum ) ),
 	SendPropInt( SENDINFO( m_iWaveType ) ),
 	SendPropInt( SENDINFO( m_iNumEnemiesRemaining ) ),
+
+	// Added radar display
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	SendPropInt( SENDINFO( m_bMapAllowsRadars ) ),
 #endif
 END_NETWORK_TABLE()
 
@@ -139,6 +147,10 @@ CContingencyRules::CContingencyRules()
 
 	// Added support wave system
 	PurgeCurrentSupportWave();
+
+	// Added radar display
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	m_bMapAllowsRadars = true;
 
 	// Added wave system
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns

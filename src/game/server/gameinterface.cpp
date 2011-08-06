@@ -98,6 +98,15 @@
 #include "sdk_gamerules.h"
 #endif
 
+/////
+
+	// Contingency - James
+	// Added a fully-automated nodegraph generation system
+
+#include "contingency_nodeplacer.h"
+
+/////
+
 extern IToolFrameworkServer *g_pToolFrameworkServer;
 extern IParticleSystemQuery *g_pParticleSystemQuery;
 
@@ -1119,6 +1128,16 @@ void CServerGameDLL::GameFrame( bool simulating )
 
 #ifndef _XBOX
 	TheNavMesh->Update();
+
+/////
+
+	// Contingency - James
+	// Added a fully-automated nodegraph generation system
+
+	if ( g_pNodeGenerator )
+		g_pNodeGenerator->Update();
+
+/////
 
 	gamestatsuploader->UpdateConnection();
 #endif
