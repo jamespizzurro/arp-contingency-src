@@ -10,6 +10,9 @@ class CContingency_Player;
 // Added a modified version of Valve's floor turret
 #include "npc_contingency_turret.h"
 
+// Added spawnable prop system
+#include "contingency_spawnableprop.h"
+
 // Added a non-restorative health system
 // A class dedicated to storing a player's information based on their SteamID
 // for recall purposes even after they disconnect from the server
@@ -149,6 +152,34 @@ public:
 	bool IsGivingWeapons( void ) { return m_bGivingWeapons; }
 	void IsGivingWeapons( bool boolean ) { m_bGivingWeapons = boolean; }
 
+	// Added credits system
+	int GetCredits( void ) { return m_iCredits; }
+	bool HasCredits( int iCreditsToCheck )
+	{
+		if ( GetCredits() < iCreditsToCheck )
+			return false;	// player does not have enough credits
+
+		return true;
+	}
+	bool UseCredits( int iCreditsToUse )
+	{
+		if ( !HasCredits(iCreditsToUse) )
+			return false;	// player does not have enough credits to complete the transaction
+
+		SubtractCredits( iCreditsToUse );
+		return true;
+	}
+	void AddCredits( int iCreditsToAdd ) { m_iCredits = m_iCredits + iCreditsToAdd; }
+	void SubtractCredits( int iCreditsToSubtract ) { m_iCredits = m_iCredits - iCreditsToSubtract; }
+	void ResetCredits( void ) { m_iCredits = 0; }
+
+	// Added spawnable prop system
+	CContingency_SpawnableProp *GetSpawnablePropInFocus( void ) { return m_pSpawnablePropInFocus; }
+	void SetSpawnablePropInFocus( CContingency_SpawnableProp *pNewSpawnablePropInFocus ) { m_pSpawnablePropInFocus = pNewSpawnablePropInFocus; }
+	CUtlVector<CContingency_SpawnableProp*> m_SpawnablePropList;
+	int GetNumSpawnableProps( void ) { return m_iNumSpawnableProps; }
+	void SetNumSpawnableProps( int iNewNumSpawnableProps ) { m_iNumSpawnableProps = iNewNumSpawnableProps; }
+
 private:
 
 	// Health regeneration system
@@ -180,6 +211,13 @@ private:
 
 	// Added a modified version of Valve's floor turret
 	CHandle<CNPC_FloorTurret> m_hDeployedTurret;
+
+	// Added credits system
+	CNetworkVar( int, m_iCredits );
+
+	// Added spawnable prop system
+	CContingency_SpawnableProp *m_pSpawnablePropInFocus;
+	CNetworkVar( int, m_iNumSpawnableProps );	// should match m_pSpawnablePropInFocus.Count() at all times, we just needed to network it somehow
 };
 
 inline CContingency_Player *ToContingencyPlayer( CBaseEntity *pEntity )

@@ -18,6 +18,11 @@ BEGIN_RECV_TABLE_NOBASE( C_Contingency_Player, DT_SONonLocalPlayerExclusive )
 END_RECV_TABLE()
 
 IMPLEMENT_CLIENTCLASS_DT( C_Contingency_Player, DT_Contingency_Player, CContingency_Player )
+	// Added credits system
+	RecvPropInt( RECVINFO(m_iCredits) ),
+
+	// Added spawnable prop system
+	RecvPropInt( RECVINFO(m_iNumSpawnableProps) ),
 END_RECV_TABLE()
 
 BEGIN_PREDICTION_DATA( C_Contingency_Player )

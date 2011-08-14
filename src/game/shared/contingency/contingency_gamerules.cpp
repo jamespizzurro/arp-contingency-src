@@ -52,7 +52,7 @@ BEGIN_NETWORK_TABLE_NOBASE( CContingencyRules, DT_ContingencyRules )
 
 	// Added radar display
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
-	RecvPropInt( RECVINFO( m_bMapAllowsRadars ) ),
+	RecvPropBool( RECVINFO( m_bMapAllowsRadars ) ),
 #else
 	// Added phase system
 	SendPropInt( SENDINFO( m_iCurrentPhase ) ),
@@ -65,7 +65,7 @@ BEGIN_NETWORK_TABLE_NOBASE( CContingencyRules, DT_ContingencyRules )
 
 	// Added radar display
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
-	SendPropInt( SENDINFO( m_bMapAllowsRadars ) ),
+	SendPropBool( SENDINFO( m_bMapAllowsRadars ) ),
 #endif
 END_NETWORK_TABLE()
 
@@ -96,6 +96,9 @@ IMPLEMENT_NETWORKCLASS_ALIASED( ContingencyRulesProxy, DT_ContingencyRulesProxy 
 	ConVar contingency_wave_multiplier_antlions( "contingency_wave_multiplier_antlions", "4", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during antlion waves" );
 	ConVar contingency_wave_multiplier_zombies( "contingency_wave_multiplier_zombies", "5", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during zombie waves" );
 	ConVar contingency_wave_multiplier_combine( "contingency_wave_multiplier_combine", "2", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during combine waves" );
+
+	// Added prop spawning system
+	ConVar contingency_props_maxperplayer( "contingency_props_maxperplayer", "5", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_SERVER_CAN_EXECUTE, "Defines the maximum number of props a player is allowed to have in the world at any given time" );
 #else
 	ConVar contingency_client_heartbeatsounds( "contingency_client_heartbeatsounds", "1", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Toggles heartbeat sounds when health is low" );
 
@@ -145,9 +148,6 @@ CContingencyRules::CContingencyRules()
 
 	m_iRestartDelay = 0;
 
-	// Added support wave system
-	PurgeCurrentSupportWave();
-
 	// Added radar display
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
 	m_bMapAllowsRadars = true;
@@ -165,6 +165,12 @@ CContingencyRules::CContingencyRules()
 	m_flMapAntlionWaveMultiplierOffset = 0.0f;
 	m_flMapZombieWaveMultiplierOffset = 0.0f;
 	m_flMapCombineWaveMultiplierOffset = 0.0f;
+
+	// Added wave system
+	SetCurrentWaveNPCList( new CUtlVector<CAI_BaseNPC*>() );
+
+	// Added support wave system
+	SetCurrentSupportWaveNPCList( new CUtlVector<CAI_BaseNPC*>() );
 #endif
 }
 	
@@ -177,6 +183,12 @@ CContingencyRules::~CContingencyRules( void )
 
 	// Added a non-restorative health system
 	m_PlayerInfoList.PurgeAndDeleteElements();
+
+	// Added wave system
+	delete m_pCurrentWaveNPCList;
+
+	// Added support wave system
+	delete m_pCurrentSupportWaveNPCList;
 #endif
 }
 
@@ -189,7 +201,6 @@ void CContingencyRules::ResetPhaseVariables( void )
 	m_flInterimPhaseTime = 0.0f;
 
 	// Added wave system
-	PurgeCurrentWave();
 	SetWaveNumber( 0 );	// wave number is set to 1 after the first interim phase (i.e. this is intentional)
 	SetWaveType( WAVE_NONE );
 	SetNumEnemiesRemaining( 0 );
@@ -219,13 +230,14 @@ void CContingencyRules::Precache( void )
 	BaseClass::Precache();
 }
 
-// Added wave system
-// Precache all NPC models that are to be used here to ensure
-// players don't experience any annoying loading delays later
-void CContingencyRules::PrecacheWaveNPCs( void )
+#ifndef CLIENT_DLL
+// Precaching called by each player (server-side)
+// This is in gamerules because all the precaching done here is really gameplay-dependent
+void CContingencyRules::PrecacheStuff( void )
 {
 	int i;
 
+	// Added wave system
 	for ( i = 0; i < NUM_HEADCRAB_NPCS; i++ )
 		UTIL_PrecacheOther( kWaveHeadcrabsNPCTypes[i] );
 	for ( i = 0; i < NUM_ANTLION_NPCS; i++ )
@@ -238,7 +250,16 @@ void CContingencyRules::PrecacheWaveNPCs( void )
 	// Added support wave system
 	for ( i = 0; i < NUM_SUPPORT_NPCS; i++ )
 		UTIL_PrecacheOther( kSupportWaveSupportNPCTypes[i] );
+
+	// Added boss system
+	// TODO: Move boss NPC classnames over to a dedicated array or something
+	// so we don't have to go changing this every time we add/remove bosses
+	UTIL_PrecacheOther( "npc_antlionguard" );
+
+	// Added a modified version of Valve's floor turret
+	UTIL_PrecacheOther( "npc_turret_floor" );
 }
+#endif
 
 bool CContingencyRules::ClientCommand( CBaseEntity *pEdict, const CCommand &args )
 {
@@ -342,9 +363,9 @@ void CContingencyRules::ClientSettingsChanged( CBasePlayer *pPlayer )
 		// or when the player respawns (whatever comes first)
 
 		if ( IsPlayerPlaying(pContingencyPlayer) )
-			ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Loadout saved. Any changes will be applied at the start of the next combat phase." );
+			ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Loadout saved. Any changes will be applied at the start of the next interim phase." );
 		else
-			ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Loadout saved. Any changes will be applied when you respawn at the start of the next combat phase." );
+			ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Loadout saved. Any changes will be applied when you respawn at the start of the next interim phase." );
 
 		pContingencyPlayer->IsMarkedForLoadoutUpdate( true );
 
@@ -489,27 +510,45 @@ void CContingencyRules::HandleNPCDeath( CAI_BaseNPC *pNPC, const CTakeDamageInfo
 		return;	// just in case, I guess
 
 	// Make sure this NPC is part of our current wave
-	if ( IsNPCInCurrentWave(pNPC) )
+	if ( ContingencyRules() && GetCurrentWaveNPCList() && (GetCurrentWaveNPCList()->Find(pNPC) != -1) )
 	{
 		// Give players credit for killing enemy NPCs
 		CContingency_Player *pPlayer = ToContingencyPlayer( info.GetAttacker() );
 		if ( pPlayer )
 		{
+			// Added credits system
+			// TODO: Move boss NPC classnames over to a dedicated array or something
+			// so we don't have to go changing this every time we add/remove bosses
+			if ( Q_strcmp(pNPC->GetClassname(), "npc_antlionguard") == 0 )
+				pPlayer->AddCredits( 5 );
+			else
+				pPlayer->AddCredits( 1 );
+
 			pPlayer->IncrementFragCount( 1 );
 			GetGlobalTeam( pPlayer->GetTeamNumber() )->AddScore( 1 );
 		}
+	}
+}
 
+void CContingencyRules::HandleNPCRemoval( CAI_BaseNPC *pNPC )
+{
+	if ( !pNPC )
+		return;	// just in case, I guess
+
+	// Make sure this NPC is part of our current wave
+	if ( ContingencyRules() && GetCurrentWaveNPCList() && (GetCurrentWaveNPCList()->Find(pNPC) != -1) )
+	{
 		// ...now players have one less enemy to worry about!
-		RemoveNPCFromCurrentWave( pNPC );
+		GetCurrentWaveNPCList()->FindAndRemove( pNPC );
 		DecrementNumEnemiesRemaining();
 	}
-	else if ( IsNPCInCurrentSupportWave(pNPC) )
+	else if ( ContingencyRules() && GetCurrentSupportWaveNPCList() && (GetCurrentSupportWaveNPCList()->Find(pNPC) != -1) )
 	{
 		// If this NPC was a member of our support wave,
 		// then remove them from our current support NPC list
-		// seeing as they're dead now
+		// seeing as they're gone now
 
-		RemoveNPCFromCurrentSupportWave( pNPC );
+		GetCurrentSupportWaveNPCList()->FindAndRemove( pNPC );
 	}
 }
 
@@ -689,6 +728,13 @@ void CContingencyRules::RestartGame()
 		if ( !pPlayer )
 			continue;
 
+		// Added credits system
+		pPlayer->ResetCredits();
+
+		// Added prop spawning system
+		pPlayer->m_SpawnablePropList.PurgeAndDeleteElements();	// remove all of the player's spawnable props
+		pPlayer->SetNumSpawnableProps( 0 );
+
 		if ( pPlayer->IsInAVehicle() )
 			pPlayer->LeaveVehicle();
 
@@ -723,9 +769,6 @@ void CContingencyRules::RestartGame()
 		ResetPhaseVariables();
 	else
 		SetCurrentPhase( PHASE_INTERIM );
-	
-	// Added support wave system
-	PurgeCurrentSupportWave();
 
 	// Added wave system
 	SetWaveNumber( 0 );	// will be 1 after the first interim phase
@@ -774,6 +817,22 @@ bool CContingencyRules::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 	// Whether or not the player can take damage from an attacker
 	// should depend strictly on the player and attacker's relationship
 	return !PlayerRelationship( pAttacker, pPlayer );
+}
+
+bool CContingencyRules::ShouldCollide( int collisionGroup0, int collisionGroup1 )
+{
+	if ( collisionGroup0 > collisionGroup1 )
+		swap( collisionGroup0, collisionGroup1 );	// swap so that lowest is always first
+
+	// Added prop spawning system
+	if ( ((collisionGroup0 == COLLISION_GROUP_PLAYER) || (collisionGroup0 == COLLISION_GROUP_PLAYER_MOVEMENT)) &&
+		collisionGroup1 == COLLISION_GROUP_PASSABLE_DOOR )
+		return false;	// prevent spawnable props from colliding with players
+	if ( (collisionGroup0 == COLLISION_GROUP_PASSABLE_DOOR) &&
+		(collisionGroup1 == COLLISION_GROUP_PASSABLE_DOOR) )
+		return false;	// prevent spawnable props from colliding with other spawnable props
+
+	return BaseClass::ShouldCollide( collisionGroup0, collisionGroup1 ); 
 }
 
 // Moved ammo definitions to contingency_gamerules.cpp

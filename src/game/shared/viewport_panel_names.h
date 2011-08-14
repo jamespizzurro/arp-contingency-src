@@ -54,4 +54,14 @@
 
 /////
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+#define PANEL_PROPSPAWNING "propspawningmenu"
+#define PANEL_SPAWNABLEPROP_DELETIONMENU "spawnableprop_deletionmenu"
+
+/////
+
 #endif // VIEWPORT_PANEL_NAMES_H

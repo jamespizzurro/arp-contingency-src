@@ -266,9 +266,6 @@ void CNPC_FloorTurret::Precache( void )
 	PrecacheScriptSound( "NPC_FloorTurret.DryFire");
 	PrecacheScriptSound( "NPC_FloorTurret.Destruct" );
 
-	// Additional precaches
-	PrecacheScriptSound( "NPC_Turret.ExplodingAlert" );
-
 #ifdef HL2_EPISODIC
 	PrecacheParticleSystem( "explosion_turret_break" );
 #endif // HL2_EPISODIC
@@ -278,21 +275,12 @@ void CNPC_FloorTurret::Precache( void )
 
 void CNPC_FloorTurret::CheckStuff( void )
 {
-	if ( !m_bSelfDestructing )
+	/*if ( !m_bSelfDestructing )	// commented to fix issue where explosion never occurs, so turret stays on the map forever
 	{
-		if ( m_iHealth <= 0 )	// are we dead?
-		{
-			m_bSelfDestructing = true;
-			m_iHealth = 0;
-			Explode();	// we're dead, so explode!
-		}
-		else if ( (enginetrace->GetPointContents(GetAbsOrigin()) & (CONTENTS_WATER|CONTENTS_SLIME)) != 0 )	// see if we're underwater, in which case we should explode
-		{
-			m_bSelfDestructing = true;
-			m_iHealth = 0;
-			Explode();	// we're dead, so explode!
-		}
-	}
+		if ( (m_iHealth <= 0) ||
+			 ((enginetrace->GetPointContents(GetAbsOrigin()) & (CONTENTS_WATER|CONTENTS_SLIME)) != 0) )
+			Explode();
+	}*/
 }
 
 //-----------------------------------------------------------------------------
@@ -1749,7 +1737,6 @@ void CNPC_FloorTurret::BreakThink( void )
 
 	// Blow a player's turrets up when he or she dies
 	// Make a turret explode once its health has been depleated
-	StopSound( "NPC_Turret.ExplodingAlert" );
 	ExplosionCreate( GetAbsOrigin() + Vector( 0, 0, 16 ), GetAbsAngles(), NULL, 0, 200, 
 		SF_ENVEXPLOSION_NODAMAGE | SF_ENVEXPLOSION_NOSPARKS | SF_ENVEXPLOSION_NODLIGHTS | SF_ENVEXPLOSION_NOSMOKE, 0.0f, this );
 
@@ -1832,13 +1819,13 @@ void CNPC_FloorTurret::SelfDestructThink( void )
 }
 
 // Blow a player's turrets up when he or she dies
-// Make a turret explode once its health has been depleated
+// Make a turret explode instantly once its health has been depleated
 void CNPC_FloorTurret::Explode( void )
 {
+	m_bSelfDestructing = true;
+
 	m_flDestructStartTime = gpGlobals->curtime;
 	m_flPingTime = gpGlobals->curtime;
-
-	EmitSound( "NPC_Turret.ExplodingAlert" );	// this will continue to loop until we actually explode (as it should)
 
 	CContingency_Player *pOwner = ToContingencyPlayer( GetOwnerEntity() );
 	if ( pOwner )
@@ -1847,8 +1834,10 @@ void CNPC_FloorTurret::Explode( void )
 		pOwner->SetDeployedTurret( NULL );	// take note that our owner no longer has a deployable turret in the world
 	}
 
-	SetThink( &CNPC_FloorTurret::SelfDestructThink );
+	SetThink( &CNPC_FloorTurret::BreakThink );
 	SetNextThink( gpGlobals->curtime + 0.1f );
+	UTIL_Remove( m_hFizzleEffect );
+	m_hFizzleEffect = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -1883,6 +1872,8 @@ void CNPC_FloorTurret::InputSelfDestruct( inputdata_t &inputdata )
 
 void CNPC_FloorTurret::Event_Killed( const CTakeDamageInfo &info )
 {
+	Explode();
+
 	BaseClass::Event_Killed( info );
 }
 

@@ -15,6 +15,10 @@
 #include "c_npc_contingency_turret.h"
 #include "c_npc_citizen17.h"
 
+// Added prop spawning system
+// Update any spawnable props on radar
+#include "c_contingency_spawnableprop.h"
+
 #include <vgui_controls/ImagePanel.h>
 
 #include "in_buttons.h"
@@ -64,6 +68,10 @@ private:
 	C_AI_BaseNPC *pTargetNPC;
 	C_NPC_Citizen *pTargetCitizen;
 	C_NPC_FloorTurret *pTargetTurret;
+
+	// Added prop spawning system
+	// Update any spawnable props on radar
+	C_Contingency_SpawnableProp *pTargetSpawnableProp;
 
 	ImagePanel *m_pRadarImagePanel;
 };
@@ -228,6 +236,21 @@ void CHudRadarDisplay::Paint()
 				continue;
 
 			DrawRadarDot( pTargetNPC, COLOR_RED );	// all other NPCs are assumed to be EVIL (hence the red)
+			continue;
+		}
+	}
+
+	// Added prop spawning system
+	// Update any spawnable props on radar
+	for ( i = 0; i < m_SpawnablePropList.Count(); i++ )
+	{
+		pTargetSpawnableProp = dynamic_cast<C_Contingency_SpawnableProp*>( m_SpawnablePropList[i] );
+		if ( pTargetSpawnableProp )
+		{
+			if ( pTargetSpawnableProp->GetSpawnerPlayer() != pLocalPlayer )
+				continue;	// only show the local player's spawnable props on the radar
+
+			DrawRadarDot( pTargetSpawnableProp, COLOR_BLUE );
 			continue;
 		}
 	}

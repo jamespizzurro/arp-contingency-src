@@ -262,9 +262,11 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     </ClCompile>
     <ClCompile Include="contingency\contingency_loadingtips.cpp" />
     <ClCompile Include="contingency\c_contingency_player.cpp" />
+    <ClCompile Include="contingency\c_contingency_spawnableprop.cpp" />
     <ClCompile Include="contingency\c_npc_citizen17.cpp" />
     <ClCompile Include="contingency\c_npc_contingency_turret.cpp" />
     <ClCompile Include="contingency\hud_contingency_chat.cpp" />
+    <ClCompile Include="contingency\hud_contingency_credits.cpp" />
     <ClCompile Include="contingency\hud_contingency_damageindicator.cpp" />
     <ClCompile Include="contingency\hud_contingency_ammo.cpp" />
     <ClCompile Include="contingency\navgen_display.cpp" />
@@ -275,6 +277,8 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClCompile Include="contingency\hud_contingency_target_id.cpp" />
     <ClCompile Include="contingency\hud_contingency_wavedisplay.cpp" />
     <ClCompile Include="contingency\loadoutmenu.cpp" />
+    <ClCompile Include="contingency\propspawningmenu.cpp" />
+    <ClCompile Include="contingency\spawnableprop_deletionmenu.cpp" />
     <ClCompile Include="c_ai_basehumanoid.cpp" />
     <ClCompile Include="c_ai_basenpc.cpp" />
     <ClCompile Include="c_baseanimating.cpp" />
@@ -881,10 +885,12 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClCompile Include="toolframework_client.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\shared\basecombatweapon_shared.h" />
     <ClInclude Include="..\shared\contingency\contingency_gamerules.h" />
     <ClInclude Include="..\shared\contingency\contingency_player_shared.h" />
     <ClInclude Include="..\shared\contingency\contingency_system_loadout.h" />
     <ClInclude Include="..\shared\contingency\contingency_system_phase.h" />
+    <ClInclude Include="..\shared\contingency\contingency_system_propspawning.h" />
     <ClInclude Include="..\shared\contingency\contingency_system_wave.h" />
     <ClInclude Include="achievement_notification_panel.h" />
     <ClInclude Include="..\shared\achievement_saverestore.h" />
@@ -892,12 +898,15 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClInclude Include="..\shared\baseachievement.h" />
     <ClInclude Include="contingency\contingency_loadingtips.h" />
     <ClInclude Include="contingency\c_contingency_player.h" />
+    <ClInclude Include="contingency\c_contingency_spawnableprop.h" />
     <ClInclude Include="contingency\c_npc_citizen17.h" />
     <ClInclude Include="contingency\c_npc_contingency_turret.h" />
     <ClInclude Include="contingency\hud_contingency_chat.h" />
     <ClInclude Include="contingency\navgen_display.h" />
     <ClInclude Include="contingency\hud_contingency_stamina.h" />
     <ClInclude Include="contingency\loadoutmenu.h" />
+    <ClInclude Include="contingency\propspawningmenu.h" />
+    <ClInclude Include="contingency\spawnableprop_deletionmenu.h" />
     <ClInclude Include="c_props.h" />
     <ClInclude Include="c_slideshow_display.h" />
     <ClInclude Include="cdll_bounded_cvars.h" />

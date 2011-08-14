@@ -68,6 +68,16 @@
 
 /////
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+#include "propspawningmenu.h"
+#include "spawnableprop_deletionmenu.h"
+
+/////
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -272,6 +282,16 @@ void CBaseViewport::CreateDefaultPanels( void )
 
 /////
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	AddNewPanel( CreatePanelByName(PANEL_PROPSPAWNING), PANEL_PROPSPAWNING );
+	AddNewPanel( CreatePanelByName(PANEL_SPAWNABLEPROP_DELETIONMENU), PANEL_SPAWNABLEPROP_DELETIONMENU );
+
+/////
+
 #endif
 }
 
@@ -346,6 +366,22 @@ IViewPortPanel* CBaseViewport::CreatePanelByName(const char *szPanelName)
 	else if ( Q_strcmp(PANEL_NAVGEN_DISPLAY, szPanelName) == 0 )
 	{
 		newpanel = new CNavGenDisplay( this );
+	}
+
+/////
+
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	else if ( Q_strcmp(PANEL_PROPSPAWNING, szPanelName) == 0 )
+	{
+		newpanel = new CPropSpawningMenu( this );
+	}
+	else if ( Q_strcmp(PANEL_SPAWNABLEPROP_DELETIONMENU, szPanelName) == 0 )
+	{
+		newpanel = new CSpawnableProp_DeletionMenu( this );
 	}
 
 /////

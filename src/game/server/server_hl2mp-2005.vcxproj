@@ -334,15 +334,16 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClCompile Include="colorcorrection.cpp" />
     <ClCompile Include="colorcorrectionvolume.cpp" />
     <ClCompile Include="CommentarySystem.cpp" />
-    <ClCompile Include="contingency\contingency_boss_spawner.cpp" />
+    <ClCompile Include="contingency\contingency_boss_spawnpoint.cpp" />
     <ClCompile Include="contingency\contingency_client.cpp" />
     <ClCompile Include="contingency\contingency_configuration.cpp" />
     <ClCompile Include="contingency\contingency_gameinterface.cpp" />
     <ClCompile Include="contingency\contingency_nodeplacer.cpp" />
     <ClCompile Include="contingency\contingency_player.cpp" />
     <ClCompile Include="contingency\contingency_rallypoint.cpp" />
-    <ClCompile Include="contingency\contingency_support_wave_spawner.cpp" />
-    <ClCompile Include="contingency\contingency_wave_spawner.cpp" />
+    <ClCompile Include="contingency\contingency_spawnableprop.cpp" />
+    <ClCompile Include="contingency\contingency_support_spawnpoint.cpp" />
+    <ClCompile Include="contingency\contingency_wave_spawnpoint.cpp" />
     <ClCompile Include="contingency\npc_contingency_stalker.cpp" />
     <ClCompile Include="contingency\npc_contingency_turret.cpp" />
     <ClCompile Include="controlentities.cpp" />
@@ -926,6 +927,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClCompile Include="toolframework_server.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\client\iclientmode.h" />
     <ClInclude Include="..\shared\achievement_saverestore.h" />
     <ClInclude Include="..\shared\achievementmgr.h" />
     <ClInclude Include="..\shared\activitylist.h" />
@@ -934,6 +936,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClInclude Include="..\shared\contingency\contingency_system_loadout.h" />
     <ClInclude Include="..\shared\contingency\contingency_player_shared.h" />
     <ClInclude Include="..\shared\contingency\contingency_system_phase.h" />
+    <ClInclude Include="..\shared\contingency\contingency_system_propspawning.h" />
     <ClInclude Include="..\shared\contingency\contingency_system_wave.h" />
     <ClInclude Include="..\shared\hl2mp\hl2mp_weapon_parse.h" />
     <ClInclude Include="ai_baseactor.h" />
@@ -1031,13 +1034,14 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClInclude Include="client.h" />
     <ClInclude Include="..\shared\collisionproperty.h" />
     <ClInclude Include="..\..\public\collisionutils.h" />
-    <ClInclude Include="contingency\contingency_boss_spawner.h" />
+    <ClInclude Include="contingency\contingency_boss_spawnpoint.h" />
     <ClInclude Include="contingency\contingency_gameinterface.h" />
     <ClInclude Include="contingency\contingency_nodeplacer.h" />
     <ClInclude Include="contingency\contingency_player.h" />
     <ClInclude Include="contingency\contingency_rallypoint.h" />
-    <ClInclude Include="contingency\contingency_support_wave_spawner.h" />
-    <ClInclude Include="contingency\contingency_wave_spawner.h" />
+    <ClInclude Include="contingency\contingency_spawnableprop.h" />
+    <ClInclude Include="contingency\contingency_support_spawnpoint.h" />
+    <ClInclude Include="contingency\contingency_wave_spawnpoint.h" />
     <ClInclude Include="contingency\npc_contingency_stalker.h" />
     <ClInclude Include="contingency\npc_contingency_turret.h" />
     <ClInclude Include="CRagdollMagnet.h" />

@@ -649,7 +649,6 @@ void CAI_BaseNPC::Event_Killed( const CTakeDamageInfo &info )
 	ContingencyRules()->HandleNPCDeath( this, info );
 
 /////
-
 }
 
 //-----------------------------------------------------------------------------
@@ -11413,6 +11412,15 @@ CAI_BaseNPC::CAI_BaseNPC(void)
 //-----------------------------------------------------------------------------
 CAI_BaseNPC::~CAI_BaseNPC(void)
 {
+/////
+
+	// Contingency - James
+	// Added wave system
+
+	ContingencyRules()->HandleNPCRemoval( this );
+
+/////
+
 	g_AI_Manager.RemoveAI( this );
 	
 	// this should stop a crash occuring when our death immediately creates a new NPC (eg headcrab from zombie) // AI Patch Addition.

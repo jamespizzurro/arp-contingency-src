@@ -30,6 +30,11 @@ BEGIN_SEND_TABLE_NOBASE( CContingency_Player, DT_SONonLocalPlayerExclusive )
 END_SEND_TABLE()
 
 IMPLEMENT_SERVERCLASS_ST( CContingency_Player, DT_Contingency_Player )
+	// Added credits system
+	SendPropInt( SENDINFO(m_iCredits) ),
+
+	// Added spawnable prop system
+	SendPropInt( SENDINFO(m_iNumSpawnableProps) ),
 END_SEND_TABLE()
 
 BEGIN_DATADESC( CContingency_Player )
@@ -73,6 +78,13 @@ CContingency_Player::CContingency_Player()
 
 	// Added a modified version of Valve's floor turret
 	m_hDeployedTurret = NULL;
+
+	// Added credits system
+	m_iCredits = 0;
+
+	// Added spawnable prop system
+	m_pSpawnablePropInFocus = NULL;
+	m_iNumSpawnableProps = 0;
 }
 
 CContingency_Player::~CContingency_Player( void )
@@ -262,14 +274,6 @@ void CContingency_Player::Precache( void )
 	PrecacheScriptSound( "Male.Pain" );
 	PrecacheScriptSound( "Male.Death" );
 
-	// Added wave system
-	// Precache all NPC models that are to be used here to ensure
-	// players don't experience any annoying loading delays later
-	ContingencyRules()->PrecacheWaveNPCs();
-
-	// Added a modified version of Valve's floor turret
-	UTIL_PrecacheOther( "npc_turret_floor" );
-
 	// Added shout system
 	PrecacheScriptSound( "Male.Incoming" );
 	PrecacheScriptSound( "Male.Run" );
@@ -280,6 +284,10 @@ void CContingency_Player::Precache( void )
 	PrecacheScriptSound( "Male.Headcrabs" );
 	PrecacheScriptSound( "Male.Zombies" );
 	PrecacheScriptSound( "Male.Combine" );
+
+	// Precaching called by each player (server-side)
+	// This is in gamerules because all the precaching done here is really gameplay-dependent
+	ContingencyRules()->PrecacheStuff();
 }
 
 void CContingency_Player::Spawn( void )
@@ -327,7 +335,7 @@ void CContingency_Player::Spawn( void )
 	}
 	else	// by default, players are forced to be observers
 	{
-		ClientPrint( this, HUD_PRINTTALK, "You are currently an observer. You will spawn at the start of the next combat phase." );
+		ClientPrint( this, HUD_PRINTTALK, "You are currently an observer. You will spawn at the start of the next interim phase." );
 	
 		// Handle our current and maximum health
 		m_iHealth = m_iMaxHealth = CONTINGENCY_MAX_HEALTH;

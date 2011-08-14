@@ -172,7 +172,7 @@ public:
 	void Event_Killed( const CTakeDamageInfo &info );
 
 	// Blow a player's turrets up when he or she dies
-	// Make a turret explode once its health has been depleated
+	// Make a turret explode instantly once its health has been depleated
 	void Explode( void );
 
 	// Allow turret to take damage

@@ -1,8 +1,8 @@
-// Added wave system
+// Added boss system
 
 #include "cbase.h"
 
-#include "contingency_support_wave_spawner.h"
+#include "contingency_boss_spawnpoint.h"
 
 #include "ai_basenpc.h"
 #include "contingency_gamerules.h"
@@ -10,8 +10,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-// Added support wave system
-extern ConVar contingency_wave_support;
+extern ConVar contingency_wave_maxlivingnpcs;
+extern ConVar contingency_boss_spawnfrequency;
 
 static void DispatchActivate( CBaseEntity *pEntity )
 {
@@ -20,13 +20,17 @@ static void DispatchActivate( CBaseEntity *pEntity )
 	mdlcache->SetAsyncLoad( MDLCACHE_ANIMBLOCK, bAsyncAnims );
 }
 
-LINK_ENTITY_TO_CLASS( contingency_support_wave_spawner, CContingencySupportWaveSpawner );
+LINK_ENTITY_TO_CLASS( contingency_boss_spawnpoint, CContingencyBossSpawner );
+LINK_ENTITY_TO_CLASS( contingency_boss_spawner, CContingencyBossSpawner );	// legacy support/backwards compatibility
 
-BEGIN_DATADESC( CContingencySupportWaveSpawner )
+BEGIN_DATADESC( CContingencyBossSpawner )
 
 	DEFINE_KEYFIELD( m_ChildTargetName,		FIELD_STRING,	"NPCTargetname" ),
 	DEFINE_KEYFIELD( m_SquadName,			FIELD_STRING,	"NPCSquadName" ),
 	DEFINE_KEYFIELD( m_strHintGroup,		FIELD_STRING,	"NPCHintGroup" ),
+
+	DEFINE_KEYFIELD( m_BossNPCType, FIELD_STRING, "BossNPCType" ),
+	DEFINE_KEYFIELD( m_iBossSpawnFrequency, FIELD_INTEGER, "BossSpawnFrequency" ),
 
 	// Add a custom rally point entity for wave spawners
 	DEFINE_KEYFIELD( rallyPointName, FIELD_STRING, "rallyPointName" ),
@@ -35,15 +39,16 @@ BEGIN_DATADESC( CContingencySupportWaveSpawner )
 
 END_DATADESC()
 
-CContingencySupportWaveSpawner::CContingencySupportWaveSpawner( void )
+CContingencyBossSpawner::CContingencyBossSpawner( void )
+{
+	m_bHasSpawnedBoss = false;
+}
+
+CContingencyBossSpawner::~CContingencyBossSpawner( void )
 {
 }
 
-CContingencySupportWaveSpawner::~CContingencySupportWaveSpawner( void )
-{
-}
-
-void CContingencySupportWaveSpawner::Spawn( void )
+void CContingencyBossSpawner::Spawn( void )
 {
 	BaseClass::Spawn();
 
@@ -51,23 +56,34 @@ void CContingencySupportWaveSpawner::Spawn( void )
 	pRallyPoint = dynamic_cast<CContingencyRallyPoint*>( gEntList.FindEntityByName(NULL, rallyPointName, this) );
 }
 
-void CContingencySupportWaveSpawner::MakeNPC( void )
+void CContingencyBossSpawner::MakeNPC( void )
 {
 	if ( !CanMakeNPC() )
 		return;
 
-	// If the server doesn't want support NPCs, don't spawn them
-	if ( !contingency_wave_support.GetBool() )
+	// Only spawn NPCs during waves (combat phases), hence our name!
+	if ( ContingencyRules()->GetCurrentPhase() != PHASE_COMBAT )
+	{
+		m_bHasSpawnedBoss = false;	// reset for when another combat phase begins
+		return;
+	}
+	
+	// Do not spawn more than one boss per wave (combat phase)
+	if ( m_bHasSpawnedBoss )
 		return;
 
-	// Only spawn support NPCs during an interim phase
-	if ( ContingencyRules()->GetCurrentPhase() != PHASE_INTERIM )
+	// Do not spawn more NPCs than our server will allow to be living at any given time
+	if ( ContingencyRules()->GetCurrentWaveNPCList() && (ContingencyRules()->GetCurrentWaveNPCList()->Count() >= contingency_wave_maxlivingnpcs.GetInt()) )
 		return;
 
-	// Only spawn as many support NPCs as it takes to fill the server with players
-	// (e.g. Having 2 out of 5 players on a server means there are 3 spots to fill, so we should spawn 3 support NPCs)
-	// Never spawn too many!
-	if ( ContingencyRules()->GetNumNPCsInCurrentSupportWave() >= (ContingencyRules()->GetMaxNumPlayers() - ContingencyRules()->GetTotalNumPlayers()) )
+	// Do not spawn more NPCs than we're supposed to for this wave
+	if ( ContingencyRules()->GetNumEnemiesSpawned() >= ContingencyRules()->GetCalculatedNumEnemies() )
+		return;
+	
+	// Only spawn boss NPCs however frequently the mapper has defined (by wave number)
+	if ( m_iBossSpawnFrequency <= 0 )
+		m_iBossSpawnFrequency = 1;	// assume the mapper is an idiot
+	if ( ContingencyRules()->GetWaveNumber() % m_iBossSpawnFrequency != 0 )
 		return;
 
 	if ( m_flMaximumDistanceFromNearestPlayer > -1 )
@@ -85,12 +101,33 @@ void CContingencySupportWaveSpawner::MakeNPC( void )
 			return;	// nearest player is too far away!
 	}
 
-	// Spawn a random type of support NPC
-	const char *NPCClassName = "";
+	// Spawn a random type of NPC type associated with the current wave
+	int currentWaveType = ContingencyRules()->GetWaveType();
+	const char *NPCClassName = STRING(m_BossNPCType);
 	string_t equipmentName = NULL_STRING;
-	NPCClassName = kSupportWaveSupportNPCTypes[random->RandomInt( 0, NUM_SUPPORT_NPCS - 1 )];
-	if ( Q_strcmp(NPCClassName, "npc_citizen") == 0 )
-		equipmentName = MAKE_STRING(kSupportWaveCitizenWeaponTypes[random->RandomInt( 0, NUM_CITIZEN_WEAPONS - 1 )]);
+	if ( currentWaveType == WAVE_HEADCRABS )
+	{
+		// There are no headcrab wave bosses yet! :(
+		return;
+	}
+	else if ( currentWaveType == WAVE_ANTLIONS )
+	{
+		// Only spawn bosses associated with an antlion wave
+		if ( Q_strcmp(NPCClassName, "npc_antlionguard") != 0 )
+			return;
+	}
+	else if ( currentWaveType == WAVE_ZOMBIES )
+	{
+		// There are no zombie wave bosses yet! :(
+		return;
+	}
+	else if ( currentWaveType == WAVE_COMBINE )
+	{
+		// There are no Combine wave bosses yet! :(
+		return;
+	}
+	else
+		return;
 
 	// Ensure the NPC type we've defined is valid
 	CAI_BaseNPC *pent = dynamic_cast<CAI_BaseNPC*>( CreateEntityByName(NPCClassName) );
@@ -152,6 +189,13 @@ void CContingencySupportWaveSpawner::MakeNPC( void )
 		}
 	}
 
-	// Consider this NPC a new addition to our support wave
-	ContingencyRules()->AddNPCToCurrentSupportWave( pent );
+	// Consider this NPC yet another enemy players will have to deal with
+	// if they want to conquer this latest wave!
+	if ( ContingencyRules()->GetCurrentWaveNPCList() && (ContingencyRules()->GetCurrentWaveNPCList()->Find(pent) == -1) )
+	{
+		ContingencyRules()->GetCurrentWaveNPCList()->AddToTail( pent );
+		ContingencyRules()->IncrementNumEnemiesSpawned();
+	}
+
+	m_bHasSpawnedBoss = true;
 }

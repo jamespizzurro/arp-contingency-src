@@ -300,9 +300,6 @@
     <ClCompile Include="..\shared\baseparticleentity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\baseplayer_shared.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="baseviewmodel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1446,9 +1443,6 @@
     <ClCompile Include="hl2\npc_gman.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
-    <ClCompile Include="hl2\npc_headcrab.cpp">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClCompile>
     <ClCompile Include="hl2\npc_ichthyosaur.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
@@ -1578,9 +1572,6 @@
     <ClCompile Include="..\shared\hl2mp\weapon_hl2mpbasebasebludgeon.cpp">
       <Filter>Source Files\HL2MP\Weapons</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\hl2mp\weapon_physcannon.cpp">
-      <Filter>Source Files\HL2MP\Weapons</Filter>
-    </ClCompile>
     <ClCompile Include="..\shared\hl2mp\weapon_rpg.cpp">
       <Filter>Source Files\HL2MP\Weapons</Filter>
     </ClCompile>
@@ -1662,9 +1653,6 @@
     <ClCompile Include="..\shared\multiplay_gamerules.cpp">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClCompile>
-    <ClCompile Include="contingency\contingency_wave_spawner.cpp">
-      <Filter>Source Files\Contingency\Entities</Filter>
-    </ClCompile>
     <ClCompile Include="hl2\hl2_player.cpp">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClCompile>
@@ -1713,9 +1701,6 @@
     <ClCompile Include="contingency\npc_contingency_stalker.cpp">
       <Filter>Source Files\Contingency\Entities\NPCs</Filter>
     </ClCompile>
-    <ClCompile Include="contingency\contingency_support_wave_spawner.cpp">
-      <Filter>Source Files\Contingency\Entities</Filter>
-    </ClCompile>
     <ClCompile Include="..\shared\contingency\weapon_nyangun.cpp">
       <Filter>Source Files\Contingency\Weapons</Filter>
     </ClCompile>
@@ -1730,9 +1715,6 @@
     </ClCompile>
     <ClCompile Include="..\shared\contingency\weapon_healthkit.cpp">
       <Filter>Source Files\Contingency\Weapons</Filter>
-    </ClCompile>
-    <ClCompile Include="contingency\contingency_boss_spawner.cpp">
-      <Filter>Source Files\Contingency\Entities</Filter>
     </ClCompile>
     <ClCompile Include="player_command.cpp">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
@@ -1778,6 +1760,27 @@
     </ClCompile>
     <ClCompile Include="gameinterface.cpp">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
+    <ClCompile Include="contingency\contingency_boss_spawnpoint.cpp">
+      <Filter>Source Files\Contingency\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="contingency\contingency_wave_spawnpoint.cpp">
+      <Filter>Source Files\Contingency\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="contingency\contingency_support_spawnpoint.cpp">
+      <Filter>Source Files\Contingency\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="hl2\npc_headcrab.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\hl2mp\weapon_physcannon.cpp">
+      <Filter>Source Files\HL2MP\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\baseplayer_shared.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="contingency\contingency_spawnableprop.cpp">
+      <Filter>Source Files\Contingency\Entities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1995,9 +1998,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="basecombatweapon.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\shared\basecombatweapon_shared.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\baseentity_shared.h">
@@ -3467,9 +3467,6 @@
     <ClInclude Include="..\shared\hl2mp\weapon_hl2mpbase.h">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClInclude>
-    <ClInclude Include="contingency\contingency_wave_spawner.h">
-      <Filter>Source Files\Contingency\Entities</Filter>
-    </ClInclude>
     <ClInclude Include="player.h">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClInclude>
@@ -3491,13 +3488,7 @@
     <ClInclude Include="contingency\npc_contingency_stalker.h">
       <Filter>Source Files\Contingency\Entities\NPCs</Filter>
     </ClInclude>
-    <ClInclude Include="contingency\contingency_support_wave_spawner.h">
-      <Filter>Source Files\Contingency\Entities</Filter>
-    </ClInclude>
     <ClInclude Include="contingency\contingency_rallypoint.h">
-      <Filter>Source Files\Contingency\Entities</Filter>
-    </ClInclude>
-    <ClInclude Include="contingency\contingency_boss_spawner.h">
       <Filter>Source Files\Contingency\Entities</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\usercmd.h">
@@ -3523,6 +3514,27 @@
     </ClInclude>
     <ClInclude Include="contingency\contingency_nodeplacer.h">
       <Filter>Source Files\Contingency</Filter>
+    </ClInclude>
+    <ClInclude Include="contingency\contingency_boss_spawnpoint.h">
+      <Filter>Source Files\Contingency\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="contingency\contingency_wave_spawnpoint.h">
+      <Filter>Source Files\Contingency\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="contingency\contingency_support_spawnpoint.h">
+      <Filter>Source Files\Contingency\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\client\iclientmode.h">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\basecombatweapon_shared.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="contingency\contingency_spawnableprop.h">
+      <Filter>Source Files\Contingency\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\contingency\contingency_system_propspawning.h">
+      <Filter>Source Files\Contingency\Systems</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

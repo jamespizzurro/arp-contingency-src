@@ -2,7 +2,7 @@
 
 #include "cbase.h"
 
-#include "contingency_wave_spawner.h"
+#include "contingency_support_spawnpoint.h"
 
 #include "ai_basenpc.h"
 #include "contingency_gamerules.h"
@@ -10,7 +10,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-extern ConVar contingency_wave_maxlivingnpcs;
+// Added support wave system
+extern ConVar contingency_wave_support;
 
 static void DispatchActivate( CBaseEntity *pEntity )
 {
@@ -19,9 +20,10 @@ static void DispatchActivate( CBaseEntity *pEntity )
 	mdlcache->SetAsyncLoad( MDLCACHE_ANIMBLOCK, bAsyncAnims );
 }
 
-LINK_ENTITY_TO_CLASS( contingency_wave_spawner, CContingencyWaveSpawner );
+LINK_ENTITY_TO_CLASS( contingency_support_wave_spawner, CContingencySupportWaveSpawner );
+LINK_ENTITY_TO_CLASS( contingency_support_spawnpoint, CContingencySupportWaveSpawner );	// legacy support/backwards compatibility
 
-BEGIN_DATADESC( CContingencyWaveSpawner )
+BEGIN_DATADESC( CContingencySupportWaveSpawner )
 
 	DEFINE_KEYFIELD( m_ChildTargetName,		FIELD_STRING,	"NPCTargetname" ),
 	DEFINE_KEYFIELD( m_SquadName,			FIELD_STRING,	"NPCSquadName" ),
@@ -34,15 +36,15 @@ BEGIN_DATADESC( CContingencyWaveSpawner )
 
 END_DATADESC()
 
-CContingencyWaveSpawner::CContingencyWaveSpawner( void )
+CContingencySupportWaveSpawner::CContingencySupportWaveSpawner( void )
 {
 }
 
-CContingencyWaveSpawner::~CContingencyWaveSpawner( void )
+CContingencySupportWaveSpawner::~CContingencySupportWaveSpawner( void )
 {
 }
 
-void CContingencyWaveSpawner::Spawn( void )
+void CContingencySupportWaveSpawner::Spawn( void )
 {
 	BaseClass::Spawn();
 
@@ -50,21 +52,23 @@ void CContingencyWaveSpawner::Spawn( void )
 	pRallyPoint = dynamic_cast<CContingencyRallyPoint*>( gEntList.FindEntityByName(NULL, rallyPointName, this) );
 }
 
-void CContingencyWaveSpawner::MakeNPC( void )
+void CContingencySupportWaveSpawner::MakeNPC( void )
 {
 	if ( !CanMakeNPC() )
 		return;
 
-	// Only spawn NPCs during waves (combat phases), hence our name!
-	if ( ContingencyRules()->GetCurrentPhase() != PHASE_COMBAT )
+	// If the server doesn't want support NPCs, don't spawn them
+	if ( !contingency_wave_support.GetBool() )
 		return;
 
-	// Do not spawn more NPCs than our server will allow to be living at any given time
-	if ( ContingencyRules()->GetNumNPCsInCurrentWave() >= contingency_wave_maxlivingnpcs.GetInt() )
+	// Only spawn support NPCs during an interim phase
+	if ( ContingencyRules()->GetCurrentPhase() != PHASE_INTERIM )
 		return;
 
-	// Do not spawn more NPCs than we're supposed to for this wave
-	if ( ContingencyRules()->GetNumEnemiesSpawned() >= ContingencyRules()->GetCalculatedNumEnemies() )
+	// Only spawn as many support NPCs as it takes to fill the server with players
+	// (e.g. Having 2 out of 5 players on a server means there are 3 spots to fill, so we should spawn 3 support NPCs)
+	// Never spawn too many!
+	if ( ContingencyRules()->GetCurrentSupportWaveNPCList() && (ContingencyRules()->GetCurrentSupportWaveNPCList()->Count() >= (ContingencyRules()->GetMaxNumPlayers() - ContingencyRules()->GetTotalNumPlayers())) )
 		return;
 
 	if ( m_flMaximumDistanceFromNearestPlayer > -1 )
@@ -82,61 +86,12 @@ void CContingencyWaveSpawner::MakeNPC( void )
 			return;	// nearest player is too far away!
 	}
 
-	// Spawn a random type of NPC type associated with the current wave
-	int currentWaveType = ContingencyRules()->GetWaveType();
+	// Spawn a random type of support NPC
 	const char *NPCClassName = "";
 	string_t equipmentName = NULL_STRING;
-	if ( currentWaveType == WAVE_HEADCRABS )
-	{
-		// Don't spawn headcrab NPCs if this spawner isn't allowed to (map-defined)
-		if ( !HasSpawnFlags(SF_WAVESPAWNER_HEADCRABS) )
-			return;
-
-		if ( HasSpawnFlags(SF_WAVESPAWNER_FLYINGNPCSONLY) )
-			return;	// there are no flying headcrab NPCs (yet)
-		else
-			NPCClassName = kWaveHeadcrabsNPCTypes[random->RandomInt(0, NUM_HEADCRAB_NPCS - 1)];
-	}
-	else if ( currentWaveType == WAVE_ANTLIONS )
-	{
-		// Don't spawn antlion NPCs if this spawner isn't allowed to (map-defined)
-		if ( !HasSpawnFlags(SF_WAVESPAWNER_ANTLIONS) )
-			return;
-
-		if ( HasSpawnFlags(SF_WAVESPAWNER_FLYINGNPCSONLY) )
-			NPCClassName = kWaveAntlionsFlyingNPCTypes[random->RandomInt(0, NUM_ANTLION_FLYING_NPCS - 1)];
-		else
-			NPCClassName = kWaveAntlionsNPCTypes[random->RandomInt(0, NUM_ANTLION_NPCS - 1)];
-	}
-	else if ( currentWaveType == WAVE_ZOMBIES )
-	{
-		// Don't spawn zombie NPCs if this spawner isn't allowed to (map-defined)
-		if ( !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIES) )
-			return;
-
-		if ( HasSpawnFlags(SF_WAVESPAWNER_FLYINGNPCSONLY) )
-			return;	// there are no flying zombie NPCs (yet)
-		else
-			NPCClassName = kWaveZombiesNPCTypes[random->RandomInt(0, NUM_ZOMBIE_NPCS - 1)];
-	}
-	else if ( currentWaveType == WAVE_COMBINE )
-	{
-		// Don't spawn Combine NPCs if this spawner isn't allowed to (map-defined)
-		if ( !HasSpawnFlags(SF_WAVESPAWNER_COMBINE) )
-			return;
-
-		if ( HasSpawnFlags(SF_WAVESPAWNER_FLYINGNPCSONLY) )
-			NPCClassName = kWaveCombineFlyingNPCTypes[random->RandomInt(0, NUM_COMBINE_FLYING_NPCS - 1)];
-		else
-			NPCClassName = kWaveCombineNPCTypes[random->RandomInt(0, NUM_COMBINE_NPCS - 1)];
-
-		if ( Q_strcmp(NPCClassName, "npc_combine_s") == 0 )
-			equipmentName = MAKE_STRING(kWaveCombineSWeaponTypes[random->RandomInt( 0, NUM_COMBINE_S_WEAPONS - 1 )]);
-		else if ( Q_strcmp(NPCClassName, "npc_metropolice") == 0 )
-			equipmentName = MAKE_STRING(kWaveMetropoliceWeaponTypes[random->RandomInt( 0, NUM_METROPOLICE_WEAPONS - 1 )]);
-	}
-	else
-		return;
+	NPCClassName = kSupportWaveSupportNPCTypes[random->RandomInt( 0, NUM_SUPPORT_NPCS - 1 )];
+	if ( Q_strcmp(NPCClassName, "npc_citizen") == 0 )
+		equipmentName = MAKE_STRING(kSupportWaveCitizenWeaponTypes[random->RandomInt( 0, NUM_CITIZEN_WEAPONS - 1 )]);
 
 	// Ensure the NPC type we've defined is valid
 	CAI_BaseNPC *pent = dynamic_cast<CAI_BaseNPC*>( CreateEntityByName(NPCClassName) );
@@ -198,8 +153,7 @@ void CContingencyWaveSpawner::MakeNPC( void )
 		}
 	}
 
-	// Consider this NPC yet another enemy players will have to deal with
-	// if they want to conquer this latest wave!
-	ContingencyRules()->AddNPCToCurrentWave( pent );
-	ContingencyRules()->IncrementNumEnemiesSpawned();
+	// Consider this NPC a new addition to our support wave
+	if ( ContingencyRules()->GetCurrentSupportWaveNPCList() && (ContingencyRules()->GetCurrentSupportWaveNPCList()->Find(pent) == -1) )
+		ContingencyRules()->GetCurrentSupportWaveNPCList()->AddToTail( pent );
 }

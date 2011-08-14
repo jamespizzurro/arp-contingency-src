@@ -93,6 +93,8 @@ public:
 	int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
 	bool FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 
+	bool ShouldCollide( int collisionGroup0, int collisionGroup1 );
+
 	bool IsPlayerPlaying( CContingency_Player *pPlayer = NULL );
 
 #ifndef CLIENT_DLL
@@ -138,10 +140,11 @@ public:
 
 	void Precache( void );
 
-	// Added wave system
-	// Precache all NPC models that are to be used here to ensure
-	// players don't experience any annoying loading delays later
-	void PrecacheWaveNPCs( void );
+#ifndef CLIENT_DLL
+	// Precaching called by each player (server-side)
+	// This is in gamerules because all the precaching done here is really gameplay-dependent
+	void PrecacheStuff( void );
+#endif
 
 	void ClientDisconnected( edict_t *pClient );
 
@@ -149,6 +152,7 @@ public:
 #ifndef CLIENT_DLL
 	void PerformWaveCalculations();
 	void HandleNPCDeath( CAI_BaseNPC *pNPC, const CTakeDamageInfo &info );
+	void HandleNPCRemoval( CAI_BaseNPC *pNPC );
 #endif
 
 	void Think( void );
@@ -180,7 +184,6 @@ public:
 		if ( m_iCurrentPhase == PHASE_INTERIM )
 		{
 			// Post-PHASE_COMBAT cleanup...
-			PurgeCurrentWave();
 			SetWaveType( WAVE_NONE );
 			SetNumEnemiesRemaining( 0 );
 			SetCalculatedNumEnemies( 0 );
@@ -189,6 +192,11 @@ public:
 			RemoveSatchelsAndTripmines();	// more cleaning (all players' satchels and tripmines)
 
 			SetInterimPhaseTimeLeft( contingency_phase_interimtime.GetInt() );
+
+			// Added loadout system
+			UpdatePlayerLoadouts();
+
+			RespawnDeadPlayers();
 
 			// Added sound cue and background music system
 			int i;
@@ -207,11 +215,6 @@ public:
 			// Post-PHASE_INTERIM cleanup...
 			SetInterimPhaseTimeLeft( 0 );
 			m_flInterimPhaseTime = 0.0f;
-
-			// Added loadout system
-			UpdatePlayerLoadouts();
-
-			RespawnDeadPlayers();
 
 			// Added sound cue and background music system
 			int i;
@@ -277,27 +280,8 @@ public:
 	void IncrementNumEnemiesSpawned( void ) { m_iNumEnemiesSpawned = m_iNumEnemiesSpawned + 1; }
 #endif
 #ifndef CLIENT_DLL
-	int GetNumNPCsInCurrentWave( void )
-	{
-		return m_CurrentWaveNPCList.Count();
-	}
-	void AddNPCToCurrentWave( CAI_BaseNPC *pNPC )
-	{
-		if ( m_CurrentWaveNPCList.Find(pNPC) == -1 )
-			m_CurrentWaveNPCList.AddToTail( pNPC );
-	}
-	void RemoveNPCFromCurrentWave( CAI_BaseNPC *pNPC )
-	{
-		m_CurrentWaveNPCList.FindAndRemove( pNPC );
-	}
-	bool IsNPCInCurrentWave( CAI_BaseNPC *pNPC )
-	{
-		return (m_CurrentWaveNPCList.Find(pNPC) != -1) ? true : false;
-	}
-	void PurgeCurrentWave( void )
-	{
-		m_CurrentWaveNPCList.Purge();
-	}
+	CUtlVector<CAI_BaseNPC*> *GetCurrentWaveNPCList( void ) { return m_pCurrentWaveNPCList; }
+	void SetCurrentWaveNPCList( CUtlVector<CAI_BaseNPC*> *pNewCurrentWaveNPCList ) { m_pCurrentWaveNPCList = pNewCurrentWaveNPCList; }
 #endif
 
 	// Added radar display
@@ -333,27 +317,8 @@ public:
 
 // Added support wave system
 #ifndef CLIENT_DLL
-	int GetNumNPCsInCurrentSupportWave( void )
-	{
-		return m_CurrentSupportWaveNPCList.Count();
-	}
-	void AddNPCToCurrentSupportWave( CAI_BaseNPC *pNPC )
-	{
-		if ( m_CurrentSupportWaveNPCList.Find(pNPC) == -1 )
-			m_CurrentSupportWaveNPCList.AddToTail( pNPC );
-	}
-	void RemoveNPCFromCurrentSupportWave( CAI_BaseNPC *pNPC )
-	{
-		m_CurrentSupportWaveNPCList.FindAndRemove( pNPC );
-	}
-	bool IsNPCInCurrentSupportWave( CAI_BaseNPC *pNPC )
-	{
-		return (m_CurrentSupportWaveNPCList.Find(pNPC) != -1) ? true : false;
-	}
-	void PurgeCurrentSupportWave( void )
-	{
-		m_CurrentSupportWaveNPCList.Purge();
-	}
+	CUtlVector<CAI_BaseNPC*> *GetCurrentSupportWaveNPCList( void ) { return m_pCurrentSupportWaveNPCList; }
+	void SetCurrentSupportWaveNPCList( CUtlVector<CAI_BaseNPC*> *pNewCurrentSupportWaveNPCList ) { m_pCurrentSupportWaveNPCList = pNewCurrentSupportWaveNPCList; }
 #endif
 
 	// Enable fall damage by default
@@ -377,7 +342,7 @@ private:
 	int m_iCalculatedNumEnemies;
 	int m_iNumEnemiesSpawned;
 	bool m_bPlayersDefeated;
-	CUtlVector<CAI_BaseNPC*> m_CurrentWaveNPCList;
+	CUtlVector<CAI_BaseNPC*> *m_pCurrentWaveNPCList;
 #endif
 
 	// Added radar display
@@ -404,7 +369,7 @@ private:
 
 	// Added support wave system
 #ifndef CLIENT_DLL
-	CUtlVector<CAI_BaseNPC*> m_CurrentSupportWaveNPCList;
+	CUtlVector<CAI_BaseNPC*> *m_pCurrentSupportWaveNPCList;
 #endif
 
 	// Added a non-restorative health system

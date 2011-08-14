@@ -261,6 +261,12 @@ void CWeaponHealthKit::SecondaryAttack()
 
 				AddViewKick();
 
+				// Added credits system
+#ifndef CLIENT_DLL
+				ClientPrint( pPlayer, HUD_PRINTTALK, "You have been granted 3 additional credits for healing a teammate." );
+				pPlayer->AddCredits( 3 );
+#endif
+
 				m_bSuccessfulHeal = true;	// heal assumed to be successful
 			}
 		}

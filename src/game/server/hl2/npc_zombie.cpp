@@ -534,7 +534,17 @@ void CZombie::MoanSound( envelopePoint_t *pEnvelope, int iEnvelopeSize )
 //---------------------------------------------------------
 bool CZombie::ShouldBecomeTorso( const CTakeDamageInfo &info, float flDamageThreshold )
 {
-	if( IsSlumped() ) 
+
+/////
+
+	// Contingency - James
+	// Prevent zombies from becoming torsos
+	// This fixes a nasty bug that creates an invisible zombie that cannot be killed
+	// by anything other than explosive blasts...which is really annoying to deal with
+	// Keep in mind zombies can still be spawned as torsos (and are) using npc_zombie_torso,
+	// they just can no longer become one after they've been spawned
+
+	/*if( IsSlumped() ) 
 	{
 		// Never break apart a slouched zombie. This is because the most fun
 		// slouched zombies to kill are ones sleeping leaning against explosive
@@ -544,7 +554,12 @@ bool CZombie::ShouldBecomeTorso( const CTakeDamageInfo &info, float flDamageThre
 		return false;
 	}
 
-	return BaseClass::ShouldBecomeTorso( info, flDamageThreshold );
+	return BaseClass::ShouldBecomeTorso( info, flDamageThreshold );*/
+
+	return false;
+
+/////
+
 }
 
 //---------------------------------------------------------

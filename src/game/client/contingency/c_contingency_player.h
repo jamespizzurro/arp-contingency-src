@@ -5,6 +5,9 @@
 #include "c_hl2mp_player.h"
 #include "contingency_player_shared.h"
 
+// Added spawnable prop system
+#include "c_contingency_spawnableprop.h"
+
 //=============================================================================
 // >> Contingency_Player
 //=============================================================================
@@ -44,11 +47,23 @@ public:
 	int GetAmbientSoundGUID( void ) { return m_iAmbientSoundGUID; }
 	void SetAmbientSoundGUID( int newAmbientSoundGUID ) { m_iAmbientSoundGUID = newAmbientSoundGUID; }
 
+	// Added credits system
+	int GetCredits( void ) { return m_iCredits; }
+
+	// Added spawnable prop system
+	int GetNumSpawnableProps( void ) { return m_iNumSpawnableProps; }
+
 private:
 	C_Contingency_Player( const C_Contingency_Player & );
 
 	// Added sound cue and background music system
 	int m_iAmbientSoundGUID;
+
+	// Added credits system
+	int m_iCredits;
+
+	// Added spawnable prop system
+	int m_iNumSpawnableProps;
 };
 
 inline C_Contingency_Player *ToContingencyPlayer( CBaseEntity *pEntity )

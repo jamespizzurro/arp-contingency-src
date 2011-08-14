@@ -144,9 +144,6 @@
     <ClCompile Include="..\shared\baseparticleentity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\baseplayer_shared.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="basepresence.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -402,9 +399,6 @@
     <ClCompile Include="clientleafsystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="clientmode_shared.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="clientshadowmgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -622,9 +616,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="in_joystick.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="in_mouse.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="initializer.cpp">
@@ -1413,9 +1404,6 @@
     <ClCompile Include="..\shared\hl2mp\weapon_hl2mpbasebasebludgeon.cpp">
       <Filter>Source Files\HL2MP\Weapons</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\hl2mp\weapon_physcannon.cpp">
-      <Filter>Source Files\HL2MP\Weapons</Filter>
-    </ClCompile>
     <ClCompile Include="..\shared\hl2mp\weapon_rpg.cpp">
       <Filter>Source Files\HL2MP\Weapons</Filter>
     </ClCompile>
@@ -1623,6 +1611,30 @@
     <ClCompile Include="contingency\navgen_display.cpp">
       <Filter>Source Files\Contingency\UI</Filter>
     </ClCompile>
+    <ClCompile Include="contingency\hud_contingency_credits.cpp">
+      <Filter>Source Files\Contingency\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\hl2mp\weapon_physcannon.cpp">
+      <Filter>Source Files\HL2MP\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="in_mouse.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="clientmode_shared.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\baseplayer_shared.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="contingency\c_contingency_spawnableprop.cpp">
+      <Filter>Source Files\Contingency\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="contingency\spawnableprop_deletionmenu.cpp">
+      <Filter>Source Files\Contingency\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="contingency\propspawningmenu.cpp">
+      <Filter>Source Files\Contingency\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="achievement_notification_panel.h">
@@ -1736,9 +1748,6 @@
     <ClInclude Include="..\shared\hl2mp\weapon_hl2mpbase_machinegun.h">
       <Filter>Source Files\HL2MP\Weapons</Filter>
     </ClInclude>
-    <ClInclude Include="..\shared\hl2mp\weapon_physcannon.h">
-      <Filter>Source Files\HL2MP\Weapons</Filter>
-    </ClInclude>
     <ClInclude Include="..\shared\hl2mp\weapon_rpg.h">
       <Filter>Source Files\HL2MP\Weapons</Filter>
     </ClInclude>
@@ -1800,9 +1809,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="c_baseflex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="c_baseplayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="c_basetempentity.h">
@@ -1950,9 +1956,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="clientmode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="clientmode_shared.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="clientsideeffects.h">
@@ -3462,6 +3465,30 @@
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClInclude>
     <ClInclude Include="contingency\navgen_display.h">
+      <Filter>Source Files\Contingency\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\hl2mp\weapon_physcannon.h">
+      <Filter>Source Files\HL2MP\Weapons</Filter>
+    </ClInclude>
+    <ClInclude Include="clientmode_shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="c_baseplayer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\basecombatweapon_shared.h">
+      <Filter>Game Shared Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="contingency\c_contingency_spawnableprop.h">
+      <Filter>Source Files\Contingency\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="contingency\spawnableprop_deletionmenu.h">
+      <Filter>Source Files\Contingency\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\contingency\contingency_system_propspawning.h">
+      <Filter>Source Files\Contingency\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="contingency\propspawningmenu.h">
       <Filter>Source Files\Contingency\UI</Filter>
     </ClInclude>
   </ItemGroup>

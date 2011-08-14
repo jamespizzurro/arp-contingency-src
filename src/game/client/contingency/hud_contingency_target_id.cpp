@@ -15,6 +15,9 @@
 // Added citizen status HUD element
 #include "c_npc_citizen17.h"
 
+// Added spawnable prop system
+#include "c_contingency_spawnableprop.h"
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -123,6 +126,9 @@ void CTargetID::Paint()
 		// Added citizen status HUD element
 		C_NPC_Citizen *pTargetCitizen = dynamic_cast<C_NPC_Citizen*>( cl_entitylist->GetEnt(iEntIndex) );
 		
+		// Added spawnable prop system
+		C_Contingency_SpawnableProp *pTargetSpawnableProp = dynamic_cast<C_Contingency_SpawnableProp*>( cl_entitylist->GetEnt(iEntIndex) );
+
 		// Added player status HUD element
 		if ( pTargetPlayer )
 		{
@@ -183,6 +189,19 @@ void CTargetID::Paint()
 			vgui::surface()->DrawSetTextPos( (ScreenWidth() - wide) / 2, YRES(280) );
 			vgui::surface()->DrawSetTextColor( pTargetCitizen->GetHealthConditionColor() );
 			vgui::surface()->DrawPrintText( wszHealthConditionText, wcslen(wszHealthConditionText) );
+		}
+		// Added spawnable prop system
+		else if ( pTargetSpawnableProp )
+		{
+			int wide, tall;
+
+			wchar_t wszSpawnablePropOwnerName[256];
+			g_pVGuiLocalize->ConvertANSIToUnicode( pTargetSpawnableProp->GetOwnerDisplay(), wszSpawnablePropOwnerName, sizeof(wszSpawnablePropOwnerName) );
+			vgui::surface()->GetTextSize( m_hFont, wszSpawnablePropOwnerName, wide, tall );
+			vgui::surface()->DrawSetTextFont( m_hFont );
+			vgui::surface()->DrawSetTextPos( (ScreenWidth() - wide) / 2, YRES(260) );
+			vgui::surface()->DrawSetTextColor( GetColorForTargetTeam(pTargetSpawnableProp->GetTeamNumber()) );
+			vgui::surface()->DrawPrintText( wszSpawnablePropOwnerName, wcslen(wszSpawnablePropOwnerName) );
 		}
 	}
 }

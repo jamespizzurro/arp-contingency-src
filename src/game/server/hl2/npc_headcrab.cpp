@@ -1035,7 +1035,16 @@ void CBaseHeadcrab::GatherConditions( void )
 	if( m_lifeState == LIFE_ALIVE && GetWaterLevel() > 1 )
 	{
 		// Start Drowning!
-		SetCondition( COND_HEADCRAB_IN_WATER );
+
+/////
+
+	// Contingency - James
+	// Prevent headcrabs from drowning when underwater
+
+		//SetCondition( COND_HEADCRAB_IN_WATER );
+
+/////
+
 	}
 
 	// See if I've landed on an NPC or player or something else illegal
