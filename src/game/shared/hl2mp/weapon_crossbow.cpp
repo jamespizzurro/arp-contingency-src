@@ -69,7 +69,15 @@ protected:
 
 	bool	CreateSprites( void );
 
-	CHandle<CSprite>		m_pGlowSprite;
+/////
+
+	// Contingency - James
+	// Removed some crossbow sprites because they kept showing up when they weren't supposed to
+
+	//CHandle<CSprite>		m_pGlowSprite;
+
+/////
+
 	//CHandle<CSpriteTrail>	m_pGlowTrail;
 	
 	int		m_iDamage;
@@ -85,7 +93,16 @@ BEGIN_DATADESC( CCrossbowBolt )
 	DEFINE_FUNCTION( BoltTouch ),
 
 	// These are recreated on reload, they don't need storage
-	DEFINE_FIELD( m_pGlowSprite, FIELD_EHANDLE ),
+
+/////
+
+	// Contingency - James
+	// Removed some crossbow sprites because they kept showing up when they weren't supposed to
+
+	//DEFINE_FIELD( m_pGlowSprite, FIELD_EHANDLE ),
+
+/////
+
 	//DEFINE_FIELD( m_pGlowTrail, FIELD_EHANDLE ),
 
 END_DATADESC()
@@ -112,10 +129,19 @@ CCrossbowBolt *CCrossbowBolt::BoltCreate( const Vector &vecOrigin, const QAngle 
 //-----------------------------------------------------------------------------
 CCrossbowBolt::~CCrossbowBolt( void )
 {
-	if ( m_pGlowSprite )
+
+/////
+
+	// Contingency - James
+	// Removed some crossbow sprites because they kept showing up when they weren't supposed to
+
+	/*if ( m_pGlowSprite )
 	{
 		UTIL_Remove( m_pGlowSprite );
-	}
+	}*/
+
+/////
+
 }
 
 //-----------------------------------------------------------------------------
@@ -143,8 +169,14 @@ unsigned int CCrossbowBolt::PhysicsSolidMaskForEntity() const
 //-----------------------------------------------------------------------------
 bool CCrossbowBolt::CreateSprites( void )
 {
+
+/////
+
+	// Contingency - James
+	// Removed some crossbow sprites because they kept showing up when they weren't supposed to
+
 	// Start up the eye glow
-	m_pGlowSprite = CSprite::SpriteCreate( "sprites/light_glow02_noz.vmt", GetLocalOrigin(), false );
+	/*m_pGlowSprite = CSprite::SpriteCreate( "sprites/light_glow02_noz.vmt", GetLocalOrigin(), false );
 
 	if ( m_pGlowSprite != NULL )
 	{
@@ -152,7 +184,9 @@ bool CCrossbowBolt::CreateSprites( void )
 		m_pGlowSprite->SetTransparency( kRenderGlow, 255, 255, 255, 128, kRenderFxNoDissipation );
 		m_pGlowSprite->SetScale( 0.2f );
 		m_pGlowSprite->TurnOff();
-	}
+	}*/
+
+/////
 
 	return true;
 }
@@ -329,11 +363,19 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 				SetThink( &CCrossbowBolt::SUB_Remove );
 				SetNextThink( gpGlobals->curtime + 2.0f );
 
-				if ( m_pGlowSprite != NULL )
+/////
+
+	// Contingency - James
+	// Removed some crossbow sprites because they kept showing up when they weren't supposed to
+
+				/*if ( m_pGlowSprite != NULL )
 				{
 					m_pGlowSprite->TurnOn();
 					m_pGlowSprite->FadeAndDie( 3.0f );
-				}
+				}*/
+
+/////
+
 			}
 			
 			// Shoot some sparks
@@ -743,7 +785,13 @@ void CWeaponCrossbow::ToggleZoom( void )
 //-----------------------------------------------------------------------------
 void CWeaponCrossbow::CreateChargerEffects( void )
 {
-#ifndef CLIENT_DLL
+
+/////
+
+	// Contingency - James
+	// Removed some crossbow sprites because they kept showing up when they weren't supposed to
+
+/*#ifndef CLIENT_DLL
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
 
 	if ( m_hChargerSprite != NULL )
@@ -759,7 +807,10 @@ void CWeaponCrossbow::CreateChargerEffects( void )
 		m_hChargerSprite->SetScale( 0.1f );
 		m_hChargerSprite->TurnOff();
 	}
-#endif
+#endif*/
+
+/////
+
 }
 
 //-----------------------------------------------------------------------------

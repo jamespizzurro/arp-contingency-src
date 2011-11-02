@@ -220,12 +220,14 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClCompile Include="..\shared\contingency\contingency_concommands.cpp" />
     <ClCompile Include="..\shared\contingency\contingency_gamerules.cpp" />
     <ClCompile Include="..\shared\contingency\contingency_player_shared.cpp" />
+    <ClCompile Include="..\shared\contingency\contingency_system_music.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_alyxgun.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_axe.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_deployableturret.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_healthkit.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_nyangun.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_pistols.cpp" />
+    <ClCompile Include="..\shared\contingency\weapon_wrench.cpp" />
     <ClCompile Include="achievement_notification_panel.cpp" />
     <ClCompile Include="..\shared\achievement_saverestore.cpp" />
     <ClCompile Include="..\shared\achievementmgr.cpp" />
@@ -889,6 +891,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClInclude Include="..\shared\contingency\contingency_gamerules.h" />
     <ClInclude Include="..\shared\contingency\contingency_player_shared.h" />
     <ClInclude Include="..\shared\contingency\contingency_system_loadout.h" />
+    <ClInclude Include="..\shared\contingency\contingency_system_music.h" />
     <ClInclude Include="..\shared\contingency\contingency_system_phase.h" />
     <ClInclude Include="..\shared\contingency\contingency_system_propspawning.h" />
     <ClInclude Include="..\shared\contingency\contingency_system_wave.h" />

@@ -35,6 +35,9 @@ IMPLEMENT_SERVERCLASS_ST( CContingency_Player, DT_Contingency_Player )
 
 	// Added spawnable prop system
 	SendPropInt( SENDINFO(m_iNumSpawnableProps) ),
+
+	// Added spawnable prop system
+	SendPropInt( SENDINFO(m_iDesiredSpawnablePropIndex) ),
 END_SEND_TABLE()
 
 BEGIN_DATADESC( CContingency_Player )
@@ -85,6 +88,9 @@ CContingency_Player::CContingency_Player()
 	// Added spawnable prop system
 	m_pSpawnablePropInFocus = NULL;
 	m_iNumSpawnableProps = 0;
+
+	// Added spawnable prop system
+	m_iDesiredSpawnablePropIndex = 0;
 }
 
 CContingency_Player::~CContingency_Player( void )
@@ -313,9 +319,22 @@ void CContingency_Player::Spawn( void )
 		if ( pPlayerInfo && !pPlayerInfo->HasBeenAccessed() )
 		{
 			// We've found a player info entry with our player's steamID in it,
-			// so use it to recall our player's loadout and health when they disconnected
+			// so use it to recall our player's health, etc. when they disconnected
 			pPlayerInfo->HasBeenAccessed( true );
 			savedPlayerHealth = pPlayerInfo->GetHealth();
+			
+			// Added credits system
+			// Restore the player's credits
+			SetCredits( pPlayerInfo->GetCredits() );
+		}
+		else if ( !pPlayerInfo )
+		{
+			// No player info was found!
+			// So, this player hasn't spawned before during the current game
+
+			// Added credits system
+			// Give the player some starting credits according to what the current map has defined
+			SetCredits( ContingencyRules()->GetMapStartingCredits() );
 		}
 
 		// Handle our current and maximum health

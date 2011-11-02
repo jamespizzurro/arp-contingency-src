@@ -27,10 +27,10 @@ ConVar mp_forcecamera(
 /////
 
 	// Contingency - James
-	// Do not restrict spectator modes for dead players by default
+	// Restrict spectator mode to free roam by default (until we fix the others!)
 
 	//"1", 
-	"0",
+	"2",
 
 /////
 

@@ -15,6 +15,7 @@ enum CONTINGENCY_WAVES
 	NUM_WAVES
 };
 
+// Wave types
 static const int NUM_HEADCRAB_NPCS = 3;
 static const char* kWaveHeadcrabsNPCTypes[NUM_HEADCRAB_NPCS] =
 {
@@ -24,11 +25,6 @@ static const char* kWaveHeadcrabsNPCTypes[NUM_HEADCRAB_NPCS] =
 };
 static const int NUM_ANTLION_NPCS = 1;
 static const char* kWaveAntlionsNPCTypes[NUM_ANTLION_NPCS] =
-{
-	"npc_antlion"
-};
-static const int NUM_ANTLION_FLYING_NPCS = 1;
-static const char* kWaveAntlionsFlyingNPCTypes[NUM_ANTLION_FLYING_NPCS] =
 {
 	"npc_antlion"
 };
@@ -49,12 +45,6 @@ static const char* kWaveCombineNPCTypes[NUM_COMBINE_NPCS] =
 	"npc_manhack",
 	"npc_stalker"
 };
-static const int NUM_COMBINE_FLYING_NPCS = 2;
-static const char* kWaveCombineFlyingNPCTypes[NUM_COMBINE_FLYING_NPCS] =
-{
-	"npc_cscanner",
-	"npc_manhack"
-};
 static const int NUM_COMBINE_S_WEAPONS = 3;
 static const char* kWaveCombineSWeaponTypes[NUM_COMBINE_S_WEAPONS] =
 {
@@ -68,6 +58,8 @@ static const char* kWaveMetropoliceWeaponTypes[NUM_METROPOLICE_WEAPONS] =
 	"weapon_pistol",
 	"weapon_smg1"
 };
+
+// Support wave types
 static const int NUM_SUPPORT_NPCS = 1;
 static const char* kSupportWaveSupportNPCTypes[NUM_SUPPORT_NPCS] =
 {

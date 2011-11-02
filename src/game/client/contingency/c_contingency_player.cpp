@@ -23,6 +23,9 @@ IMPLEMENT_CLIENTCLASS_DT( C_Contingency_Player, DT_Contingency_Player, CContinge
 
 	// Added spawnable prop system
 	RecvPropInt( RECVINFO(m_iNumSpawnableProps) ),
+
+	// Added spawnable prop system
+	RecvPropInt( RECVINFO(m_iDesiredSpawnablePropIndex) ),
 END_RECV_TABLE()
 
 BEGIN_PREDICTION_DATA( C_Contingency_Player )

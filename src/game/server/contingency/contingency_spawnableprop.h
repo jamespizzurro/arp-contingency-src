@@ -19,6 +19,9 @@ public:
 	CBasePlayer *GetSpawnerPlayer( void ) { return m_hSpawnerPlayer; }
 	void SetSpawnerPlayer( CBasePlayer *pNewSpawnerPlayer ) { m_hSpawnerPlayer = pNewSpawnerPlayer; }
 
+	int GetSpawnablePropIndex( void ) { return m_iSpawnablePropIndex; }
+	void SetSpawnablePropIndex( int iNewSpawnablePropIndex ) { m_iSpawnablePropIndex = iNewSpawnablePropIndex; }
+
 	void Spawn( void );
 
 	int ObjectCaps() { return BaseClass::ObjectCaps() | FCAP_WCEDIT_POSITION | FCAP_IMPULSE_USE; }
@@ -26,6 +29,8 @@ public:
 
 private:
 	CNetworkHandle( CBasePlayer, m_hSpawnerPlayer );
+
+	int m_iSpawnablePropIndex;
 };
 
 #endif // CONTINGENCY_SPAWNABLEPROP_H

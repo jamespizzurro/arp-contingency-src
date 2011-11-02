@@ -1860,6 +1860,18 @@ AI_DEFINE_SCHEDULE
 	"		TASK_WAIT_FOR_MOVEMENT			0"
 	""
 	"	Interrupts"
+
+/////
+
+	// Contingency - James
+	// Add a custom rally point entity for wave spawners
+
+	"		COND_SEE_ENEMY"
+	"		COND_LIGHT_DAMAGE"
+	"		COND_HEAVY_DAMAGE"
+
+/////
+
 );
 
 //=========================================================
@@ -1877,6 +1889,18 @@ AI_DEFINE_SCHEDULE
 	"		TASK_WAIT_FOR_MOVEMENT			0"
 	""
 	"	Interrupts"
+
+/////
+
+	// Contingency - James
+	// Add a custom rally point entity for wave spawners
+
+	"		COND_SEE_ENEMY"
+	"		COND_LIGHT_DAMAGE"
+	"		COND_HEAVY_DAMAGE"
+
+/////
+
 );
 
 //=========================================================

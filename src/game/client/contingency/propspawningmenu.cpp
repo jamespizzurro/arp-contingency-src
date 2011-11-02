@@ -136,11 +136,11 @@ void CPropSpawningMenu::Reset()
 	if ( !pLocalPlayer )
 		return;
 
-	currentSpawnablePropIndex = 0;
-	currentSpawnablePropSelected[0] = kSpawnablePropTypes[0][0];
-	currentSpawnablePropSelected[1] = kSpawnablePropTypes[0][1];
-	currentSpawnablePropSelected[2] = kSpawnablePropTypes[0][2];
-	currentSpawnablePropSelected[3] = kSpawnablePropTypes[0][3];
+	currentSpawnablePropIndex = pLocalPlayer->GetDesiredSpawnablePropIndex();
+	currentSpawnablePropSelected[0] = kSpawnablePropTypes[currentSpawnablePropIndex][0];
+	currentSpawnablePropSelected[1] = kSpawnablePropTypes[currentSpawnablePropIndex][1];
+	currentSpawnablePropSelected[2] = kSpawnablePropTypes[currentSpawnablePropIndex][2];
+	currentSpawnablePropSelected[3] = kSpawnablePropTypes[currentSpawnablePropIndex][3];
 }
 
 void CPropSpawningMenu::OnThink()
@@ -221,10 +221,10 @@ void CPropSpawningMenu::OnCommand( const char *command )
 		currentSpawnablePropSelected[2] = kSpawnablePropTypes[currentSpawnablePropIndex][2];
 		currentSpawnablePropSelected[3] = kSpawnablePropTypes[currentSpawnablePropIndex][3];
 	}
-	else if ( Q_stricmp(command, "spawnprop") == 0 )
+	else if ( Q_stricmp(command, "selectprop") == 0 )
 	{
 		char szSpawnPropCmd[128];
-		Q_snprintf( szSpawnPropCmd, sizeof(szSpawnPropCmd), "spawnprop %i\n", currentSpawnablePropIndex );
+		Q_snprintf( szSpawnPropCmd, sizeof(szSpawnPropCmd), "selectprop %i\n", currentSpawnablePropIndex );
 		engine->ServerCmd( szSpawnPropCmd );
 
 		Close();

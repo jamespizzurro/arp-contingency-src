@@ -273,16 +273,6 @@ void CNPC_FloorTurret::Precache( void )
 	BaseClass::Precache();
 }
 
-void CNPC_FloorTurret::CheckStuff( void )
-{
-	/*if ( !m_bSelfDestructing )	// commented to fix issue where explosion never occurs, so turret stays on the map forever
-	{
-		if ( (m_iHealth <= 0) ||
-			 ((enginetrace->GetPointContents(GetAbsOrigin()) & (CONTENTS_WATER|CONTENTS_SLIME)) != 0) )
-			Explode();
-	}*/
-}
-
 //-----------------------------------------------------------------------------
 // Purpose: Spawn the entity
 //-----------------------------------------------------------------------------
@@ -1193,9 +1183,6 @@ bool CNPC_FloorTurret::CanBeAnEnemyOf( CBaseEntity *pEnemy )
 //-----------------------------------------------------------------------------
 void CNPC_FloorTurret::InactiveThink( void )
 {
-	// Allow turret to take damage
-	CheckStuff();	// check to see if we're dead yet
-
 	// Update our PVS state
 	CheckPVSCondition();
 
@@ -1253,9 +1240,6 @@ void CNPC_FloorTurret::ReturnToLife( void )
 //-----------------------------------------------------------------------------
 void CNPC_FloorTurret::DisabledThink( void )
 {
-	// Allow turret to take damage
-	CheckStuff();	// check to see if we're dead yet
-
 	SetNextThink( gpGlobals->curtime + 0.5 );
 }
 
@@ -1265,9 +1249,6 @@ void CNPC_FloorTurret::DisabledThink( void )
 //-----------------------------------------------------------------------------
 void CNPC_FloorTurret::HackFindEnemy( void )
 {
-	// Allow turret to take damage
-	CheckStuff();	// check to see if we're dead yet
-
 	// We have to refresh our memories before finding enemies, so
 	// dead enemies are cleared out before new ones are added.
 	GetEnemies()->RefreshMemories();
@@ -1282,9 +1263,6 @@ void CNPC_FloorTurret::HackFindEnemy( void )
 //-----------------------------------------------------------------------------
 bool CNPC_FloorTurret::PreThink( turretState_e state )
 {
-	// Allow turret to take damage
-	CheckStuff();	// check to see if we're dead yet
-
 	// Hack to disable turrets when ai is disabled
 	if ( CAI_BaseNPC::m_nDebugBits & bits_debugDisableAI )
 	{
@@ -1560,8 +1538,9 @@ int CNPC_FloorTurret::VPhysicsTakeDamage( const CTakeDamageInfo &info )
 //-----------------------------------------------------------------------------
 int CNPC_FloorTurret::OnTakeDamage( const CTakeDamageInfo &info )
 {
-	// Allow turret to take damage
-	CheckStuff();
+	CBasePlayer *pAttackerPlayer = ToBasePlayer( info.GetAttacker() );
+	if ( pAttackerPlayer )
+		return 0;	// don't take damage from players
 
 	CTakeDamageInfo	newInfo = info;
 

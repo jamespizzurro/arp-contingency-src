@@ -16,6 +16,9 @@
 // Added loadout system
 #include "contingency_system_loadout.h"
 
+// Added sound cue and background music system
+#include "contingency_system_music.h"
+
 #ifndef CLIENT_DLL
 	#include "contingency_player.h"
 #else
@@ -28,31 +31,11 @@
 	#define CContingencyRulesProxy C_ContingencyRulesProxy
 #endif
 
-#ifndef CLIENT_DLL
-	// Added phase system
-	extern ConVar contingency_phase_interimtime;
-#endif
-
 enum CONTINGENCY_TEAMS
 {
 	TEAM_PLAYER = 0,
 
 	NUM_TEAMS
-};
-
-// Added sound cue and background music system
-static const int NUM_BACKGROUND_MUSIC = 9;
-static const char* kBackgroundMusic[NUM_BACKGROUND_MUSIC] =
-{
-	"music/HL1_song10_loop.wav",
-	"music/HL1_song15_loop.wav",
-	"music/HL2_song3_loop.wav",
-	"music/HL2_song14_loop.wav",
-	"music/HL2_song16_loop.wav",
-	"music/HL2_song20_submix0_loop.wav",
-	"music/HL2_song20_submix4_loop.wav",
-	"music/HL2_song29_loop.wav",
-	"music/HL2_song31_loop.wav"
 };
 
 class CContingencyRulesProxy : public CHL2MPGameRulesProxy
@@ -114,14 +97,6 @@ public:
 
 	// Added a non-restorative health system
 	CContingency_Player_Info *FindPlayerInfoBySteamID( const char *steamID );
-#endif
-
-	// Added sound cue and background music system
-#ifndef CLIENT_DLL
-	void PlayAnnouncementSound( const char *soundName, CBasePlayer *pTargetPlayer = NULL );
-#else
-	void PlayBackgroundMusic( void );
-	void StopPlayingBackgroundMusic( void );
 #endif
 
 public:
@@ -191,24 +166,14 @@ public:
 
 			RemoveSatchelsAndTripmines();	// more cleaning (all players' satchels and tripmines)
 
-			SetInterimPhaseTimeLeft( contingency_phase_interimtime.GetInt() );
+			SetInterimPhaseTimeLeft( GetMapInterimPhaseLength() );
 
 			// Added loadout system
 			UpdatePlayerLoadouts();
 
 			RespawnDeadPlayers();
 
-			// Added sound cue and background music system
-			int i;
-			CContingency_Player *pPlayer;
-			for ( i = 1; i <= gpGlobals->maxClients; i++ )
-			{
-				pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex(i) );
-				if ( !pPlayer )
-					continue;
-
-				engine->ClientCommand( pPlayer->edict(), "stopplayingbackgroundmusic" );
-			}
+			CContingency_System_Music::PlayBackgroundMusic( BACKGROUND_MUSIC_INTERIM );
 		}
 		else if ( m_iCurrentPhase == PHASE_COMBAT )
 		{
@@ -216,17 +181,7 @@ public:
 			SetInterimPhaseTimeLeft( 0 );
 			m_flInterimPhaseTime = 0.0f;
 
-			// Added sound cue and background music system
-			int i;
-			CContingency_Player *pPlayer;
-			for ( i = 1; i <= gpGlobals->maxClients; i++ )
-			{
-				pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex(i) );
-				if ( !pPlayer )
-					continue;
-
-				engine->ClientCommand( pPlayer->edict(), "playbackgroundmusic" );
-			}
+			CContingency_System_Music::PlayBackgroundMusic( BACKGROUND_MUSIC_COMBAT );
 		}
 	}
 #endif
@@ -291,9 +246,27 @@ public:
 	void DoesMapAllowRadars( bool boolean ) { m_bMapAllowsRadars = boolean; }
 #endif
 
+	// Added spawnable prop system
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
 #ifndef CLIENT_DLL
+	void SetMapMaxPropsPerPlayer( int iNewMapMaxPropsPerPlayer ) { m_iMapMaxPropsPerPlayer = iNewMapMaxPropsPerPlayer; }
+#endif
+	int GetMapMaxPropsPerPlayer( void ) { return m_iMapMaxPropsPerPlayer; }
+
+#ifndef CLIENT_DLL
+	// Added phase system
+	int GetMapInterimPhaseLength( void ) { return m_iInterimPhaseLength; }
+	void SetMapInterimPhaseLength( int iNewInterimPhaseLength ) { m_iInterimPhaseLength = iNewInterimPhaseLength; }
+
+	// Added credits system
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	int GetMapStartingCredits( void ) { return m_iMapStartingCredits; }
+	void SetMapStartingCredits( int iNewMapStartingCredits ) { m_iMapStartingCredits = iNewMapStartingCredits; }
+
 	// Added wave system
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	int GetMapMaxLivingNPCs( void ) { return m_iMapMaxLivingNPCs; }
+	void SetMapMaxLivingNPCs( int iNewMapMaxLivingNPCs ) { m_iMapMaxLivingNPCs = iNewMapMaxLivingNPCs; }
 	bool DoesMapSupportHeadcrabs( void ) { return m_bMapHeadcrabSupport; }
 	void DoesMapSupportHeadcrabs( bool boolean ) { m_bMapHeadcrabSupport = boolean; }
 	bool DoesMapSupportAntlions( void ) { return m_bMapAntlionSupport; }
@@ -305,14 +278,14 @@ public:
 
 	// Added wave system
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
-	int GetMapHeadcrabWaveMultiplierOffset( void ) { return m_flMapHeadcrabWaveMultiplierOffset; }
-	void SetMapHeadcrabWaveMultiplierOffset( int newMapHeadcrabWaveMultiplierOffset ) { m_flMapHeadcrabWaveMultiplierOffset = newMapHeadcrabWaveMultiplierOffset; }
-	int GetMapAntlionWaveMultiplierOffset( void ) { return m_flMapAntlionWaveMultiplierOffset; }
-	void SetMapAntlionWaveMultiplierOffset( int newMapAntlionWaveMultiplierOffset ) { m_flMapAntlionWaveMultiplierOffset = newMapAntlionWaveMultiplierOffset; }
-	int GetMapZombieWaveMultiplierOffset( void ) { return m_flMapZombieWaveMultiplierOffset; }
-	void SetMapZombieWaveMultiplierOffset( int newMapZombieWaveMultiplierOffset ) { m_flMapZombieWaveMultiplierOffset = newMapZombieWaveMultiplierOffset; }
-	int GetMapCombineWaveMultiplierOffset( void ) { return m_flMapCombineWaveMultiplierOffset; }
-	void SetMapCombineWaveMultiplierOffset( int newMapCombineWaveMultiplierOffset ) { m_flMapCombineWaveMultiplierOffset = newMapCombineWaveMultiplierOffset; }
+	float GetMapHeadcrabWaveMultiplierOffset( void ) { return m_flMapHeadcrabWaveMultiplierOffset; }
+	void SetMapHeadcrabWaveMultiplierOffset( float newMapHeadcrabWaveMultiplierOffset ) { m_flMapHeadcrabWaveMultiplierOffset = newMapHeadcrabWaveMultiplierOffset; }
+	float GetMapAntlionWaveMultiplierOffset( void ) { return m_flMapAntlionWaveMultiplierOffset; }
+	void SetMapAntlionWaveMultiplierOffset( float newMapAntlionWaveMultiplierOffset ) { m_flMapAntlionWaveMultiplierOffset = newMapAntlionWaveMultiplierOffset; }
+	float GetMapZombieWaveMultiplierOffset( void ) { return m_flMapZombieWaveMultiplierOffset; }
+	void SetMapZombieWaveMultiplierOffset( float newMapZombieWaveMultiplierOffset ) { m_flMapZombieWaveMultiplierOffset = newMapZombieWaveMultiplierOffset; }
+	float GetMapCombineWaveMultiplierOffset( void ) { return m_flMapCombineWaveMultiplierOffset; }
+	void SetMapCombineWaveMultiplierOffset( float newMapCombineWaveMultiplierOffset ) { m_flMapCombineWaveMultiplierOffset = newMapCombineWaveMultiplierOffset; }
 #endif
 
 // Added support wave system
@@ -349,9 +322,21 @@ private:
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
 	CNetworkVar( bool, m_bMapAllowsRadars );
 
+	// Added spawnable prop system
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	CNetworkVar( int, m_iMapMaxPropsPerPlayer );
+
 #ifndef CLIENT_DLL
+	// Added phase system
+	int m_iInterimPhaseLength;
+
+	// Added credits system
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	int m_iMapStartingCredits;
+
 	// Added wave system
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	int m_iMapMaxLivingNPCs;
 	bool m_bMapHeadcrabSupport;
 	bool m_bMapAntlionSupport;
 	bool m_bMapZombieSupport;

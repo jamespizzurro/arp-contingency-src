@@ -28,10 +28,14 @@ public:
 	int GetHealth( void ) { return health; }
 	void SetHealth( int newHealth ) { health = newHealth; }
 
+	int GetCredits( void ) { return credits; }
+	void SetCredits( int newCredits ) { credits = newCredits; }
+
 private:
 	bool accessed;
 	const char *steamID;
 	int health;
+	int credits;
 };
 
 class CContingency_Player : public CHL2MP_Player
@@ -154,6 +158,7 @@ public:
 
 	// Added credits system
 	int GetCredits( void ) { return m_iCredits; }
+	void SetCredits( int iNewCredits ) { m_iCredits = iNewCredits; }
 	bool HasCredits( int iCreditsToCheck )
 	{
 		if ( GetCredits() < iCreditsToCheck )
@@ -179,6 +184,10 @@ public:
 	CUtlVector<CContingency_SpawnableProp*> m_SpawnablePropList;
 	int GetNumSpawnableProps( void ) { return m_iNumSpawnableProps; }
 	void SetNumSpawnableProps( int iNewNumSpawnableProps ) { m_iNumSpawnableProps = iNewNumSpawnableProps; }
+
+	// Added spawnable prop system
+	int GetDesiredSpawnablePropIndex( void ) { return m_iDesiredSpawnablePropIndex; }
+	void SetDesiredSpawnablePropIndex( int iNewDesiredSpawnablePropIndex ) { m_iDesiredSpawnablePropIndex = iNewDesiredSpawnablePropIndex; }
 
 private:
 
@@ -218,6 +227,9 @@ private:
 	// Added spawnable prop system
 	CContingency_SpawnableProp *m_pSpawnablePropInFocus;
 	CNetworkVar( int, m_iNumSpawnableProps );	// should match m_pSpawnablePropInFocus.Count() at all times, we just needed to network it somehow
+
+	// Added spawnable prop system
+	CNetworkVar( int, m_iDesiredSpawnablePropIndex );
 };
 
 inline CContingency_Player *ToContingencyPlayer( CBaseEntity *pEntity )

@@ -206,6 +206,18 @@ END_RECV_TABLE()
 
 		RecvPropVector		( RECVINFO( m_vecBaseVelocity ) ),
 
+/////
+
+	// Contingency - James
+	// Allow weapons to override players' view angles
+
+		// adnan
+		// get the use angles
+		RecvPropVector		( RECVINFO( m_vecUseAngles ) ),
+		// end adnan
+
+/////
+
 		RecvPropEHandle		( RECVINFO( m_hConstraintEntity)),
 		RecvPropVector		( RECVINFO( m_vecConstraintCenter) ),
 		RecvPropFloat		( RECVINFO( m_flConstraintRadius )),
@@ -1201,6 +1213,32 @@ void C_BasePlayer::CreateWaterEffects( void )
 //-----------------------------------------------------------------------------
 void C_BasePlayer::OverrideView( CViewSetup *pSetup )
 {
+
+/////
+
+	// Contingency - James
+	// Allow weapons to override players' view angles
+
+	// adnan
+	// OVERRIDING THE VIEW
+	// need to override the angles too
+	C_BaseCombatWeapon *pWeapon = GetActiveWeapon();
+	if ( pWeapon )
+	{
+		// adnan
+		//DevMsg("CALLING HERE\n");
+		if(pWeapon->OverrideViewAngles()) {
+			// use the useAngles!
+				// override with the angles the server sends to us as useAngles
+				// use the useAngles only if we're holding and rotating with the grav gun
+			//DevMsg("USING USE ANGLES: %f, %f, %f\n", m_vecUseAngles[YAW], m_vecUseAngles[PITCH], m_vecUseAngles[ROLL]);
+			pSetup->angles = m_vecUseAngles;
+		}
+	}
+	// end adnan
+
+/////
+
 }
 
 bool C_BasePlayer::ShouldInterpolate()

@@ -318,6 +318,32 @@ void ClientModeShared::OverrideMouseInput( float *x, float *y )
 	}
 }
 
+/////
+
+	// Contingency - James
+	// Allow weapons to override players' view angles
+
+//-----------------------------------------------------------------------------
+// Purpose: Allow weapons to override mouse input to view angles (for orbiting)
+//-----------------------------------------------------------------------------
+// adnan
+// control the mouse input in the grav gun through this
+bool ClientModeShared::OverrideViewAngles( void )
+{
+	C_BaseCombatWeapon *pWeapon = GetActiveWeapon();
+	if ( pWeapon )
+	{
+		// adnan
+		//DevMsg("CALLING HERE\n");
+		return pWeapon->OverrideViewAngles();
+	}
+
+	return false;
+}
+// end adnan
+
+/////
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------

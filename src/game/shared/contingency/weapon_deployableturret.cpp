@@ -258,7 +258,9 @@ void CWeaponDeployableTurret::PrimaryAttack()
 
 		AddViewKick();
 
+#ifndef CLIENT_DLL
 		m_bSuccessfulPlacement = true;
+#endif
 
 		m_flNextPrimaryAttack = gpGlobals->curtime + GetFireRate();
 	}

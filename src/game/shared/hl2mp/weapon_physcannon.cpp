@@ -326,7 +326,6 @@ private:
 	QAngle			m_vecPreferredCarryAngles;
 	bool			m_bHasPreferredCarryAngles;
 
-
 	IPhysicsMotionController *m_controller;
 	int				m_frameCount;
 	friend class CWeaponPhysCannon;
@@ -580,7 +579,6 @@ void CGrabController::AttachEntity( CBasePlayer *pPlayer, CBaseEntity *pEntity, 
 		m_bHasPreferredCarryAngles = false;
 	}
 #else
-
 	m_bHasPreferredCarryAngles = false;
 #endif
 
@@ -1240,7 +1238,7 @@ protected:
 	CNetworkVar( bool,	m_bOpen );
 
 	bool	m_bResetOwnerEntity;
-	
+
 	float	m_flElementDebounce;
 
 	CSoundPatch			*m_sndMotor;		// Whirring sound for the gun
@@ -2334,7 +2332,6 @@ bool CGrabController::UpdateObject( CBasePlayer *pPlayer, float flError )
 	// If it has a preferred orientation, update to ensure we're still oriented correctly.
 	Pickup_GetPreferredCarryAngles( pEntity, pPlayer, pPlayer->EntityToWorldTransform(), angles );
 
-
 	// We may be holding a prop that has preferred carry angles
 	if ( m_bHasPreferredCarryAngles )
 	{
@@ -2342,7 +2339,6 @@ bool CGrabController::UpdateObject( CBasePlayer *pPlayer, float flError )
 		ComputePlayerMatrix( pPlayer, tmp );
 		angles = TransformAnglesToWorldSpace( m_vecPreferredCarryAngles, tmp );
 	}
-
 #endif
 
 	matrix3x4_t attachedToWorld;

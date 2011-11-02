@@ -392,6 +392,19 @@ public:
 
 	CUserCmd		*m_pCurrentCommand;
 
+/////
+
+	// Contingency - James
+	// Allow weapons to override players' view angles
+
+	// adnan
+	// store the use angles
+	// set when the player presses use
+	QAngle		m_vecUseAngles;
+	// end adnan
+
+/////
+
 	// Movement constraints
 	EHANDLE			m_hConstraintEntity;
 	Vector			m_vecConstraintCenter;

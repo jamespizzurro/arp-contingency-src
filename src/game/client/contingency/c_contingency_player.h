@@ -49,9 +49,19 @@ public:
 
 	// Added credits system
 	int GetCredits( void ) { return m_iCredits; }
+	bool HasCredits( int iCreditsToCheck )
+	{
+		if ( GetCredits() < iCreditsToCheck )
+			return false;	// player does not have enough credits
+
+		return true;
+	}
 
 	// Added spawnable prop system
 	int GetNumSpawnableProps( void ) { return m_iNumSpawnableProps; }
+
+	// Added spawnable prop system
+	int GetDesiredSpawnablePropIndex( void ) { return m_iDesiredSpawnablePropIndex; }
 
 private:
 	C_Contingency_Player( const C_Contingency_Player & );
@@ -64,6 +74,9 @@ private:
 
 	// Added spawnable prop system
 	int m_iNumSpawnableProps;
+
+	// Added spawnable prop system
+	int m_iDesiredSpawnablePropIndex;
 };
 
 inline C_Contingency_Player *ToContingencyPlayer( CBaseEntity *pEntity )

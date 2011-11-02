@@ -175,10 +175,6 @@ public:
 	// Make a turret explode instantly once its health has been depleated
 	void Explode( void );
 
-	// Allow turret to take damage
-	// Don't allow a turret to operate underwater
-	void CheckStuff( void );
-
 	// Keep turret as upright as possible
 	// Allow the player to pick up otherwise stationary floor turrets
 	bool IsExploding( void ) { return m_bSelfDestructing; }

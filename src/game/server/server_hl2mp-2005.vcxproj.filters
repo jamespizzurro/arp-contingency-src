@@ -1773,14 +1773,20 @@
     <ClCompile Include="hl2\npc_headcrab.cpp">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\hl2mp\weapon_physcannon.cpp">
-      <Filter>Source Files\HL2MP\Weapons</Filter>
-    </ClCompile>
     <ClCompile Include="..\shared\baseplayer_shared.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="contingency\contingency_spawnableprop.cpp">
       <Filter>Source Files\Contingency\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\hl2mp\weapon_physcannon.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\contingency\weapon_wrench.cpp">
+      <Filter>Source Files\Contingency\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\contingency\contingency_system_music.cpp">
+      <Filter>Source Files\Contingency\Systems</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3534,6 +3540,9 @@
       <Filter>Source Files\Contingency\Entities</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\contingency\contingency_system_propspawning.h">
+      <Filter>Source Files\Contingency\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\contingency\contingency_system_music.h">
       <Filter>Source Files\Contingency\Systems</Filter>
     </ClInclude>
   </ItemGroup>

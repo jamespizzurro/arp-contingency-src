@@ -10,9 +10,6 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-extern ConVar contingency_wave_maxlivingnpcs;
-extern ConVar contingency_boss_spawnfrequency;
-
 static void DispatchActivate( CBaseEntity *pEntity )
 {
 	bool bAsyncAnims = mdlcache->SetAsyncLoad( MDLCACHE_ANIMBLOCK, false );
@@ -73,7 +70,7 @@ void CContingencyBossSpawner::MakeNPC( void )
 		return;
 
 	// Do not spawn more NPCs than our server will allow to be living at any given time
-	if ( ContingencyRules()->GetCurrentWaveNPCList() && (ContingencyRules()->GetCurrentWaveNPCList()->Count() >= contingency_wave_maxlivingnpcs.GetInt()) )
+	if ( ContingencyRules()->GetCurrentWaveNPCList() && (ContingencyRules()->GetCurrentWaveNPCList()->Count() >= ContingencyRules()->GetMapMaxLivingNPCs()) )
 		return;
 
 	// Do not spawn more NPCs than we're supposed to for this wave

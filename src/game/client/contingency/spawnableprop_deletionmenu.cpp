@@ -34,11 +34,11 @@ CSpawnableProp_DeletionMenu::CSpawnableProp_DeletionMenu( IViewPort *pViewPort )
 	// hide the system buttons
 	SetTitleBarVisible( false );
 
-	m_pTitle = new Label( this, "TitleLabel", "Prop Removal" );
-	m_pText = new Label( this, "TextLabel", "Would you like to remove this prop of yours from the world?" );
-	m_pText2 = new Label( this, "TextLabel2", "WARNING: This cannot be undone and you will not be refunded any credits!" );
-	m_pYes = new Button( this, "YesButton", "YES" );
-	m_pNo = new Button( this, "NoButton", "NO" );
+	m_pTitle = new Label( this, "TitleLabel", "" );
+	m_pText = new Label( this, "TextLabel", "" );
+	m_pText2 = new Label( this, "TextLabel2", "" );
+	m_pYes = new Button( this, "YesButton", "" );
+	m_pNo = new Button( this, "NoButton", "" );
 
 	LoadControlSettings( "Resource/UI/SpawnableProp_DeletionMenu.res" );
 

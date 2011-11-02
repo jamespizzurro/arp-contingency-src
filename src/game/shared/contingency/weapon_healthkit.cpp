@@ -200,7 +200,9 @@ void CWeaponHealthKit::PrimaryAttack()
 
 			AddViewKick();
 
+#ifndef CLIENT_DLL
 			m_bSuccessfulHeal = true;	// heal assumed to be successful
+#endif
 		}
 
 		m_flNextPrimaryAttack = gpGlobals->curtime + GetFireRate();
@@ -267,7 +269,9 @@ void CWeaponHealthKit::SecondaryAttack()
 				pPlayer->AddCredits( 3 );
 #endif
 
+#ifndef CLIENT_DLL
 				m_bSuccessfulHeal = true;	// heal assumed to be successful
+#endif
 			}
 		}
 

@@ -10,8 +10,6 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-extern ConVar contingency_wave_maxlivingnpcs;
-
 static void DispatchActivate( CBaseEntity *pEntity )
 {
 	bool bAsyncAnims = mdlcache->SetAsyncLoad( MDLCACHE_ANIMBLOCK, false );
@@ -61,7 +59,7 @@ void CContingencyWaveSpawner::MakeNPC( void )
 		return;
 
 	// Do not spawn more NPCs than our server will allow to be living at any given time
-	if ( ContingencyRules()->GetCurrentWaveNPCList() && (ContingencyRules()->GetCurrentWaveNPCList()->Count() >= contingency_wave_maxlivingnpcs.GetInt()) )
+	if ( ContingencyRules()->GetCurrentWaveNPCList() && (ContingencyRules()->GetCurrentWaveNPCList()->Count() >= ContingencyRules()->GetMapMaxLivingNPCs()) )
 		return;
 
 	// Do not spawn more NPCs than we're supposed to for this wave
@@ -89,48 +87,63 @@ void CContingencyWaveSpawner::MakeNPC( void )
 	string_t equipmentName = NULL_STRING;
 	if ( currentWaveType == WAVE_HEADCRABS )
 	{
-		// Don't spawn headcrab NPCs if this spawner isn't allowed to (map-defined)
-		if ( !HasSpawnFlags(SF_WAVESPAWNER_HEADCRABS) )
-			return;
+		if ( !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB) &&
+			 !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_FAST) &&
+			 !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_BLACK) )
+			return;	// this spawner cannot spawn any headcrabs
 
-		if ( HasSpawnFlags(SF_WAVESPAWNER_FLYINGNPCSONLY) )
-			return;	// there are no flying headcrab NPCs (yet)
-		else
+		// Choose a random type of headcrab to spawn
+		NPCClassName = kWaveHeadcrabsNPCTypes[random->RandomInt(0, NUM_HEADCRAB_NPCS - 1)];
+		while ( ((Q_strcmp(NPCClassName, "npc_headcrab") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB)) ||
+				((Q_strcmp(NPCClassName, "npc_headcrab_fast") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_FAST)) ||
+				((Q_strcmp(NPCClassName, "npc_headcrab_black") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_BLACK)) )
 			NPCClassName = kWaveHeadcrabsNPCTypes[random->RandomInt(0, NUM_HEADCRAB_NPCS - 1)];
 	}
 	else if ( currentWaveType == WAVE_ANTLIONS )
 	{
-		// Don't spawn antlion NPCs if this spawner isn't allowed to (map-defined)
-		if ( !HasSpawnFlags(SF_WAVESPAWNER_ANTLIONS) )
-			return;
+		if ( !HasSpawnFlags(SF_WAVESPAWNER_ANTLION) )
+			return;	// this spawner cannot spawn any antlions
 
-		if ( HasSpawnFlags(SF_WAVESPAWNER_FLYINGNPCSONLY) )
-			NPCClassName = kWaveAntlionsFlyingNPCTypes[random->RandomInt(0, NUM_ANTLION_FLYING_NPCS - 1)];
-		else
+		// Choose a random type of antlion to spawn
+		NPCClassName = kWaveAntlionsNPCTypes[random->RandomInt(0, NUM_ANTLION_NPCS - 1)];
+		while ( ((Q_strcmp(NPCClassName, "npc_antlion") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ANTLION)) )
 			NPCClassName = kWaveAntlionsNPCTypes[random->RandomInt(0, NUM_ANTLION_NPCS - 1)];
 	}
 	else if ( currentWaveType == WAVE_ZOMBIES )
 	{
-		// Don't spawn zombie NPCs if this spawner isn't allowed to (map-defined)
-		if ( !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIES) )
-			return;
+		if ( !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE) &&
+			 !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_TORSO) &&
+			 !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_FAST) &&
+			 !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_POISON) )
+			return;	// this spawner cannot spawn any zombies
 
-		if ( HasSpawnFlags(SF_WAVESPAWNER_FLYINGNPCSONLY) )
-			return;	// there are no flying zombie NPCs (yet)
-		else
+		// Choose a random type of zombie to spawn
+		NPCClassName = kWaveZombiesNPCTypes[random->RandomInt(0, NUM_ZOMBIE_NPCS - 1)];
+		while ( ((Q_strcmp(NPCClassName, "npc_zombie") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE)) ||
+				((Q_strcmp(NPCClassName, "npc_zombie_torso") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_TORSO)) ||
+				((Q_strcmp(NPCClassName, "npc_fastzombie") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_FAST)) ||
+				((Q_strcmp(NPCClassName, "npc_poisonzombie") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_POISON)) )
 			NPCClassName = kWaveZombiesNPCTypes[random->RandomInt(0, NUM_ZOMBIE_NPCS - 1)];
 	}
 	else if ( currentWaveType == WAVE_COMBINE )
 	{
-		// Don't spawn Combine NPCs if this spawner isn't allowed to (map-defined)
-		if ( !HasSpawnFlags(SF_WAVESPAWNER_COMBINE) )
-			return;
+		if ( !HasSpawnFlags(SF_WAVESPAWNER_COMBINE) &&
+			 !HasSpawnFlags(SF_WAVESPAWNER_COMBINE_METRO) &&
+			 !HasSpawnFlags(SF_WAVESPAWNER_COMBINE_SCANNER) &&
+			 !HasSpawnFlags(SF_WAVESPAWNER_COMBINE_MANHACK) &&
+			 !HasSpawnFlags(SF_WAVESPAWNER_COMBINE_STALKER) )
+			return;	// this spawner cannot spawn any zombies
 
-		if ( HasSpawnFlags(SF_WAVESPAWNER_FLYINGNPCSONLY) )
-			NPCClassName = kWaveCombineFlyingNPCTypes[random->RandomInt(0, NUM_COMBINE_FLYING_NPCS - 1)];
-		else
+		// Choose a random type of zombie to spawn
+		NPCClassName = kWaveCombineNPCTypes[random->RandomInt(0, NUM_COMBINE_NPCS - 1)];
+		while ( ((Q_strcmp(NPCClassName, "npc_combine_s") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_COMBINE)) ||
+				((Q_strcmp(NPCClassName, "npc_metropolice") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_COMBINE_METRO)) ||
+				((Q_strcmp(NPCClassName, "npc_cscanner") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_COMBINE_SCANNER)) ||
+				((Q_strcmp(NPCClassName, "npc_manhack") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_COMBINE_MANHACK)) ||
+				((Q_strcmp(NPCClassName, "npc_stalker") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_COMBINE_STALKER)) )
 			NPCClassName = kWaveCombineNPCTypes[random->RandomInt(0, NUM_COMBINE_NPCS - 1)];
 
+		// Certain combine types should be given equipment (weapons)
 		if ( Q_strcmp(NPCClassName, "npc_combine_s") == 0 )
 			equipmentName = MAKE_STRING(kWaveCombineSWeaponTypes[random->RandomInt( 0, NUM_COMBINE_S_WEAPONS - 1 )]);
 		else if ( Q_strcmp(NPCClassName, "npc_metropolice") == 0 )

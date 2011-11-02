@@ -6,7 +6,7 @@
 
 static const int NUM_WEAPON_TYPE_PARAMETERS = 2;
 
-static const int NUM_PRIMARY_WEAPON_TYPES = 7;
+static const int NUM_PRIMARY_WEAPON_TYPES = 6;
 static const char* kPrimaryWeaponTypes[NUM_PRIMARY_WEAPON_TYPES][NUM_WEAPON_TYPE_PARAMETERS] =
 {
 	{ "weapon_smg1", "SMG1" },
@@ -14,24 +14,25 @@ static const char* kPrimaryWeaponTypes[NUM_PRIMARY_WEAPON_TYPES][NUM_WEAPON_TYPE
 	{ "weapon_shotgun", "Shotgun" },
 	{ "weapon_ar2", "AR2" },
 	{ "weapon_crossbow", "Crossbow" },
-	{ "weapon_rpg", "RPG" },
-	{ "weapon_357", "357" }
+	{ "weapon_rpg", "RPG" }
 };
 
-static const int NUM_SECONDARY_WEAPON_TYPES = 3;
+static const int NUM_SECONDARY_WEAPON_TYPES = 4;
 static const char* kSecondaryWeaponTypes[NUM_SECONDARY_WEAPON_TYPES][NUM_WEAPON_TYPE_PARAMETERS] =
 {
 	{ "weapon_pistol", "Pistol" },
 	{ "weapon_pistols", "Dual Pistols" },
+	{ "weapon_357", "357" },
 	{ "weapon_physcannon", "Gravity Gun" }
 };
 
-static const int NUM_MELEE_WEAPON_TYPES = 3;
+static const int NUM_MELEE_WEAPON_TYPES = 4;
 static const char* kMeleeWeaponTypes[NUM_MELEE_WEAPON_TYPES][NUM_WEAPON_TYPE_PARAMETERS] =
 {
 	{ "weapon_crowbar", "Crowbar" },
 	{ "weapon_axe", "Axe" },
-	{ "weapon_stunstick", "Stunstick" }
+	{ "weapon_stunstick", "Stunstick" },
+	{ "weapon_wrench", "Wrench" }
 };
 
 static const int NUM_EQUIPMENT_TYPES = 4;

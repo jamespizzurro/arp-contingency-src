@@ -597,8 +597,30 @@ void CInput::MouseMove( CUserCmd *cmd )
 		ResetMouse();
 	}
 
+/////
+
+	// Contingency - James
+	// Allow weapons to override players' view angles
+
 	// Store out the new viewangles.
-	engine->SetViewAngles( viewangles );
+	//engine->SetViewAngles( viewangles );
+
+	// adnan
+	// only set the new viewangles if we're not supposed to override them
+	if( !(g_pClientMode->OverrideViewAngles()) )
+	{
+		// Store out the new viewangles.
+		engine->SetViewAngles( viewangles );
+	} 
+	else
+	{
+		//DevMsg("overriding... server 3\n");
+		//DevMsg("ANGLES: %f, %f, %f\n", viewangles.x, viewangles.y, viewangles.z);
+	}
+	// end adnan
+
+/////
+
 }
 
 //-----------------------------------------------------------------------------

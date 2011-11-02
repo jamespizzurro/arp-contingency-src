@@ -224,6 +224,38 @@ void CBasePlayer::ItemPostFrame()
 #endif
 
 			{
+
+/////
+
+	// Contingency - James
+	// Allow weapons to override players' view angles
+
+// adnan
+	// if we just pressed use, get the current angles and set them to the useAngles
+	if( !(m_afButtonLast & IN_RELOAD) && (m_nButtons & IN_RELOAD) ) {
+		m_vecUseAngles = pl.v_angle;
+		//DevMsg("JUST PRESSED USE -> USE ANGLES: %f, %f, %f\n", m_vecUseAngles[YAW], m_vecUseAngles[PITCH], m_vecUseAngles[ROLL]);
+	}
+
+	if( (m_nButtons & IN_RELOAD) ) {
+		/*
+		m_vecUseAngles[YAW] = m_pCurrentCommand->mousedx;
+		m_vecUseAngles[PITCH] = m_pCurrentCommand->mousedy;
+		m_vecUseAngles[ROLL] = 0;
+		*/
+	}
+
+	// if we just let go of use, set the current angles to what they just were
+	//  to preserve continuity
+	if( (m_afButtonLast & IN_RELOAD) && !(m_nButtons & IN_RELOAD) ) {
+		pl.v_angle = m_vecUseAngles;
+		//DevMsg("JUST RELEASED USE -> VIEW ANGLES: %f, %f, %f\n", m_vecUseAngles[YAW], m_vecUseAngles[PITCH], m_vecUseAngles[ROLL]);
+	}
+
+	// end adnan
+	
+/////
+
 				GetActiveWeapon()->ItemPostFrame( );
 			}
 		}

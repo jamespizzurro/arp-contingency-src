@@ -4,6 +4,8 @@
 #include "contingency_spawnableprop.h"
 #include "contingency_gamerules.h"
 
+#include "contingency_system_propspawning.h"
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -19,6 +21,7 @@ END_DATADESC()
 CContingency_SpawnableProp::CContingency_SpawnableProp( void )
 {
 	m_hSpawnerPlayer = NULL;
+	m_iSpawnablePropIndex = 0;
 }
 
 CContingency_SpawnableProp::~CContingency_SpawnableProp( void )
@@ -35,8 +38,17 @@ void CContingency_SpawnableProp::Spawn( void )
 {
 	BaseClass::Spawn();
 
-	SetCollisionGroup( COLLISION_GROUP_PASSABLE_DOOR );
-	AddEffects( EF_NOSHADOW );
+	SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS );	// collide with everything players collide with
+	SetMoveType( MOVETYPE_NONE );	// only move due to gravity, nothing else
+	AddEffects( EF_NOSHADOW );	// save some FPS (?)
+
+	if ( VPhysicsGetObject() )
+	{
+		VPhysicsGetObject()->EnableCollisions( false );
+		VPhysicsGetObject()->EnableMotion( false );
+		VPhysicsGetObject()->EnableDrag( false );
+		VPhysicsGetObject()->EnableGravity( false );
+	}
 }
 
 void CContingency_SpawnableProp::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )

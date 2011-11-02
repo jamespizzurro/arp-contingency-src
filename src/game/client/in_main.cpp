@@ -1016,8 +1016,18 @@ void CInput::ExtraMouseSample( float frametime, bool active )
 		VectorCopy( m_angPreviousViewAngles, cmd->viewangles );
 	}
 
+/////
+
+	// Contingency - James
+	// Allow weapons to override players' view angles
+
 	// Let the move manager override anything it wants to.
-	if ( g_pClientMode->CreateMove( frametime, cmd ) )
+	//if ( g_pClientMode->CreateMove( frametime, cmd ) )
+
+	g_pClientMode->CreateMove( frametime, cmd );
+
+/////
+
 	{
 		// Get current view angles after the client mode tweaks with it
 		engine->SetViewAngles( cmd->viewangles );
@@ -1123,8 +1133,18 @@ void CInput::CreateMove ( int sequence_number, float input_sample_frametime, boo
 		VectorCopy( m_angPreviousViewAngles, cmd->viewangles );
 	}
 
+/////
+
+	// Contingency - James
+	// Allow weapons to override players' view angles
+
 	// Let the move manager override anything it wants to.
-	if ( g_pClientMode->CreateMove( input_sample_frametime, cmd ) )
+	//if ( g_pClientMode->CreateMove( input_sample_frametime, cmd ) )
+
+	g_pClientMode->CreateMove( input_sample_frametime, cmd );
+
+/////
+
 	{
 		// Get current view angles after the client mode tweaks with it
 		engine->SetViewAngles( cmd->viewangles );

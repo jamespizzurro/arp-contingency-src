@@ -1614,9 +1614,6 @@
     <ClCompile Include="contingency\hud_contingency_credits.cpp">
       <Filter>Source Files\Contingency\HUD</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\hl2mp\weapon_physcannon.cpp">
-      <Filter>Source Files\HL2MP\Weapons</Filter>
-    </ClCompile>
     <ClCompile Include="in_mouse.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1634,6 +1631,15 @@
     </ClCompile>
     <ClCompile Include="contingency\propspawningmenu.cpp">
       <Filter>Source Files\Contingency\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\hl2mp\weapon_physcannon.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\contingency\weapon_wrench.cpp">
+      <Filter>Source Files\Contingency\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\contingency\contingency_system_music.cpp">
+      <Filter>Source Files\Contingency\Systems</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3490,6 +3496,9 @@
     </ClInclude>
     <ClInclude Include="contingency\propspawningmenu.h">
       <Filter>Source Files\Contingency\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\contingency\contingency_system_music.h">
+      <Filter>Source Files\Contingency\Systems</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

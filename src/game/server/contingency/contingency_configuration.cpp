@@ -26,10 +26,20 @@ public:
 	void GamemodeCheckThink( void );
 
 private:	// map-defined stuff
+	// Added phase system
+	int m_iInterimPhaseLength;
+
 	// Added radar display
 	bool m_bAllowRadars;
 
+	// Added spawnable prop system
+	int m_iMaxPropsPerPlayer;
+
+	// Added credits system
+	int m_iStartingCredits;
+
 	// Added wave system
+	int m_iMaxLivingNPCs;
 	float m_flHeadcrabWaveMultiplierOffset;
 	float m_flAntlionWaveMultiplierOffset;
 	float m_flZombieWaveMultiplierOffset;
@@ -47,10 +57,20 @@ private:
 LINK_ENTITY_TO_CLASS( contingency_configuration, CContingencyConfiguration );
 
 BEGIN_DATADESC( CContingencyConfiguration )
+	// Added phase system
+	DEFINE_KEYFIELD( m_iInterimPhaseLength, FIELD_INTEGER, "InterimPhaseLength" ),
+
 	// Added radar display
 	DEFINE_KEYFIELD( m_bAllowRadars, FIELD_BOOLEAN, "AllowRadars" ),
+
+	// Added prop spawning system
+	DEFINE_KEYFIELD( m_iMaxPropsPerPlayer, FIELD_INTEGER, "MaxPropsPerPlayer" ),
 	
+	// Added credits system
+	DEFINE_KEYFIELD( m_iStartingCredits, FIELD_INTEGER, "StartingCredits" ),
+
 	// Added wave system
+	DEFINE_KEYFIELD( m_iMaxLivingNPCs, FIELD_INTEGER, "MaxLivingNPCs" ),
 	DEFINE_KEYFIELD( m_flHeadcrabWaveMultiplierOffset, FIELD_FLOAT, "HeadcrabWaveMultiplierOffset" ),
 	DEFINE_KEYFIELD( m_flAntlionWaveMultiplierOffset, FIELD_FLOAT, "AntlionWaveMultiplierOffset" ),
 	DEFINE_KEYFIELD( m_flZombieWaveMultiplierOffset, FIELD_FLOAT, "ZombieWaveMultiplierOffset" ),
@@ -73,12 +93,22 @@ CContingencyConfiguration::CContingencyConfiguration()
 
 void CContingencyConfiguration::Spawn( void )
 {
+	// Added phase system
+	ContingencyRules()->SetMapInterimPhaseLength( m_iInterimPhaseLength );
+
 	// Added radar display
 	ContingencyRules()->DoesMapAllowRadars( m_bAllowRadars );
+
+	// Added spawnable prop system
+	ContingencyRules()->SetMapMaxPropsPerPlayer( m_iMaxPropsPerPlayer );
+
+	// Added credits system
+	ContingencyRules()->SetMapStartingCredits( m_iStartingCredits );
 
 	// Added wave system
 	// Check to see what types of waves our map supports by its spawnflags
 	// and update our gamerules accordingly
+	ContingencyRules()->SetMapMaxLivingNPCs( m_iMaxLivingNPCs );
 	ContingencyRules()->DoesMapSupportHeadcrabs( HasSpawnFlags(SF_CONFIGURATION_SUPPORTSHEADCRABS) );
 	ContingencyRules()->DoesMapSupportAntlions( HasSpawnFlags(SF_CONFIGURATION_SUPPORTSANTLIONS) );
 	ContingencyRules()->DoesMapSupportZombies( HasSpawnFlags(SF_CONFIGURATION_SUPPORTSZOMBIES) );

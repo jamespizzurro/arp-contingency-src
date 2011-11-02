@@ -10,6 +10,8 @@
 
 #ifdef CLIENT_DLL
 	#include "c_contingency_player.h"
+	#include "c_npc_citizen17.h"
+	#include "c_npc_contingency_turret.h"
 #else
 	#include "eventqueue.h"
 	#include "player.h"
@@ -35,6 +37,9 @@
 
 	#include "grenade_satchel.h"
 	#include "grenade_tripmine.h"
+
+	#include "npc_citizen17.h"
+	#include "npc_contingency_turret.h"
 #endif
 
 REGISTER_GAMERULES_CLASS( CContingencyRules );
@@ -53,6 +58,10 @@ BEGIN_NETWORK_TABLE_NOBASE( CContingencyRules, DT_ContingencyRules )
 	// Added radar display
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
 	RecvPropBool( RECVINFO( m_bMapAllowsRadars ) ),
+
+	// Added spawnable prop system
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	RecvPropInt( RECVINFO( m_iMapMaxPropsPerPlayer ) ),
 #else
 	// Added phase system
 	SendPropInt( SENDINFO( m_iCurrentPhase ) ),
@@ -66,6 +75,10 @@ BEGIN_NETWORK_TABLE_NOBASE( CContingencyRules, DT_ContingencyRules )
 	// Added radar display
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
 	SendPropBool( SENDINFO( m_bMapAllowsRadars ) ),
+
+	// Added spawnable prop system
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	SendPropInt( SENDINFO( m_iMapMaxPropsPerPlayer ) ),
 #endif
 END_NETWORK_TABLE()
 
@@ -78,33 +91,24 @@ IMPLEMENT_NETWORKCLASS_ALIASED( ContingencyRulesProxy, DT_ContingencyRulesProxy 
 
 // ALL CONTINGENCY CONVARS SHOULD GO HERE regardless of where they are used
 // This is for organizational purposes as ConVars everywhere can get quite confusing
+// ...keep in mind there are always some exceptions to this "rule" though!
+
 #ifndef CLIENT_DLL
 	// Health regeneration system
-	ConVar contingency_health_regen( "contingency_health_regen", "1", FCVAR_GAMEDLL | FCVAR_NOTIFY, "Toggles player health regeneration functionality" );
-	ConVar contingency_health_regen_delay( "contingency_health_regen_delay", "1", FCVAR_GAMEDLL | FCVAR_NOTIFY, "Defines the amount of time (in seconds) before players are granted additional health" );
-	ConVar contingency_health_regen_amount( "contingency_health_regen_amount", "1", FCVAR_GAMEDLL | FCVAR_NOTIFY, "Defines the amount of additional health granted to players upon regeneration" );
-
-	// Added phase system
-	ConVar contingency_phase_interimtime( "contingency_phase_interimtime", "30", FCVAR_GAMEDLL | FCVAR_NOTIFY, "Defines the amount of time (in seconds) of interim phases" );
+	ConVar contingency_health_regen( "contingency_health_regen", "1", FCVAR_NOTIFY, "Toggles player health regeneration functionality" );
+	ConVar contingency_health_regen_delay( "contingency_health_regen_delay", "1", FCVAR_NOTIFY, "Defines the amount of time (in seconds) before players are granted additional health" );
+	ConVar contingency_health_regen_amount( "contingency_health_regen_amount", "1", FCVAR_NOTIFY, "Defines the amount of additional health granted to players upon regeneration" );
 
 	// Added support wave system
-	ConVar contingency_wave_support( "contingency_wave_support", "1", FCVAR_GAMEDLL | FCVAR_NOTIFY, "Toggles the spawning support NPCs during interim phases when server isn't full" );
+	ConVar contingency_wave_support( "contingency_wave_support", "1", FCVAR_NOTIFY, "Toggles the spawning support NPCs during interim phases when server isn't full" );
 
 	// Added wave system
-	ConVar contingency_wave_maxlivingnpcs( "contingency_wave_maxlivingnpcs", "30", FCVAR_NOTIFY, "Defines the maximum number of NPCs spawned during a wave that are allowed to be on the server at any given time" );
 	ConVar contingency_wave_multiplier_headcrabs( "contingency_wave_multiplier_headcrabs", "3", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during headcrab waves" );
 	ConVar contingency_wave_multiplier_antlions( "contingency_wave_multiplier_antlions", "4", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during antlion waves" );
 	ConVar contingency_wave_multiplier_zombies( "contingency_wave_multiplier_zombies", "5", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during zombie waves" );
 	ConVar contingency_wave_multiplier_combine( "contingency_wave_multiplier_combine", "2", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during combine waves" );
-
-	// Added prop spawning system
-	ConVar contingency_props_maxperplayer( "contingency_props_maxperplayer", "5", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_SERVER_CAN_EXECUTE, "Defines the maximum number of props a player is allowed to have in the world at any given time" );
 #else
-	ConVar contingency_client_heartbeatsounds( "contingency_client_heartbeatsounds", "1", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Toggles heartbeat sounds when health is low" );
-
-	// Added sound cue and background music system
-	ConVar contingency_client_backgroundmusic( "contingency_client_backgroundmusic", "1", FCVAR_ARCHIVE, "Toggles background music during combat phases" );
-	ConVar contingency_client_backgroundmusic_volume( "contingency_client_backgroundmusic_volume", "0.5", FCVAR_ARCHIVE, "Defines the normalized loudness of background music (0.0 to 1.0)" );
+	ConVar contingency_client_heartbeatsounds( "contingency_client_heartbeatsounds", "1", FCVAR_ARCHIVE, "Toggles heartbeat sounds when health is low" );
 
 	// Added loadout system
 	ConVar contingency_client_preferredprimaryweapon( "contingency_client_preferredprimaryweapon", "weapon_smg1", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_SERVER_CAN_EXECUTE, "Defines the classname of the preferred primary weapon to use" );
@@ -148,12 +152,24 @@ CContingencyRules::CContingencyRules()
 
 	m_iRestartDelay = 0;
 
+	// Added phase system
+	m_iInterimPhaseLength = 30;
+
 	// Added radar display
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
 	m_bMapAllowsRadars = true;
 
+	// Added spawnable prop system
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	m_iMapMaxPropsPerPlayer = 100;
+
+	// Added credits system
+	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	m_iMapStartingCredits = 0;
+
 	// Added wave system
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
+	m_iMapMaxLivingNPCs = 30;
 	m_bMapHeadcrabSupport = true;
 	m_bMapAntlionSupport = true;
 	m_bMapZombieSupport = true;
@@ -400,6 +416,10 @@ void CContingencyRules::ClientDisconnected( edict_t *pClient )
 				pPlayerInfo->SetHealth( 0 );
 			else
 				pPlayerInfo->SetHealth( pPlayer->GetHealth() );
+			
+			// Added credits system
+			// Save player's credits
+			pPlayerInfo->SetCredits( pPlayer->GetCredits() );
 		}
 		else
 		{
@@ -414,6 +434,11 @@ void CContingencyRules::ClientDisconnected( edict_t *pClient )
 					pPlayerInfo->SetHealth( 0 );
 				else
 					pPlayerInfo->SetHealth( pPlayer->GetHealth() );
+
+				// Added credits system
+				// Save player's credits
+				pPlayerInfo->SetCredits( pPlayer->GetCredits() );
+
 				m_PlayerInfoList.AddToTail( pPlayerInfo );
 			}
 		}
@@ -650,7 +675,7 @@ void CContingencyRules::Think( void )
 				// associated with this wave, which means it's time
 				// for an interm phase and some words of encouragement
 
-				DisplayAnnouncement( UTIL_VarArgs("WAVE %i CLEARED!\nInterim phase is now active for %i seconds.", GetWaveNumber(), contingency_phase_interimtime.GetInt()), 5.0f );
+				DisplayAnnouncement( UTIL_VarArgs("WAVE %i CLEARED!\nInterim phase is now active for %i seconds.", GetWaveNumber(), GetMapInterimPhaseLength()), 5.0f );
 
 				// TODO: Good place for a sound cue of some kind...
 
@@ -805,6 +830,21 @@ int CContingencyRules::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pT
 	if ( pPlayer->IsPlayer() && pTarget->IsPlayer() )
 		return GR_TEAMMATE;	// don't allow players to hurt other players
 
+	// Citizens and turrets are players' friends!
+	// TODO: Is this even used?!
+#ifdef CLIENT_DLL
+		if ( pPlayer->IsPlayer() && (dynamic_cast<C_NPC_Citizen*>(pTarget) || dynamic_cast<C_NPC_FloorTurret*>(pTarget)) )
+#else
+		if ( pPlayer->IsPlayer() && (dynamic_cast<CNPC_Citizen*>(pTarget) || dynamic_cast<CNPC_FloorTurret*>(pTarget)) )
+#endif
+			return GR_TEAMMATE;
+#ifdef CLIENT_DLL
+		if ( pTarget->IsPlayer() && (dynamic_cast<C_NPC_Citizen*>(pPlayer) || dynamic_cast<C_NPC_FloorTurret*>(pPlayer)) )
+#else
+		if ( pTarget->IsPlayer() && (dynamic_cast<CNPC_Citizen*>(pPlayer) || dynamic_cast<CNPC_FloorTurret*>(pPlayer)) )
+#endif
+			return GR_TEAMMATE;
+
 	return GR_NOTTEAMMATE;	// everything else is baaaaaad
 }
 
@@ -823,14 +863,6 @@ bool CContingencyRules::ShouldCollide( int collisionGroup0, int collisionGroup1 
 {
 	if ( collisionGroup0 > collisionGroup1 )
 		swap( collisionGroup0, collisionGroup1 );	// swap so that lowest is always first
-
-	// Added prop spawning system
-	if ( ((collisionGroup0 == COLLISION_GROUP_PLAYER) || (collisionGroup0 == COLLISION_GROUP_PLAYER_MOVEMENT)) &&
-		collisionGroup1 == COLLISION_GROUP_PASSABLE_DOOR )
-		return false;	// prevent spawnable props from colliding with players
-	if ( (collisionGroup0 == COLLISION_GROUP_PASSABLE_DOOR) &&
-		(collisionGroup1 == COLLISION_GROUP_PASSABLE_DOOR) )
-		return false;	// prevent spawnable props from colliding with other spawnable props
 
 	return BaseClass::ShouldCollide( collisionGroup0, collisionGroup1 ); 
 }
@@ -865,17 +897,18 @@ CAmmoDef *GetAmmoDef()
 		// The "99999"s are all the changes I've made in this department
 
 		// Other unrelated changes have probably been made here too...
-		// (e.g. reduced the effectiveness of all projectile weapons when wieled by an NPC)
+		// (e.g. reduced the effectiveness of all projectile weapons when wieled by an NPC...most have been restored to their HL2 defaults)
+		// Player damage for most weapons have also been restored to their HL2 defaults (we are dealing with NPCs afterall)
 
 		// Remember: player damage is defined in weapon scripts, NOT here (hence most if not all values for "plr dmg" below being '0')
 //																								plr dmg		npc dmg	max carry	impulse
-		def.AddAmmoType("AR2",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			5,		99999,		BULLET_IMPULSE(200, 1225),	0 );
+		def.AddAmmoType("AR2",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			3,		99999,		BULLET_IMPULSE(200, 1225),	0 );
 		def.AddAmmoType("AR2AltFire",		DMG_DISSOLVE,				TRACER_NONE,			0,			50,		1,			0,							0 );
-		def.AddAmmoType("Pistol",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			4,		99999,		BULLET_IMPULSE(200, 1225),	0 );
-		def.AddAmmoType("SMG1",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			2,		99999,		BULLET_IMPULSE(200, 1225),	0 );
-		def.AddAmmoType("357",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			37,		99999,		BULLET_IMPULSE(800, 5000),	0 );
-		def.AddAmmoType("XBowBolt",			DMG_BULLET,					TRACER_LINE,			0,			50,		99999,		BULLET_IMPULSE(800, 8000),	0 );
-		def.AddAmmoType("Buckshot",			DMG_BULLET | DMG_BUCKSHOT,	TRACER_LINE,			0,			4,		99999,		BULLET_IMPULSE(400, 1200),	0 );
+		def.AddAmmoType("Pistol",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			3,		99999,		BULLET_IMPULSE(200, 1225),	0 );
+		def.AddAmmoType("SMG1",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			3,		99999,		BULLET_IMPULSE(200, 1225),	0 );
+		def.AddAmmoType("357",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			30,		99999,		BULLET_IMPULSE(800, 5000),	0 );
+		def.AddAmmoType("XBowBolt",			DMG_BULLET,					TRACER_LINE,			0,			10,		99999,		BULLET_IMPULSE(800, 8000),	0 );
+		def.AddAmmoType("Buckshot",			DMG_BULLET | DMG_BUCKSHOT,	TRACER_LINE,			0,			3,		99999,		BULLET_IMPULSE(400, 1200),	0 );
 		def.AddAmmoType("RPG_Round",		DMG_BURN,					TRACER_NONE,			0,			50,		3,			0,							0 );
 		def.AddAmmoType("SMG1_Grenade",		DMG_BURN,					TRACER_NONE,			0,			50,		1,			0,							0 );
 		def.AddAmmoType("Grenade",			DMG_BURN,					TRACER_NONE,			0,			75,		3,			0,							0 );
@@ -2051,59 +2084,5 @@ CContingency_Player_Info *CContingencyRules::FindPlayerInfoBySteamID( const char
 	}
 
 	return NULL;	// our search returned no results!
-}
-#endif
-
-#ifndef CLIENT_DLL
-// Added sound cue and background music system
-void CContingencyRules::PlayAnnouncementSound( const char *soundName, CBasePlayer *pTargetPlayer )
-{
-	CRecipientFilter filter;
-
-	if ( pTargetPlayer )	// target player defined, play sound only for specified player
-		filter.AddRecipient( pTargetPlayer );
-	else	// no target player defined, play sound for all players
-		filter.AddAllPlayers();
-
-	filter.MakeReliable();
-
-	UserMessageBegin( filter, "SendAudio" );
-	WRITE_STRING( soundName );
-	MessageEnd();
-}
-#else
-// Added sound cue and background music system
-#include "engine/ienginesound.h"
-void CContingencyRules::PlayBackgroundMusic( void )
-{
-	C_Contingency_Player *pLocalPlayer = C_Contingency_Player::GetLocalContingencyPlayer();
-	if ( !pLocalPlayer )
-		return;
-
-	// Stop whatever background music might be playing
-	// (only one should be playing at a time)
-	if ( pLocalPlayer->GetAmbientSoundGUID() != -1 )
-		enginesound->StopSoundByGuid( pLocalPlayer->GetAmbientSoundGUID() );
-
-	if ( !contingency_client_backgroundmusic.GetBool() )
-		return;	// this client does not want us playing background music for them, so don't
-
-	// Play a random background sound from our list of background sounds
-	// WARNING/TODO: This may interfere with map-specific background sound systems...
-	enginesound->EmitAmbientSound( kBackgroundMusic[random->RandomInt(0, NUM_BACKGROUND_MUSIC - 1)], contingency_client_backgroundmusic_volume.GetFloat() );
-	pLocalPlayer->SetAmbientSoundGUID( enginesound->GetGuidForLastSoundEmitted() );
-}
-
-// Added sound cue and background music system
-void CContingencyRules::StopPlayingBackgroundMusic( void )
-{
-	C_Contingency_Player *pLocalPlayer = C_Contingency_Player::GetLocalContingencyPlayer();
-	if ( !pLocalPlayer )
-		return;
-
-	// Play a dummy sound (audio file w/ silence) to stop any background sounds that are playing
-	// WARNING/TODO: This may interfere with map-specific background sound systems...
-	if ( pLocalPlayer->GetAmbientSoundGUID() != -1 )
-		enginesound->StopSoundByGuid( pLocalPlayer->GetAmbientSoundGUID() );
 }
 #endif

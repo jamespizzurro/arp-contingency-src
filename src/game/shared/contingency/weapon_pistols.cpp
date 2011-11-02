@@ -272,7 +272,7 @@ void CWeaponPistols::DoAttack( void )
 	info.m_vecSpread = pHL2MPPlayer->GetAttackSpread( this );
 	info.m_flDistance = MAX_TRACE_LENGTH;
 	info.m_iAmmoType = m_iPrimaryAmmoType;
-	info.m_iTracerFreq = 1;
+	info.m_iTracerFreq = 2;
 
 	FireBullets( info );
 

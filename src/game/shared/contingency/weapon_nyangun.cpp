@@ -98,9 +98,13 @@ CWeaponNyanGun::CWeaponNyanGun( void )
 {
 	m_bReloadsSingly = false;
 	m_bFiresUnderwater = true;
+
+#ifndef CLIENT_DLL
 	m_bIsPlayingSound = false;
-	m_flNextPrimaryAttack = 0.0f;
 	m_bFired = false;
+#endif
+
+	m_flNextPrimaryAttack = 0.0f;
 }
 
 CWeaponNyanGun::~CWeaponNyanGun( void )
@@ -140,10 +144,10 @@ void CWeaponNyanGun::ItemPostFrame( void )
 		if ( gpGlobals->curtime >= m_flNextPrimaryAttack )
 			PrimaryAttack();
 	}
+#ifndef CLIENT_DLL
 	else
-	{
 		m_bFired = false;
-	}
+#endif
 }
 
 void CWeaponNyanGun::PrimaryAttack( void )
@@ -161,23 +165,25 @@ void CWeaponNyanGun::PrimaryAttack( void )
 	{
 #ifndef CLIENT_DLL
 		StopSound( NYAN_SOUND );
-#endif
 		m_bIsPlayingSound = false;
+#endif
 	}
 	else
 	{
 #ifndef CLIENT_DLL
 		StopSound( NYAN_SOUND );
 		EmitSound( NYAN_SOUND );
-#endif
 		m_bIsPlayingSound = true;
+#endif
 	}
 
 	m_flNextPrimaryAttack = gpGlobals->curtime + 0.1f;
 
 	SetNextThink( gpGlobals->curtime );
 
+#ifndef CLIENT_DLL
 	m_bFired = true;
+#endif
 }
 
 void CWeaponNyanGun::Think( void )
@@ -231,9 +237,9 @@ void CWeaponNyanGun::Drop( const Vector &vecVelocity )
 {
 #ifndef CLIENT_DLL
 	StopSound( NYAN_SOUND );
-#endif
 	m_bIsPlayingSound = false;
 	m_bFired = false;
+#endif
 
 	BaseClass::Drop( vecVelocity );
 }
