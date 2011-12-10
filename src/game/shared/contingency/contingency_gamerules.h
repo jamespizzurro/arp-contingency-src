@@ -173,6 +173,7 @@ public:
 
 			RespawnDeadPlayers();
 
+			CContingency_System_Music::PlayAnnouncementSound( "Contingency.CombatToInterim" );
 			CContingency_System_Music::PlayBackgroundMusic( BACKGROUND_MUSIC_INTERIM );
 		}
 		else if ( m_iCurrentPhase == PHASE_COMBAT )
@@ -181,6 +182,12 @@ public:
 			SetInterimPhaseTimeLeft( 0 );
 			m_flInterimPhaseTime = 0.0f;
 
+			// Added loadout system
+			UpdatePlayerLoadouts();
+
+			RespawnDeadPlayers();
+
+			CContingency_System_Music::PlayAnnouncementSound( "Contingency.InterimToCombat" );
 			CContingency_System_Music::PlayBackgroundMusic( BACKGROUND_MUSIC_COMBAT );
 		}
 	}

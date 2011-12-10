@@ -137,50 +137,61 @@ void CContingency_Player::ApplyLoadout( void )
 	EquipSuit( false );
 
 	// Supply the player with their weapons
-	GiveNamedItem( GetPreferredPrimaryWeaponClassname() );
-	GiveNamedItem( GetPreferredSecondaryWeaponClassname() );
-	GiveNamedItem( GetPreferredMeleeWeaponClassname() );
-
-	// Added a modified version of Valve's floor turret
-	const char *szPreferredEquipmentClassname = GetPreferredEquipmentClassname();
-	CNPC_FloorTurret *pDeployedTurret = GetDeployedTurret();
-	if ( Q_strcmp(szPreferredEquipmentClassname, "weapon_deployableturret") == 0 )
+	if ( ContingencyRules()->GetCurrentPhase() == PHASE_INTERIM )
 	{
-		// We want a deployable turret
+		// During interim phases, we choose what players get, not the players themselves
+		GiveNamedItem( "weapon_crowbar" );
+		GiveNamedItem( "weapon_wrench" );
+		GiveNamedItem( "weapon_physcannon" );
+	}
+	else
+	{
+		// During combat phases, players are given their full loadout
+		GiveNamedItem( GetPreferredPrimaryWeaponClassname() );
+		GiveNamedItem( GetPreferredSecondaryWeaponClassname() );
+		GiveNamedItem( GetPreferredMeleeWeaponClassname() );
 
-		if ( pDeployedTurret )
+		// Added a modified version of Valve's floor turret
+		const char *szPreferredEquipmentClassname = GetPreferredEquipmentClassname();
+		CNPC_FloorTurret *pDeployedTurret = GetDeployedTurret();
+		if ( Q_strcmp(szPreferredEquipmentClassname, "weapon_deployableturret") == 0 )
 		{
-			// We already have a deployed turret, so don't give us another deployable one
-			// unless we already had both before all of our weapons were removed at the beginning of this function
-			
-			// This allows players to pick up turrets that may have been explicitly placed
-			// on the map by level designers without fear of them being removed
+			// We want a deployable turret
 
-			if ( hadDeployableTurret )
+			if ( pDeployedTurret )
 			{
-				CBaseEntity *pDeployableTurret = GiveNamedItem( szPreferredEquipmentClassname );
-				if ( pDeployableTurret )
+				// We already have a deployed turret, so don't give us another deployable one
+				// unless we already had both before all of our weapons were removed at the beginning of this function
+			
+				// This allows players to pick up turrets that may have been explicitly placed
+				// on the map by level designers without fear of them being removed
+
+				if ( hadDeployableTurret )
 				{
-					// TODO: Get the health carry over to work? :s
-					//pDeployableTurret->SetHealth( previousDeployableTurretHealth );	// carry over health of previous deployable turret
+					CBaseEntity *pDeployableTurret = GiveNamedItem( szPreferredEquipmentClassname );
+					if ( pDeployableTurret )
+					{
+						// TODO: Get the health carry over to work? :s
+						//pDeployableTurret->SetHealth( previousDeployableTurretHealth );	// carry over health of previous deployable turret
+					}
 				}
+			}
+			else
+			{
+				// We do not yet have a deployed turret, so give us a deployable one per our request
+				GiveNamedItem( szPreferredEquipmentClassname );
 			}
 		}
 		else
 		{
-			// We do not yet have a deployed turret, so give us a deployable one per our request
+			// We do not want a deployable turret
+
+			if ( pDeployedTurret )
+				pDeployedTurret->Explode();	// we prefer new equipment but currently have a deployed turret in the world,
+											// so explode that turret before giving us our new equipment
+
 			GiveNamedItem( szPreferredEquipmentClassname );
 		}
-	}
-	else
-	{
-		// We do not want a deployable turret
-
-		if ( pDeployedTurret )
-			pDeployedTurret->Explode();	// we prefer new equipment but currently have a deployed turret in the world,
-										// so explode that turret before giving us our new equipment
-
-		GiveNamedItem( szPreferredEquipmentClassname );
 	}
 
 	// Added loadout system
@@ -188,26 +199,34 @@ void CContingency_Player::ApplyLoadout( void )
 	// ...unless the game specifically wants us to, of course
 	m_bGivingWeapons = false;
 
-	// Give players all the ammo they'll ever need
-	CBasePlayer::GiveAmmo( 99999, "Pistol", true );
-	CBasePlayer::GiveAmmo( 99999, "grenade", true );
-	CBasePlayer::GiveAmmo( 99999, "SMG1", true );
-	CBasePlayer::GiveAmmo( 99999, "SMG1_Grenade", true );
-	CBasePlayer::GiveAmmo( 99999, "Buckshot", true );
-	CBasePlayer::GiveAmmo( 99999, "AR2", true );
-	CBasePlayer::GiveAmmo( 99999, "AR2AltFire", true );
-	CBasePlayer::GiveAmmo( 99999, "XBowBolt", true );
-	CBasePlayer::GiveAmmo( 99999, "357", true );
-	CBasePlayer::GiveAmmo( 99999, "rpg_round", true );
-	CBasePlayer::GiveAmmo( 99999, "slam", true );
-
-	// Make sure we switch to our primary weapon at the end of all this madness
-	Weapon_Switch( Weapon_OwnsThisType(GetPreferredPrimaryWeaponClassname()) );
-
-	if ( IsMarkedForLoadoutUpdate() )
+	if ( ContingencyRules()->GetCurrentPhase() == PHASE_INTERIM )
 	{
-		ClientPrint( this, HUD_PRINTTALK, "Your saved loadout has been applied." );
-		IsMarkedForLoadoutUpdate( false );
+		// Switch to something iconic!
+		Weapon_Switch( Weapon_OwnsThisType("weapon_physcannon") );
+	}
+	else
+	{
+		// Give players all the ammo they'll ever need
+		CBasePlayer::GiveAmmo( 99999, "Pistol", true );
+		CBasePlayer::GiveAmmo( 99999, "grenade", true );
+		CBasePlayer::GiveAmmo( 99999, "SMG1", true );
+		CBasePlayer::GiveAmmo( 99999, "SMG1_Grenade", true );
+		CBasePlayer::GiveAmmo( 99999, "Buckshot", true );
+		CBasePlayer::GiveAmmo( 99999, "AR2", true );
+		CBasePlayer::GiveAmmo( 99999, "AR2AltFire", true );
+		CBasePlayer::GiveAmmo( 99999, "XBowBolt", true );
+		CBasePlayer::GiveAmmo( 99999, "357", true );
+		CBasePlayer::GiveAmmo( 99999, "rpg_round", true );
+		CBasePlayer::GiveAmmo( 99999, "slam", true );
+
+		// Make sure we switch to our primary weapon at the end of all this madness
+		Weapon_Switch( Weapon_OwnsThisType(GetPreferredPrimaryWeaponClassname()) );
+
+		if ( IsMarkedForLoadoutUpdate() )
+		{
+			ClientPrint( this, HUD_PRINTTALK, "Your new loadout has been applied." );
+			IsMarkedForLoadoutUpdate( false );
+		}
 	}
 }
 
@@ -354,7 +373,7 @@ void CContingency_Player::Spawn( void )
 	}
 	else	// by default, players are forced to be observers
 	{
-		ClientPrint( this, HUD_PRINTTALK, "You are currently an observer. You will spawn at the start of the next interim phase." );
+		ClientPrint( this, HUD_PRINTTALK, "You are currently an observer. You will spawn at the start of the next phase." );
 	
 		// Handle our current and maximum health
 		m_iHealth = m_iMaxHealth = CONTINGENCY_MAX_HEALTH;
@@ -880,3 +899,13 @@ void CContingency_Player::CheckChatBubble( CUserCmd *cmd )
 }
 
 /////
+
+bool CContingency_Player::CanBeSeenBy( CAI_BaseNPC *pNPC )
+{
+	return true;
+}
+
+bool CContingency_Player::CanBeAnEnemyOf( CBaseEntity *pEnemy )
+{
+	return true;
+}

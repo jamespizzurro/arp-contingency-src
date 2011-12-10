@@ -68,10 +68,10 @@ void CContingency_System_Music::PlayBackgroundMusic( BACKGROUND_MUSIC_TYPES back
 	switch ( backgroundMusicType )
 	{
 	case BACKGROUND_MUSIC_INTERIM:
-		szCmd = "playinterimbackgroundmusic";
+		szCmd = BACKGROUND_MUSIC_INTERIM_CMD;
 		break;
 	case BACKGROUND_MUSIC_COMBAT:
-		szCmd = "playcombatbackgroundmusic";
+		szCmd = BACKGROUND_MUSIC_COMBAT_CMD;
 		break;
 	default:
 		return;
@@ -112,17 +112,17 @@ void CC_PlayCombatBackgroundMusic( void )
 {
 	CContingency_System_Music::PlayBackgroundMusic( kCombatBackgroundMusic[random->RandomInt(0, NUM_COMBAT_BACKGROUND_MUSIC - 1)] );
 }
-static ConCommand playcombatbackgroundmusic( "playcombatbackgroundmusic", CC_PlayCombatBackgroundMusic, "Plays some random combat background music", 0 );
+static ConCommand playcombatbackgroundmusic( BACKGROUND_MUSIC_COMBAT_CMD, CC_PlayCombatBackgroundMusic, "Plays some random combat background music", 0 );
 
 void CC_PlayInterimBackgroundMusic( void )
 {
 	CContingency_System_Music::PlayBackgroundMusic( kInterimBackgroundMusic[random->RandomInt(0, NUM_INTERIM_BACKGROUND_MUSIC - 1)] );
 }
-static ConCommand playinterimbackgroundmusic( "playinterimbackgroundmusic", CC_PlayInterimBackgroundMusic, "Plays some random interim background music", 0 );
+static ConCommand playinterimbackgroundmusic( BACKGROUND_MUSIC_INTERIM_CMD, CC_PlayInterimBackgroundMusic, "Plays some random interim background music", 0 );
 
 void CC_StopPlayingBackgroundMusic( void )
 {
 	CContingency_System_Music::StopPlayingBackgroundMusic();
 }
-static ConCommand stopplayingbackgroundmusic( "stopplayingbackgroundmusic", CC_StopPlayingBackgroundMusic, "Stops any background music that might be playing", 0 );
+static ConCommand stopplayingbackgroundmusic( BACKGROUND_MUSIC_STOP_CMD, CC_StopPlayingBackgroundMusic, "Stops any background music that might be playing", 0 );
 #endif

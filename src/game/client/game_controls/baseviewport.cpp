@@ -52,16 +52,6 @@
 /////
 
 	// Contingency - James
-	// Added loadout system
-	// Added loadout menu
-
-#include "loadoutmenu.h"
-
-/////
-
-/////
-
-	// Contingency - James
 	// Added a fully-automated nodegraph generation system
 
 #include "navgen_display.h"
@@ -266,16 +256,6 @@ void CBaseViewport::CreateDefaultPanels( void )
 /////
 
 	// Contingency - James
-	// Added loadout system
-	// Added loadout menu
-
-	AddNewPanel( CreatePanelByName(PANEL_LOADOUT), PANEL_LOADOUT );
-
-/////
-
-/////
-
-	// Contingency - James
 	// Added a fully-automated nodegraph generation system
 
 	AddNewPanel( CreatePanelByName(PANEL_NAVGEN_DISPLAY), PANEL_NAVGEN_DISPLAY );
@@ -344,19 +324,6 @@ IViewPortPanel* CBaseViewport::CreatePanelByName(const char *szPanelName)
 	{
 		newpanel = new CNavProgress( this );
 	}
-
-/////
-
-	// Contingency - James
-	// Added loadout system
-	// Added loadout menu
-
-	else if ( Q_strcmp(PANEL_LOADOUT, szPanelName) == 0 )
-	{
-		newpanel = new CLoadoutMenu( this );
-	}
-
-/////
 
 /////
 

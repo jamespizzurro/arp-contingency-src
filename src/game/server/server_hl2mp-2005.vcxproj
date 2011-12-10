@@ -346,6 +346,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClCompile Include="contingency\contingency_spawnableprop.cpp" />
     <ClCompile Include="contingency\contingency_support_spawnpoint.cpp" />
     <ClCompile Include="contingency\contingency_wave_spawnpoint.cpp" />
+    <ClCompile Include="contingency\npc_contingency_target.cpp" />
     <ClCompile Include="contingency\npc_contingency_stalker.cpp" />
     <ClCompile Include="contingency\npc_contingency_turret.cpp" />
     <ClCompile Include="controlentities.cpp" />
@@ -1045,6 +1046,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClInclude Include="contingency\contingency_spawnableprop.h" />
     <ClInclude Include="contingency\contingency_support_spawnpoint.h" />
     <ClInclude Include="contingency\contingency_wave_spawnpoint.h" />
+    <ClInclude Include="contingency\npc_contingency_target.h" />
     <ClInclude Include="contingency\npc_contingency_stalker.h" />
     <ClInclude Include="contingency\npc_contingency_turret.h" />
     <ClInclude Include="CRagdollMagnet.h" />

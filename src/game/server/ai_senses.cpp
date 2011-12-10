@@ -359,14 +359,37 @@ void CAI_Senses::Look( int iDistance )
 
 bool CAI_Senses::Look( CBaseEntity *pSightEnt )
 {
-	if ( WaitingUntilSeen( pSightEnt ) )
+
+/////
+
+	// Contingency - James
+	// Made it so NPCs always know where players are on a map (assuming the map is properly noded!)
+	// http://forums.steampowered.com/forums/showpost.php?p=23251833&postcount=7
+
+	/*if ( WaitingUntilSeen( pSightEnt ) )
 		return false;
 	
 	if ( ShouldSeeEntity( pSightEnt ) && CanSeeEntity( pSightEnt ) )
 	{
 		return SeeEntity( pSightEnt );
 	}
-	return false;
+	return false;*/
+
+	if ( pSightEnt->IsPlayer() )
+		return SeeEntity( pSightEnt );
+	else
+	{
+		if ( WaitingUntilSeen(pSightEnt) )
+			return false;
+	
+		if ( ShouldSeeEntity(pSightEnt) && CanSeeEntity(pSightEnt) )
+			return SeeEntity( pSightEnt );
+
+		return false;
+	}
+
+/////
+
 }
 
 #ifdef PORTAL
@@ -398,8 +421,14 @@ int CAI_Senses::LookForHighPriorityEntities( int iDistance )
 		float distSq = ( iDistance * iDistance );
 		const Vector &origin = GetAbsOrigin();
 		
+/////
+
+	// Contingency - James
+	// Made it so NPCs always know where players are on a map (assuming the map is properly noded!)
+	// http://forums.steampowered.com/forums/showpost.php?p=23251833&postcount=7
+
 		// Players
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		/*for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
 			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 
@@ -420,7 +449,20 @@ int CAI_Senses::LookForHighPriorityEntities( int iDistance )
 				}
 #endif
 			}
+		}*/
+
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+
+			if ( pPlayer )
+			{
+				if ( Look(pPlayer) )
+					nSeen++;
+			}
 		}
+
+/////
 	
 		EndGather( nSeen, &m_SeenHighPriority );
     }

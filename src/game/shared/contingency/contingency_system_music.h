@@ -4,9 +4,9 @@
 #define CONTINGENCY_SYSTEM_MUSIC_H
 #pragma once
 
-//static const char* BACKGROUND_MUSIC_INTERIM_CMD = "playinterimbackgroundmusic";
-//static const char* BACKGROUND_MUSIC_COMBAT_CMD = "playcombatbackgroundmusic";
-//static const char* BACKGROUND_MUSIC_STOP_CMD = "stopplayingbackgroundmusic";
+static const char* BACKGROUND_MUSIC_INTERIM_CMD = "playinterimbackgroundmusic";
+static const char* BACKGROUND_MUSIC_COMBAT_CMD = "playcombatbackgroundmusic";
+static const char* BACKGROUND_MUSIC_STOP_CMD = "stopplayingbackgroundmusic";
 
 static const int NUM_COMBAT_BACKGROUND_MUSIC = 9;
 static const char* kCombatBackgroundMusic[NUM_COMBAT_BACKGROUND_MUSIC] =

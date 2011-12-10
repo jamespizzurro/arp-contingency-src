@@ -22,10 +22,17 @@ CContingency_SpawnableProp::CContingency_SpawnableProp( void )
 {
 	m_hSpawnerPlayer = NULL;
 	m_iSpawnablePropIndex = 0;
+	pTarget = NULL;
 }
 
 CContingency_SpawnableProp::~CContingency_SpawnableProp( void )
 {
+	if ( pTarget )
+	{
+		UTIL_Remove( pTarget );
+		pTarget = NULL;
+	}
+
 	CContingency_Player *pSpawnerPlayer = ToContingencyPlayer( GetSpawnerPlayer() );
 	if ( pSpawnerPlayer && (pSpawnerPlayer->m_SpawnablePropList.Find( this ) != -1) )
 	{
@@ -38,9 +45,11 @@ void CContingency_SpawnableProp::Spawn( void )
 {
 	BaseClass::Spawn();
 
-	SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS );	// collide with everything players collide with
-	SetMoveType( MOVETYPE_NONE );	// only move due to gravity, nothing else
+	SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS );
+	SetMoveType( MOVETYPE_NONE );
 	AddEffects( EF_NOSHADOW );	// save some FPS (?)
+	SetBlocksLOS( true );
+	SetAIWalkable( true );
 
 	if ( VPhysicsGetObject() )
 	{
@@ -48,6 +57,20 @@ void CContingency_SpawnableProp::Spawn( void )
 		VPhysicsGetObject()->EnableMotion( false );
 		VPhysicsGetObject()->EnableDrag( false );
 		VPhysicsGetObject()->EnableGravity( false );
+	}
+
+	pTarget = static_cast<CNPC_Contingency_Target*>( CreateEntityByName("npc_contingency_target") );
+	if ( pTarget )
+	{
+		pTarget->SetAbsOrigin( this->GetAbsOrigin() );
+		pTarget->SetAbsAngles( this->GetAbsAngles() );
+		pTarget->AddSpawnFlags( SF_BULLSEYE_NONSOLID | SF_BULLSEYE_ENEMYDAMAGEONLY | SF_BULLSEYE_PERFECTACC );
+		pTarget->Spawn();
+		DispatchSpawn( pTarget );
+		pTarget->Activate();
+		pTarget->SetParent( this );
+		pTarget->SetHealth( this->GetHealth() );
+		pTarget->SetPainPartner( this );
 	}
 }
 

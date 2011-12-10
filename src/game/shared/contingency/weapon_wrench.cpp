@@ -59,6 +59,7 @@ public:
 	void OverrideMouseInput( float *x, float *y );
 	bool OverrideViewAngles( void );
 
+	bool CanSpawnProp( CContingency_Player *pPlayer, bool shouldPrintMessages );
 	void ShowPropSelectionPanel( void );
 	void DrawSpawnablePropPreview( void );
 
@@ -72,10 +73,8 @@ public:
 	void Drop( const Vector &vecVelocity );
 
 private:
-	CNetworkVar( bool, m_bCanSpawnProp );
 
 #ifdef CLIENT_DLL
-	bool m_bShouldShowSpawnablePropPreview;
 	CHandle<C_Contingency_SpawnableProp> m_hSpawnablePropPreview;
 	QAngle m_angSpawnablePropPreviewLastSavedAngles;
 #else
@@ -87,16 +86,10 @@ private:
 IMPLEMENT_NETWORKCLASS_ALIASED( WeaponWrench, DT_WeaponWrench )
 
 BEGIN_NETWORK_TABLE( CWeaponWrench, DT_WeaponWrench )
-#ifdef CLIENT_DLL
-	RecvPropBool( RECVINFO(m_bCanSpawnProp) ),
-#else
-	SendPropBool( SENDINFO(m_bCanSpawnProp) ),
-#endif
 END_NETWORK_TABLE()
 
 #ifdef CLIENT_DLL
 BEGIN_PREDICTION_DATA( CWeaponWrench )
-	DEFINE_PRED_FIELD( m_bCanSpawnProp, FIELD_BOOLEAN, FTYPEDESC_INSENDTABLE ),
 END_PREDICTION_DATA()
 #endif
 
@@ -125,21 +118,17 @@ IMPLEMENT_ACTTABLE( CWeaponWrench );
 CWeaponWrench::CWeaponWrench( void )
 {
 #ifdef CLIENT_DLL
-	m_bShouldShowSpawnablePropPreview = false;
 	if ( m_hSpawnablePropPreview )
 	{
 		delete m_hSpawnablePropPreview;
 		m_hSpawnablePropPreview = NULL;
 	}
-#else
-	m_bCanSpawnProp = false;
 #endif
 }
 
 CWeaponWrench::~CWeaponWrench( void )
 {
 #ifdef CLIENT_DLL
-	m_bShouldShowSpawnablePropPreview = false;
 	if ( m_hSpawnablePropPreview )
 	{
 		delete m_hSpawnablePropPreview;
@@ -167,6 +156,44 @@ bool CWeaponWrench::OverrideViewAngles( void )
 	return false;
 }
 
+bool CWeaponWrench::CanSpawnProp( CContingency_Player *pPlayer, bool shouldPrintMessages )
+{
+	if ( !ContingencyRules()->IsPlayerPlaying(pPlayer) )
+	{
+		if ( shouldPrintMessages )
+			ClientPrint( pPlayer, HUD_PRINTTALK, "Only living players can spawn props." );
+
+		return false;
+	}
+
+	if ( ContingencyRules()->GetCurrentPhase() != PHASE_INTERIM )
+	{
+		if ( shouldPrintMessages )
+			ClientPrint( pPlayer, HUD_PRINTTALK, "Props can only be spawned during interim phases." );
+		
+		return false;
+	}
+
+	int iSpawnablePropIndex = pPlayer->GetDesiredSpawnablePropIndex();
+	if ( !pPlayer->HasCredits(Q_atoi(kSpawnablePropTypes[iSpawnablePropIndex][1])) )
+	{
+		if ( shouldPrintMessages )
+			ClientPrint( pPlayer, HUD_PRINTTALK, "You do not have enough credits to spawn this prop." );
+		
+		return false;
+	}
+
+	if ( pPlayer->GetNumSpawnableProps() >= ContingencyRules()->GetMapMaxPropsPerPlayer() )
+	{
+		if ( shouldPrintMessages )
+			ClientPrint( pPlayer, HUD_PRINTTALK, "You have hit the map's maximum spawnable prop limit! Remove at least one of your existing props, then try again." );
+		
+		return false;
+	}
+
+	return true;
+}
+
 // Shows our prop selection panel to the owner
 void CWeaponWrench::ShowPropSelectionPanel( void )
 {
@@ -187,9 +214,6 @@ void CWeaponWrench::DrawSpawnablePropPreview( void )
 		delete m_hSpawnablePropPreview;
 		m_hSpawnablePropPreview = NULL;
 	}
-
-	if ( !m_bShouldShowSpawnablePropPreview )
-		return;
 #endif
 
 	CContingency_Player *pOwner = ToContingencyPlayer( GetOwner() );
@@ -205,9 +229,11 @@ void CWeaponWrench::DrawSpawnablePropPreview( void )
 		pOwner,
 		COLLISION_GROUP_PLAYER_MOVEMENT,
 		&tr );
-	if ( tr.fraction < 1.0 )
+	//if ( tr.fraction < 1.0 )
 	{
+#ifdef CLIENT_DLL
 		int iSpawnablePropIndex = pOwner->GetDesiredSpawnablePropIndex();
+#endif
 
 #ifdef CLIENT_DLL
 		// Handle preview prop creation & spawning
@@ -250,18 +276,11 @@ void CWeaponWrench::DrawSpawnablePropPreview( void )
 			Q_atof(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_angles_roll")) );
 #endif
 
-		// Handle preview prop color according to whether or not it fits in the given space
-#ifndef CLIENT_DLL
-		int boardModelIndex = modelinfo->GetModelIndex( kSpawnablePropTypes[iSpawnablePropIndex][3] );
-		CPhysCollide *pSpawnablePropPreviewCollide = modelinfo->GetVCollide( boardModelIndex )->solids[0];
-		Vector mins, maxs;
-		physcollision->CollideGetAABB( &mins, &maxs, pSpawnablePropPreviewCollide, m_vecSpawnablePropOrigin, m_angSpawnablePropAngles );
-		CBaseEntity *list[1];
-		(UTIL_EntitiesInBox(list, 1, mins, maxs, MASK_ALL) > 0) ? m_bCanSpawnProp = false : m_bCanSpawnProp = true;
-#else
+		// Handle preview prop color according to whether or not the prop could actually be spawned
+#ifdef CLIENT_DLL
 		color32 color = pSpawnablePropPreview->GetRenderColor();
 
-		if ( m_bCanSpawnProp )
+		if ( CanSpawnProp(pOwner, false) )
 			pSpawnablePropPreview->SetRenderColor( 0, color.g, 0 );
 		else
 			pSpawnablePropPreview->SetRenderColor( color.r, 0, 0 );
@@ -269,10 +288,6 @@ void CWeaponWrench::DrawSpawnablePropPreview( void )
 		m_hSpawnablePropPreview = pSpawnablePropPreview;
 #endif
 	}
-#ifndef CLIENT_DLL
-	else
-		m_bCanSpawnProp = false;
-#endif
 }
 
 void CWeaponWrench::Precache( void )
@@ -296,7 +311,6 @@ bool CWeaponWrench::Deploy( void )
 			delete m_hSpawnablePropPreview;
 			m_hSpawnablePropPreview = NULL;
 		}
-		m_bShouldShowSpawnablePropPreview = true;
 #endif
 
 		return true;
@@ -327,42 +341,15 @@ void CWeaponWrench::PrimaryAttack( void )
 	if ( !pPlayer )
 		return;
 
-	if ( !ContingencyRules()->IsPlayerPlaying(pPlayer) )
-	{
-		ClientPrint( pPlayer, HUD_PRINTTALK, "Only living players can spawn props." );
+	if ( !CanSpawnProp(pPlayer, true) )
 		goto FinishingStuff;
-	}
-
-	if ( ContingencyRules()->GetCurrentPhase() != PHASE_INTERIM )
-	{
-		ClientPrint( pPlayer, HUD_PRINTTALK, "Props can only be spawned during interim phases." );
-		goto FinishingStuff;
-	}
-
-	int iSpawnablePropIndex = pPlayer->GetDesiredSpawnablePropIndex();
-	if ( !pPlayer->HasCredits(Q_atoi(kSpawnablePropTypes[iSpawnablePropIndex][1])) )
-	{
-		ClientPrint( pPlayer, HUD_PRINTTALK, "You do not have enough credits to spawn this prop." );
-		goto FinishingStuff;
-	}
-
-	if ( pPlayer->GetNumSpawnableProps() >= ContingencyRules()->GetMapMaxPropsPerPlayer() )
-	{
-		ClientPrint( pPlayer, HUD_PRINTTALK, "You have hit the map's maximum spawnable prop limit! Remove at least one of your existing props, then try again." );
-		goto FinishingStuff;
-	}
-
-	if ( !m_bCanSpawnProp )
-	{
-		ClientPrint( pPlayer, HUD_PRINTTALK, "You cannot spawn this prop here." );
-		goto FinishingStuff;
-	}
 
 #ifndef CLIENT_DLL
 	// Handle prop creation & spawning
 	CContingency_SpawnableProp *pSpawnableProp = dynamic_cast<CContingency_SpawnableProp*>( CreateEntityByName("contingency_spawnableprop") );
 	if ( pSpawnableProp )
 	{
+		int iSpawnablePropIndex = pPlayer->GetDesiredSpawnablePropIndex();
 		pSpawnableProp->SetModel( kSpawnablePropTypes[iSpawnablePropIndex][3] );
 		pSpawnableProp->SetAbsOrigin( m_vecSpawnablePropOrigin );
 		pSpawnableProp->SetAbsAngles( m_angSpawnablePropAngles );
@@ -426,7 +413,6 @@ bool CWeaponWrench::Holster( CBaseCombatWeapon *pSwitchingTo )
 	if ( BaseClass::Holster(pSwitchingTo) )
 	{
 #ifdef CLIENT_DLL
-		m_bShouldShowSpawnablePropPreview = false;
 		if ( m_hSpawnablePropPreview )
 		{
 			delete m_hSpawnablePropPreview;

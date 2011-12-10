@@ -2,38 +2,18 @@
 // Added loadout menu
 
 #include "cbase.h"
-#include <stdio.h>
-
-#include <cdll_client_int.h>
-
 #include "loadoutmenu.h"
 
-#include <vgui/IScheme.h>
-#include <vgui/ILocalize.h>
-#include <vgui/ISurface.h>
-#include <KeyValues.h>
-#include <vgui_controls/ImageList.h>
-#include <FileSystem.h>
-
-#include <vgui_controls/TextEntry.h>
-#include <vgui_controls/Button.h>
-#include <vgui_controls/Panel.h>
-
-#include "cdll_util.h"
-#include "IGameUIFuncs.h" // for key bindings
-
-#ifndef _XBOX
-extern IGameUIFuncs *gameuifuncs; // for key binding details
-#endif
-
-#include <game/client/iviewport.h>
-
-#include <stdlib.h> // MAX_PATH define
-
-#include "c_contingency_player.h"
+#include <vgui_controls/Frame.h>
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
+CON_COMMAND( OpenLoadoutMenu, "Opens the loadout menu" )
+{
+	loadoutmenu->RefreshData();
+	loadoutmenu->SetVisible( true );
+};
 
 extern ConVar contingency_client_preferredprimaryweapon;
 extern ConVar contingency_client_preferredsecondaryweapon;
@@ -43,62 +23,70 @@ extern ConVar contingency_client_updateloadout;
 
 using namespace vgui;
 
+class CLoadoutMenuInterface : public ILoadoutMenu
+{
+private:
+	CLoadoutMenu *LoadoutMenu;
+
+public:
+	CLoadoutMenuInterface()
+	{
+		LoadoutMenu = NULL;
+	}
+
+	void Create( VPANEL parent )
+	{
+		LoadoutMenu = new CLoadoutMenu( parent );
+	}
+
+	void Destroy()
+	{
+		if ( LoadoutMenu )
+		{
+			LoadoutMenu->SetParent( (Panel *)NULL );
+			delete LoadoutMenu;
+		}
+	}
+
+	void RefreshData()
+	{
+		LoadoutMenu->Reset();
+	}
+
+	void SetVisible( bool state )
+	{
+		LoadoutMenu->SetVisible( state );
+	}
+};
+static CLoadoutMenuInterface g_LoadoutMenu;
+ILoadoutMenu* loadoutmenu = (ILoadoutMenu*)&g_LoadoutMenu;
+
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
-CLoadoutMenu::CLoadoutMenu(IViewPort *pViewPort) : Frame(NULL, PANEL_LOADOUT)
+CLoadoutMenu::CLoadoutMenu( VPANEL parent ) : BaseClass( NULL, "loadoutmenu" )
 {
-	m_pViewPort = pViewPort;
-	m_iScoreBoardKey = BUTTON_CODE_INVALID; // this is looked up in Activate()
-
-	SetTitle("", true);
-
-	SetScheme("ClientScheme");
-	SetMoveable(false);
-	SetSizeable(false);
-
-	SetTitleBarVisible(false);
-	SetProportional(true);
-
-	LoadControlSettings("Resource/UI/LoadoutMenu.res");
-	LoadControlSettings("Resource/UI/MainLoadoutMenu.res");
-
-	m_pPanel = new EditablePanel( this, PANEL_LOADOUT );
+	SetParent( parent );
+ 
+	SetKeyBoardInputEnabled( false );
+	SetMouseInputEnabled( true );
+ 
+	SetProportional( true );
+	SetTitleBarVisible( false );
+	SetMinimizeButtonVisible( false );
+	SetMaximizeButtonVisible( false );
+	SetCloseButtonVisible( false );
+	SetSizeable( false );
+	SetMoveable( true );
+	SetVisible( false );
+ 
+	SetScheme( scheme()->LoadSchemeFromFile("resource/SourceScheme.res", "SourceScheme") );
+ 
+	LoadControlSettings( "resource/ui/loadoutmenu.res" );
+ 
+	ivgui()->AddTickSignal( GetVPanel(), 100 );
 
 	Reset();
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Constructor
-//-----------------------------------------------------------------------------
-CLoadoutMenu::CLoadoutMenu(IViewPort *pViewPort, const char *panelName) : Frame(NULL, panelName)
-{
-	m_pViewPort = pViewPort;
-	m_iScoreBoardKey = BUTTON_CODE_INVALID; // this is looked up in Activate()
-
-	SetTitle("", true);
-
-	SetScheme("ClientScheme");
-	SetMoveable(false);
-	SetSizeable(false);
-
-	SetTitleBarVisible(false);
-	SetProportional(true);
-
-	// The rest of the configuration is team-specific (see beginning of OnThink method)
-	LoadControlSettings("Resource/UI/LoadoutMenu.res");
-	LoadControlSettings("Resource/UI/MainLoadoutMenu.res");
-
-	m_pPanel = new EditablePanel( this, PANEL_LOADOUT );
-
-	Reset();
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Destructor
-//-----------------------------------------------------------------------------
-CLoadoutMenu::~CLoadoutMenu()
-{
 }
 
 Panel *CLoadoutMenu::CreateControlByName(const char *controlName)
@@ -136,15 +124,8 @@ Panel *CLoadoutMenu::CreateControlByName(const char *controlName)
 	return BaseClass::CreateControlByName( controlName );
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
 void CLoadoutMenu::Reset()
 {
-	C_Contingency_Player *pLocalPlayer = ToContingencyPlayer( C_BasePlayer::GetLocalPlayer() );
-	if ( !pLocalPlayer )
-		return;
-
 	int i;
 
 	currentPrimaryWeaponIndex = 0;
@@ -196,12 +177,8 @@ void CLoadoutMenu::Reset()
 	currentEquipmentSelected[1] = kEquipmentTypes[currentEquipmentIndex][1];
 }
 
-void CLoadoutMenu::OnThink()
+void CLoadoutMenu::OnTick()
 {
-	C_Contingency_Player *pLocalPlayer = ToContingencyPlayer( C_BasePlayer::GetLocalPlayer() );
-	if ( !pLocalPlayer )
-		return;
-
 	for ( int i = 0; i < m_Labels.Count(); i++ )
 	{
 		Label* pLabel = m_Labels[i];
@@ -252,17 +229,12 @@ void CLoadoutMenu::OnThink()
 			pImagePanel->SetImage( scheme()->GetImage(imagePath, false) );
 		}
 	}
+
+	BaseClass::OnTick();
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Called when the user picks a class
-//-----------------------------------------------------------------------------
 void CLoadoutMenu::OnCommand( const char *command )
 {
-	C_Contingency_Player *pLocalPlayer = ToContingencyPlayer( C_BasePlayer::GetLocalPlayer() );
-	if ( !pLocalPlayer )
-		return;
-
 	if ( Q_stricmp(command, "nextprimaryweapon") == 0 )
 	{
 		// Bounds check
@@ -306,7 +278,7 @@ void CLoadoutMenu::OnCommand( const char *command )
 	else if ( Q_stricmp(command, "nextmeleeweapon") == 0 )
 	{
 		// Bounds check
-		if ( (currentMeleeWeaponIndex + 1) >= NUM_SECONDARY_WEAPON_TYPES )
+		if ( (currentMeleeWeaponIndex + 1) >= NUM_MELEE_WEAPON_TYPES )
 			return;
 
 		currentMeleeWeaponIndex = currentMeleeWeaponIndex + 1;
@@ -357,75 +329,12 @@ void CLoadoutMenu::OnCommand( const char *command )
 		contingency_client_preferredequipment.SetValue( currentEquipmentSelectedClassname );
 		contingency_client_updateloadout.SetValue( 1 );	// tells the server (gamerules) that our loadout needs to be updated
 
-		Close();
-		gViewPortInterface->ShowBackGround( false );
-	}
-	else
-	{
-		Close();
-		gViewPortInterface->ShowBackGround( false );
-	}
-
-	BaseClass::OnCommand( command );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: shows the class menu
-//-----------------------------------------------------------------------------
-void CLoadoutMenu::ShowPanel(bool bShow)
-{
-	if ( bShow )
-	{
-		Reset();
-		Activate();
-		SetMouseInputEnabled( true );
+		SetVisible( false );
 	}
 	else
 	{
 		SetVisible( false );
-		SetMouseInputEnabled( false );
 	}
-	
-	m_pViewPort->ShowBackGround( bShow );
-}
 
-void CLoadoutMenu::SetData(KeyValues *data)
-{
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Sets the text of a control by name
-//-----------------------------------------------------------------------------
-void CLoadoutMenu::SetLabelText(const char *textEntryName, const char *text)
-{
-	Label *entry = dynamic_cast<Label *>(FindChildByName(textEntryName));
-	if (entry)
-	{
-		entry->SetText(text);
-	}
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Sets the visibility of a button by name
-//-----------------------------------------------------------------------------
-void CLoadoutMenu::SetVisibleButton(const char *textEntryName, bool state)
-{
-	Button *entry = dynamic_cast<Button *>(FindChildByName(textEntryName));
-	if (entry)
-	{
-		entry->SetVisible(state);
-	}
-}
-
-void CLoadoutMenu::OnKeyCodePressed(KeyCode code)
-{
-	if ( m_iScoreBoardKey != BUTTON_CODE_INVALID && m_iScoreBoardKey == code )
-	{
-		gViewPortInterface->ShowPanel( PANEL_SCOREBOARD, true );
-		gViewPortInterface->PostMessageToPanel( PANEL_SCOREBOARD, new KeyValues( "PollHideCode", "code", code ) );
-	}
-	else
-	{
-		BaseClass::OnKeyCodePressed( code );
-	}
+	BaseClass::OnTick();
 }

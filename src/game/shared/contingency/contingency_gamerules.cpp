@@ -378,10 +378,7 @@ void CContingencyRules::ClientSettingsChanged( CBasePlayer *pPlayer )
 		// Loadouts are not applied right away, but rather at the start of a combat phase
 		// or when the player respawns (whatever comes first)
 
-		if ( IsPlayerPlaying(pContingencyPlayer) )
-			ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Loadout saved. Any changes will be applied at the start of the next interim phase." );
-		else
-			ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Loadout saved. Any changes will be applied when you respawn at the start of the next interim phase." );
+		ClientPrint( pContingencyPlayer, HUD_PRINTTALK, "Loadout saved. Any changes will be applied at the start of the next combat phase." );
 
 		pContingencyPlayer->IsMarkedForLoadoutUpdate( true );
 

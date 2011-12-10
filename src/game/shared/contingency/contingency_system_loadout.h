@@ -26,13 +26,12 @@ static const char* kSecondaryWeaponTypes[NUM_SECONDARY_WEAPON_TYPES][NUM_WEAPON_
 	{ "weapon_physcannon", "Gravity Gun" }
 };
 
-static const int NUM_MELEE_WEAPON_TYPES = 4;
+static const int NUM_MELEE_WEAPON_TYPES = 3;
 static const char* kMeleeWeaponTypes[NUM_MELEE_WEAPON_TYPES][NUM_WEAPON_TYPE_PARAMETERS] =
 {
 	{ "weapon_crowbar", "Crowbar" },
 	{ "weapon_axe", "Axe" },
-	{ "weapon_stunstick", "Stunstick" },
-	{ "weapon_wrench", "Wrench" }
+	{ "weapon_stunstick", "Stunstick" }
 };
 
 static const int NUM_EQUIPMENT_TYPES = 4;
@@ -45,8 +44,8 @@ static const char* kEquipmentTypes[NUM_EQUIPMENT_TYPES][NUM_WEAPON_TYPE_PARAMETE
 };
 
 // Special weapons are weapons that can be picked up regardless of a player's loadout
-// They are also the only types of weapons that can be dropped using Contingency's drop system
-// Some special weapons can only be obtained using cheats while others require explicit placement by level designers
+// Currently, they are also the only types of weapons that can be dropped using Contingency's drop system
+// They can all be spawned using cheats and be placed by level designers for public use
 static const int NUM_SPECIAL_WEAPON_TYPES = 1;
 static const char* kSpecialWeaponTypes[NUM_SPECIAL_WEAPON_TYPES][NUM_WEAPON_TYPE_PARAMETERS] =
 {

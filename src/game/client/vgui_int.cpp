@@ -40,6 +40,15 @@ vgui::IInputInternal *g_InputInternal = NULL;
 /////
 
 	// Contingency - James
+	// Added loadout menu
+
+#include "loadoutmenu.h"
+
+/////
+
+/////
+
+	// Contingency - James
 	// Added loading screen tips
 
 #include "GameUI/IGameUI.h"
@@ -203,6 +212,15 @@ void VGui_CreateGlobalPanels( void )
 /////
 
 	// Contingency - James
+	// Added loadout menu
+
+	loadoutmenu->Create( enginevgui->GetPanel(PANEL_GAMEUIDLL) );
+
+/////
+
+/////
+
+	// Contingency - James
 	// Added loading screen tips
 
 	CreateInterfaceFn gameUIFactory = g_GameUI.GetFactory();
@@ -238,6 +256,15 @@ void VGui_Shutdown()
 	messagechars->Destroy();
 	loadingdisc->Destroy();
 	internalCenterPrint->Destroy();
+
+/////
+
+	// Contingency - James
+	// Added loadout menu
+
+	loadoutmenu->Destroy();
+
+/////
 
 	if ( g_pClientMode )
 	{

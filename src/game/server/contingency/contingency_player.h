@@ -189,6 +189,9 @@ public:
 	int GetDesiredSpawnablePropIndex( void ) { return m_iDesiredSpawnablePropIndex; }
 	void SetDesiredSpawnablePropIndex( int iNewDesiredSpawnablePropIndex ) { m_iDesiredSpawnablePropIndex = iNewDesiredSpawnablePropIndex; }
 
+	bool CanBeSeenBy( CAI_BaseNPC *pNPC );
+	bool CanBeAnEnemyOf( CBaseEntity *pEnemy );
+
 private:
 
 	// Health regeneration system

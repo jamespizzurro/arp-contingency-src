@@ -5,6 +5,7 @@
 #pragma once
 
 #include "props.h"
+#include "npc_contingency_target.h"
 
 class CContingency_SpawnableProp : public CPhysicsProp
 {
@@ -31,6 +32,7 @@ private:
 	CNetworkHandle( CBasePlayer, m_hSpawnerPlayer );
 
 	int m_iSpawnablePropIndex;
+	CNPC_Contingency_Target *pTarget;
 };
 
 #endif // CONTINGENCY_SPAWNABLEPROP_H

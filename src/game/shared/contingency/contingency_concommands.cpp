@@ -39,21 +39,6 @@ void CC_DropCurrentWeapon( void )
 }
 static ConCommand drop( "drop", CC_DropCurrentWeapon, "Drops your current weapon (if possible; only works for special weapons)" );
 
-// Added loadout menu
-void CC_ShowLoadoutMenu( const CCommand &args )
-{
-	CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_GetCommandClient() );
-	if ( !pPlayer )
-		return;
-
-	// We used to restrict when players were allowed to bring up this menu,
-	// but they wanted to be able to change their loadout anytime even if
-	// those changes weren't applied right away, so a new system was devised
-
-	pPlayer->ShowViewPortPanel( "loadoutmenu", true, NULL );
-}
-static ConCommand showloadoutmenu( "showloadoutmenu", CC_ShowLoadoutMenu, "Shows the loadout menu for changing one's weapon and equipment" );
-
 // Added shout system
 void CC_ShowShoutMenu( const CCommand &args )
 {
