@@ -53,6 +53,7 @@ BEGIN_NETWORK_TABLE_NOBASE( CContingencyRules, DT_ContingencyRules )
 	// Added wave system
 	RecvPropInt( RECVINFO( m_iWaveNum ) ),
 	RecvPropInt( RECVINFO( m_iWaveType ) ),
+	RecvPropInt( RECVINFO( m_iPreferredWaveType ) ),
 	RecvPropInt( RECVINFO( m_iNumEnemiesRemaining ) ),
 
 	// Added radar display
@@ -70,6 +71,7 @@ BEGIN_NETWORK_TABLE_NOBASE( CContingencyRules, DT_ContingencyRules )
 	// Added wave system
 	SendPropInt( SENDINFO( m_iWaveNum ) ),
 	SendPropInt( SENDINFO( m_iWaveType ) ),
+	SendPropInt( SENDINFO( m_iPreferredWaveType ) ),
 	SendPropInt( SENDINFO( m_iNumEnemiesRemaining ) ),
 
 	// Added radar display
@@ -109,6 +111,8 @@ IMPLEMENT_NETWORKCLASS_ALIASED( ContingencyRulesProxy, DT_ContingencyRulesProxy 
 	ConVar contingency_wave_multiplier_combine( "contingency_wave_multiplier_combine", "2", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during combine waves" );
 #else
 	ConVar contingency_client_heartbeatsounds( "contingency_client_heartbeatsounds", "1", FCVAR_ARCHIVE, "Toggles heartbeat sounds when health is low" );
+
+	ConVar contingency_client_weaponhints( "contingency_client_weaponhints", "1", FCVAR_ARCHIVE, "Toggles display of weapon hints on HUD" );
 
 	// Added loadout system
 	ConVar contingency_client_preferredprimaryweapon( "contingency_client_preferredprimaryweapon", "weapon_smg1", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_SERVER_CAN_EXECUTE, "Defines the classname of the preferred primary weapon to use" );
@@ -219,6 +223,7 @@ void CContingencyRules::ResetPhaseVariables( void )
 	// Added wave system
 	SetWaveNumber( 0 );	// wave number is set to 1 after the first interim phase (i.e. this is intentional)
 	SetWaveType( WAVE_NONE );
+	SetPreferredWaveType( WAVE_NONE );
 	SetNumEnemiesRemaining( 0 );
 	SetCalculatedNumEnemies( 0 );
 	SetNumEnemiesSpawned( 0 );
@@ -417,6 +422,15 @@ void CContingencyRules::ClientDisconnected( edict_t *pClient )
 			// Added credits system
 			// Save player's credits
 			pPlayerInfo->SetCredits( pPlayer->GetCredits() );
+
+			// Added spawnable prop system
+			// Save a reference to our spawnable props (via a list)
+			pPlayerInfo->SetNumSpawnableProps( pPlayer->GetNumSpawnableProps() );
+			pPlayerInfo->spawnablePropList = pPlayer->m_SpawnablePropList;
+
+			// Added a modified version of Valve's floor turret
+			// Save a reference to our deployed turret (if any)
+			pPlayerInfo->SetDeployedTurret( pPlayer->GetDeployedTurret() );
 		}
 		else
 		{
@@ -435,6 +449,14 @@ void CContingencyRules::ClientDisconnected( edict_t *pClient )
 				// Added credits system
 				// Save player's credits
 				pPlayerInfo->SetCredits( pPlayer->GetCredits() );
+
+				// Added spawnable prop system
+				// Save a reference to our spawnable prop list
+				pPlayerInfo->spawnablePropList = pPlayer->m_SpawnablePropList;
+
+				// Added a modified version of Valve's floor turret
+				// Save a reference to our deployed turret (if any)
+				pPlayerInfo->SetDeployedTurret( pPlayer->GetDeployedTurret() );
 
 				m_PlayerInfoList.AddToTail( pPlayerInfo );
 			}
@@ -467,12 +489,19 @@ void CContingencyRules::PerformWaveCalculations( void )
 		DoesMapSupportCombine( true );
 	}
 
-	int waveSelected = random->RandomInt( WAVE_NONE + 1, NUM_WAVES - 1 );
-	while ( ((waveSelected == WAVE_HEADCRABS) && !DoesMapSupportHeadcrabs()) ||
-			((waveSelected == WAVE_ANTLIONS) && !DoesMapSupportAntlions()) ||
-			((waveSelected == WAVE_ZOMBIES) && !DoesMapSupportZombies()) ||
-			((waveSelected == WAVE_COMBINE) && !DoesMapSupportCombine()) )
+	int waveSelected = GetPreferredWaveType();	// allow server to specify preferred wave type
+
+	if ( waveSelected == WAVE_NONE )
+	{
 		waveSelected = random->RandomInt( WAVE_NONE + 1, NUM_WAVES - 1 );
+		while ( ((waveSelected == WAVE_HEADCRABS) && !DoesMapSupportHeadcrabs()) ||
+				((waveSelected == WAVE_ANTLIONS) && !DoesMapSupportAntlions()) ||
+				((waveSelected == WAVE_ZOMBIES) && !DoesMapSupportZombies()) ||
+				((waveSelected == WAVE_COMBINE) && !DoesMapSupportCombine()) )
+			waveSelected = random->RandomInt( WAVE_NONE + 1, NUM_WAVES - 1 );
+
+		SetWaveType( waveSelected );
+	}
 
 	SetWaveType( waveSelected );
 
@@ -632,7 +661,8 @@ void CContingencyRules::Think( void )
 
 			DisplayAnnouncement( UTIL_VarArgs("WAVE %i COMMENCING...", GetWaveNumber()), 3.0f );
 
-			// TODO: Good place for a sound cue of some kind...
+			CContingency_System_Music::PlayAnnouncementSound( "Contingency.InterimToCombat" );
+			CContingency_System_Music::PlayBackgroundMusic( BACKGROUND_MUSIC_COMBAT );
 
 			SetCurrentPhase( PHASE_COMBAT );
 		}
@@ -674,7 +704,8 @@ void CContingencyRules::Think( void )
 
 				DisplayAnnouncement( UTIL_VarArgs("WAVE %i CLEARED!\nInterim phase is now active for %i seconds.", GetWaveNumber(), GetMapInterimPhaseLength()), 5.0f );
 
-				// TODO: Good place for a sound cue of some kind...
+				CContingency_System_Music::PlayAnnouncementSound( "Contingency.CombatToInterim" );
+				CContingency_System_Music::PlayBackgroundMusic( BACKGROUND_MUSIC_INTERIM );
 
 				SetCurrentPhase( PHASE_INTERIM );
 			}
@@ -1963,6 +1994,23 @@ void CContingencyRules::UpdatePlayerLoadouts( void )
 			continue;	// dead players' loadouts are updated when they respawn (see RespawnDeadPlayers)
 
 		pPlayer->ApplyLoadout();
+	}
+}
+
+void CContingencyRules::HealPlayers( void )
+{
+	int i;
+	CContingency_Player *pPlayer;
+	for ( i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		pPlayer = ToContingencyPlayer( UTIL_PlayerByIndex( i ) );
+		if ( !pPlayer )
+			continue;
+
+		if ( !IsPlayerPlaying(pPlayer) )
+			continue;	// dead players are healed when they respawn (duh)
+
+		pPlayer->SetHealth( pPlayer->GetMaxHealth() );
 	}
 }
 

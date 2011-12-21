@@ -59,6 +59,8 @@ protected:
 	CPanelAnimationVar( float, m_flLabelSizePercentage, "HintSize", "0" );
 };
 
+extern ConVar contingency_client_weaponhints;
+
 DECLARE_HUDELEMENT( CHudHintDisplay );
 DECLARE_HUD_MESSAGE( CHudHintDisplay, HintText );
 
@@ -738,6 +740,9 @@ bool CHudHintKeyDisplay::SetHintText( const char *text )
 //-----------------------------------------------------------------------------
 void CHudHintKeyDisplay::MsgFunc_KeyHintText( bf_read &msg )
 {
+	if ( !contingency_client_weaponhints.GetBool() )
+		return;	// client currently doesn't want to receive weapon hints from us
+
 	// how many strings do we receive ?
 	int count = msg.ReadByte();
 

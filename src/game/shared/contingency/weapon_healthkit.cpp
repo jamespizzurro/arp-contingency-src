@@ -29,6 +29,7 @@ public:
 	CWeaponHealthKit();
 
 	void Precache( void );
+	bool Deploy( void );
 	void ItemPostFrame( void );
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
@@ -43,10 +44,16 @@ public:
 
 	bool ReloadOrSwitchWeapons( void );
 
+	bool Holster( CBaseCombatWeapon *pSwitchingTo );
+
 	CWeaponHealthKit( const CWeaponHealthKit & );
 
 private:
 	CNetworkVar( bool, m_bSuccessfulHeal );
+
+#ifndef CLIENT_DLL
+	bool m_bShouldShowHint;
+#endif
 };
 
 IMPLEMENT_NETWORKCLASS_ALIASED( WeaponHealthKit, DT_WeaponHealthKit )
@@ -95,8 +102,10 @@ IMPLEMENT_ACTTABLE( CWeaponHealthKit );
 //-----------------------------------------------------------------------------
 CWeaponHealthKit::CWeaponHealthKit( void )
 {
-#ifndef CLIENT_DLL
 	m_bSuccessfulHeal = false;
+
+#ifndef CLIENT_DLL
+	m_bShouldShowHint = false;
 #endif
 }
 
@@ -123,11 +132,9 @@ void CWeaponHealthKit::AddViewKick( void )
 //-----------------------------------------------------------------------------
 void CWeaponHealthKit::Drop( const Vector &vecVelocity )
 {
-	if ( !m_bSuccessfulHeal )
-		BaseClass::Drop( vecVelocity );
 #ifndef CLIENT_DLL
-	else
-		Delete();
+	// This weapon cannot and should not be dropped at this time
+	UTIL_Remove( this );
 #endif
 }
 
@@ -138,22 +145,41 @@ void CWeaponHealthKit::Precache( void )
 	PrecacheScriptSound( "HealthVial.Touch" );
 }
 
+bool CWeaponHealthKit::Deploy( void )
+{
+	if ( BaseClass::Deploy() )
+	{
+#ifndef CLIENT_DLL
+	m_bShouldShowHint = true;
+#endif
+
+		return true;
+	}
+
+	return false;
+}
+
 void CWeaponHealthKit::ItemPostFrame( void )
 {
 	CContingency_Player *pOwner = ToContingencyPlayer( GetOwner() );
 	if ( !pOwner )
 		return;
 
-	if ( m_bSuccessfulHeal )
-	{
-		if ( gpGlobals->curtime >= (m_flNextPrimaryAttack - 0.25f) )
-		{
-			pOwner->SwitchToNextBestWeapon( this );
-
 #ifndef CLIENT_DLL
-			Delete();	// health kits can only be used once
+	if ( m_bShouldShowHint )
+	{
+		UTIL_HudHintText( pOwner, "#Contingency_Hint_HealthKit" );
+		m_bShouldShowHint = false;
+	}
 #endif
-		}
+
+	if ( m_bSuccessfulHeal && (gpGlobals->curtime >= (m_flNextPrimaryAttack - 0.25f)) )
+	{
+		m_bSuccessfulHeal = false;
+		pOwner->SwitchToNextBestWeapon( this );
+#ifndef CLIENT_DLL
+		UTIL_Remove( this );
+#endif
 
 		return;	// we're done here
 	}
@@ -174,24 +200,24 @@ void CWeaponHealthKit::PrimaryAttack()
 	if ( m_bSuccessfulHeal )
 		return;
 
-	CContingency_Player *pPlayer = ToContingencyPlayer( GetOwner() );
-	if ( !pPlayer )
-		return;
+	if( gpGlobals->curtime >= m_flNextPrimaryAttack )
+	{
+		CContingency_Player *pPlayer = ToContingencyPlayer( GetOwner() );
+		if ( !pPlayer )
+			return;
 
 #ifndef CLIENT_DLL
 	// Move other players back to history positions based on local player's lag
 	lagcompensation->StartLagCompensation( pPlayer, pPlayer->GetCurrentCommand() );
 #endif
 
-	if( gpGlobals->curtime >= m_flNextPrimaryAttack )
-	{
 		if ( pPlayer->GetHealth() < pPlayer->GetMaxHealth() )
 		{
 #ifndef CLIENT_DLL
 			pPlayer->EmitSound( "HealthVial.Touch" );
 #endif
 
-			pPlayer->m_iHealth = pPlayer->GetMaxHealth();
+			pPlayer->SetHealth( pPlayer->GetMaxHealth() );
 
 			// Call the appropriate player and weapon animations
 			SendWeaponAnim( ACT_VM_HITCENTER );
@@ -200,19 +226,17 @@ void CWeaponHealthKit::PrimaryAttack()
 
 			AddViewKick();
 
-#ifndef CLIENT_DLL
 			m_bSuccessfulHeal = true;	// heal assumed to be successful
-#endif
 		}
 
 		m_flNextPrimaryAttack = gpGlobals->curtime + GetFireRate();
 		m_flNextSecondaryAttack = gpGlobals->curtime + GetFireRate();
-	}
 
 #ifndef CLIENT_DLL
 	// Move other players back to history positions based on local player's lag
 	lagcompensation->FinishLagCompensation( pPlayer );
 #endif
+	}
 }
 
 // Heals other players the player in possession of the health kit is targeting
@@ -254,7 +278,7 @@ void CWeaponHealthKit::SecondaryAttack()
 				pTargetPlayer->EmitSound( "HealthVial.Touch" );
 #endif
 
-				pTargetPlayer->m_iHealth = pTargetPlayer->GetMaxHealth();
+				pTargetPlayer->SetHealth( pTargetPlayer->GetMaxHealth() );
 
 				// Call the appropriate player and weapon animations
 				SendWeaponAnim( ACT_VM_MISSCENTER );
@@ -263,15 +287,15 @@ void CWeaponHealthKit::SecondaryAttack()
 
 				AddViewKick();
 
-				// Added credits system
 #ifndef CLIENT_DLL
+				ClientPrint( pTargetPlayer, HUD_PRINTTALK, "%s1 healed you with a health kit.", pPlayer->GetPlayerName() );
+				
+				// Added credits system
 				ClientPrint( pPlayer, HUD_PRINTTALK, "You have been granted 3 additional credits for healing a teammate." );
 				pPlayer->AddCredits( 3 );
 #endif
 
-#ifndef CLIENT_DLL
 				m_bSuccessfulHeal = true;	// heal assumed to be successful
-#endif
 			}
 		}
 
@@ -302,11 +326,11 @@ bool CWeaponHealthKit::ReloadOrSwitchWeapons( void )
 		// weapon isn't useable, switch.
 		if ( (GetWeaponFlags() & ITEM_FLAG_NOAUTOSWITCHEMPTY) == false )
 		{
+			m_bSuccessfulHeal = false;
 			if ( pOwner )
 				pOwner->SwitchToNextBestWeapon( this );
-
 #ifndef CLIENT_DLL
-			Delete();	// health kits can only be used once
+			UTIL_Remove( this );
 #endif
 
 			return true;
@@ -328,4 +352,12 @@ bool CWeaponHealthKit::ReloadOrSwitchWeapons( void )
 	}
 
 	return false;
+}
+
+bool CWeaponHealthKit::Holster( CBaseCombatWeapon *pSwitchingTo )
+{
+	if ( m_bSuccessfulHeal )
+		return false;
+
+	return BaseClass::Holster( pSwitchingTo );
 }

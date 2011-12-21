@@ -278,21 +278,6 @@ void CBaseHeadcrab::Spawn( void )
 
 	m_bHangingFromCeiling = false;
 	m_flIlluminatedTime = -1;
-
-/////
-
-	// Contingency - James
-	// Made it so NPCs always know where players are on a map (assuming the map is properly noded!)
-	// http://forums.steampowered.com/forums/showpost.php?p=23251833&postcount=7
-
-	// Finally, a solution for headcrabs that works!
-	// By default, headcrabs will not move towards enemies further than m_flDistTooFar.
-	// The spawnflag SF_NPC_LONG_RANGE extends this range to something very reasonable.
-
-	AddSpawnFlags( SF_NPC_LONG_RANGE );
-
-/////
-
 }
 
 //-----------------------------------------------------------------------------

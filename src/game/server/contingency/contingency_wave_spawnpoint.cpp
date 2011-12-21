@@ -175,6 +175,11 @@ void CContingencyWaveSpawner::MakeNPC( void )
 	pent->AddSpawnFlags( SF_NPC_FALL_TO_GROUND );
 	pent->AddSpawnFlags( SF_NPC_FADE_CORPSE );
 
+	pent->AddSpawnFlags( SF_NPC_NO_WEAPON_DROP );
+
+	pent->AddSpawnFlags( SF_NPC_ALWAYSTHINK );
+	pent->AddSpawnFlags( SF_NPC_LONG_RANGE );
+
 	// Apply any defined squads and hint groups the mapper may have defined
 	// as well as weapons (if applicable)
 	pent->SetSquadName( m_SquadName );

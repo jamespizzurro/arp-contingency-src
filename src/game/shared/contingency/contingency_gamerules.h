@@ -87,6 +87,8 @@ public:
 	// Added loadout system
 	void UpdatePlayerLoadouts( void );
 
+	void HealPlayers( void );
+
 	void RespawnDeadPlayers( void );
 
 	// Added announcements system
@@ -164,17 +166,15 @@ public:
 			SetCalculatedNumEnemies( 0 );
 			m_bPlayersDefeated = false;
 
-			RemoveSatchelsAndTripmines();	// more cleaning (all players' satchels and tripmines)
+			//RemoveSatchelsAndTripmines();	// more cleaning (all players' satchels and tripmines)
 
 			SetInterimPhaseTimeLeft( GetMapInterimPhaseLength() );
 
 			// Added loadout system
 			UpdatePlayerLoadouts();
 
-			RespawnDeadPlayers();
-
-			CContingency_System_Music::PlayAnnouncementSound( "Contingency.CombatToInterim" );
-			CContingency_System_Music::PlayBackgroundMusic( BACKGROUND_MUSIC_INTERIM );
+			HealPlayers();	// heal all living players
+			RespawnDeadPlayers();	// respawn dead ones
 		}
 		else if ( m_iCurrentPhase == PHASE_COMBAT )
 		{
@@ -185,10 +185,8 @@ public:
 			// Added loadout system
 			UpdatePlayerLoadouts();
 
-			RespawnDeadPlayers();
-
-			CContingency_System_Music::PlayAnnouncementSound( "Contingency.InterimToCombat" );
-			CContingency_System_Music::PlayBackgroundMusic( BACKGROUND_MUSIC_COMBAT );
+			HealPlayers();	// heal all living players
+			RespawnDeadPlayers();	// respawn dead ones
 		}
 	}
 #endif
@@ -224,8 +222,10 @@ public:
 	void IncrementWaveNumber( void ) { m_iWaveNum = m_iWaveNum + 1; }
 #endif
 	int GetWaveType( void ) { return m_iWaveType; }
+	int GetPreferredWaveType( void ) { return m_iPreferredWaveType; }
 #ifndef CLIENT_DLL
 	void SetWaveType( int newWaveType ) { m_iWaveType = newWaveType; }
+	void SetPreferredWaveType( int newPreferredWaveType ) { m_iPreferredWaveType = newPreferredWaveType; }
 #endif
 	int GetNumEnemiesRemaining( void ) { return m_iNumEnemiesRemaining; }
 #ifndef CLIENT_DLL
@@ -305,6 +305,11 @@ public:
 	// Prevent players' screens from fading to black upon fall deaths
 	bool FlPlayerFallDeathDoesScreenFade( CBasePlayer *pl ) { return false; }
 
+	// Added a non-restorative health system
+#ifndef CLIENT_DLL
+	CUtlVector<CContingency_Player_Info*> m_PlayerInfoList;
+#endif
+
 private:
 
 	// Added phase system
@@ -317,6 +322,7 @@ private:
 	// Added wave system
 	CNetworkVar( int, m_iWaveNum );
 	CNetworkVar( int, m_iWaveType );
+	CNetworkVar( int, m_iPreferredWaveType );
 	CNetworkVar( int, m_iNumEnemiesRemaining );
 #ifndef CLIENT_DLL
 	int m_iCalculatedNumEnemies;
@@ -362,11 +368,6 @@ private:
 	// Added support wave system
 #ifndef CLIENT_DLL
 	CUtlVector<CAI_BaseNPC*> *m_pCurrentSupportWaveNPCList;
-#endif
-
-	// Added a non-restorative health system
-#ifndef CLIENT_DLL
-	CUtlVector<CContingency_Player_Info*> m_PlayerInfoList;
 #endif
 };
 

@@ -1608,9 +1608,6 @@
     <ClCompile Include="c_ai_basenpc.cpp">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClCompile>
-    <ClCompile Include="contingency\navgen_display.cpp">
-      <Filter>Source Files\Contingency\UI</Filter>
-    </ClCompile>
     <ClCompile Include="contingency\hud_contingency_credits.cpp">
       <Filter>Source Files\Contingency\HUD</Filter>
     </ClCompile>
@@ -3469,9 +3466,6 @@
     </ClInclude>
     <ClInclude Include="c_ai_basenpc.h">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
-    </ClInclude>
-    <ClInclude Include="contingency\navgen_display.h">
-      <Filter>Source Files\Contingency\UI</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\hl2mp\weapon_physcannon.h">
       <Filter>Source Files\HL2MP\Weapons</Filter>

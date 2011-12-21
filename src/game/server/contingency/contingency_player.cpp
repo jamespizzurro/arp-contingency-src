@@ -126,7 +126,7 @@ void CContingency_Player::ApplyLoadout( void )
 	// Handle weapons and ammunition
 
 	// Remove any shit we have before we get new shit
-	ContingencyRules()->RemoveSatchelsAndTripmines( this );
+	//ContingencyRules()->RemoveSatchelsAndTripmines( this );
 	RemoveAllWeapons();
 
 	// Added loadout system
@@ -146,13 +146,34 @@ void CContingency_Player::ApplyLoadout( void )
 	}
 	else
 	{
+		const char *szPreferredEquipmentClassname = "";
+
 		// During combat phases, players are given their full loadout
-		GiveNamedItem( GetPreferredPrimaryWeaponClassname() );
-		GiveNamedItem( GetPreferredSecondaryWeaponClassname() );
-		GiveNamedItem( GetPreferredMeleeWeaponClassname() );
+		if ( IsBot() )
+		{
+			// Bots get a randomly chosen loadout
+			GiveNamedItem( kPrimaryWeaponTypes[random->RandomInt(0, NUM_PRIMARY_WEAPON_TYPES)][0] );
+			GiveNamedItem( kSecondaryWeaponTypes[random->RandomInt(0, NUM_SECONDARY_WEAPON_TYPES)][0] );
+			GiveNamedItem( kMeleeWeaponTypes[random->RandomInt(0, NUM_MELEE_WEAPON_TYPES)][0] );
+
+			szPreferredEquipmentClassname = kEquipmentTypes[random->RandomInt(0, NUM_EQUIPMENT_TYPES)][0];
+		}
+		else
+		{
+			GiveNamedItem( GetPreferredPrimaryWeaponClassname() );
+			GiveNamedItem( GetPreferredSecondaryWeaponClassname() );
+			GiveNamedItem( GetPreferredMeleeWeaponClassname() );
+
+			szPreferredEquipmentClassname = GetPreferredEquipmentClassname();
+		}
+
+		if ( Q_strcmp(szPreferredEquipmentClassname, "weapon_slam") != 0 )
+		{
+			// We do not want SLAMs
+			ContingencyRules()->RemoveSatchelsAndTripmines( this );	// remove any we have on the amp
+		}
 
 		// Added a modified version of Valve's floor turret
-		const char *szPreferredEquipmentClassname = GetPreferredEquipmentClassname();
 		CNPC_FloorTurret *pDeployedTurret = GetDeployedTurret();
 		if ( Q_strcmp(szPreferredEquipmentClassname, "weapon_deployableturret") == 0 )
 		{
@@ -201,7 +222,7 @@ void CContingency_Player::ApplyLoadout( void )
 
 	if ( ContingencyRules()->GetCurrentPhase() == PHASE_INTERIM )
 	{
-		// Switch to something iconic!
+		// Switch to something iconic (the gravity gun, of course)
 		Weapon_Switch( Weapon_OwnsThisType("weapon_physcannon") );
 	}
 	else
@@ -345,6 +366,30 @@ void CContingency_Player::Spawn( void )
 			// Added credits system
 			// Restore the player's credits
 			SetCredits( pPlayerInfo->GetCredits() );
+
+			// Added spawnable prop system
+			// Restore our reference to our spawnable props (via a list)
+			SetNumSpawnableProps( pPlayerInfo->GetNumSpawnableProps() );
+			m_SpawnablePropList = pPlayerInfo->spawnablePropList;	// NOTE: spawnablePropList is updated even while we're not connected (e.g. see CContingency_SpawnableProp's deconstructor)
+			for ( int i = 0; i < m_SpawnablePropList.Count(); i++ )	// actually register us as the owner of our spawnable props again (if possible)
+			{
+				CContingency_SpawnableProp *pSpawnableProp = m_SpawnablePropList.Element(i);
+				if ( !pSpawnableProp )
+					continue;
+
+				pSpawnableProp->SetSpawnerPlayer( this );
+			}
+
+			// Added a modified version of Valve's floor turret
+			// Restore our reference to our deployed turret (if any)
+			CNPC_FloorTurret *pDeployedTurret = pPlayerInfo->GetDeployedTurret();
+			if ( pDeployedTurret )	// actually register us as the owner of our deployed turret again (if possible)
+			{
+				SetDeployedTurret( pDeployedTurret );
+				pDeployedTurret->SetOwnerEntity( this );
+			}
+
+			ClientPrint( this, HUD_PRINTTALK, "Your player state before you disconnected has been restored." );
 		}
 		else if ( !pPlayerInfo )
 		{
@@ -899,13 +944,3 @@ void CContingency_Player::CheckChatBubble( CUserCmd *cmd )
 }
 
 /////
-
-bool CContingency_Player::CanBeSeenBy( CAI_BaseNPC *pNPC )
-{
-	return true;
-}
-
-bool CContingency_Player::CanBeAnEnemyOf( CBaseEntity *pEnemy )
-{
-	return true;
-}

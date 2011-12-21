@@ -10,6 +10,7 @@
 
 IMPLEMENT_CLIENTCLASS_DT( C_Contingency_SpawnableProp, DT_Contingency_SpawnableProp, CContingency_SpawnableProp )
 	RecvPropEHandle( RECVINFO(m_hSpawnerPlayer) ),
+	RecvPropBool( RECVINFO(m_bIsFrozen) ),
 END_RECV_TABLE()
 
 CUtlVector<C_Contingency_SpawnableProp*> m_SpawnablePropList = NULL;
@@ -29,12 +30,25 @@ const char* C_Contingency_SpawnableProp::GetOwnerDisplay( void )
 {
 	C_Contingency_Player *pPlayer = ToContingencyPlayer( GetSpawnerPlayer() );
 	if ( !pPlayer )
-		return "Prop";
+	{
+		if ( m_bIsFrozen )
+			return "Orphaned Prop";
+		else
+			return "Orphaned Prop (Unfrozen)";
+	}
 
 	if ( pPlayer == C_Contingency_Player::GetLocalContingencyPlayer() )
-		return "Your Prop";
+	{
+		if ( m_bIsFrozen )
+			return "Your Prop";
+		else
+			return "Your Prop (Unfrozen)";
+	}
 
 	char szOwnerDisplay[256];
-	Q_snprintf( szOwnerDisplay, sizeof(szOwnerDisplay), "%s's Prop", pPlayer->GetPlayerName() );
+	if ( m_bIsFrozen )
+		Q_snprintf( szOwnerDisplay, sizeof(szOwnerDisplay), "%s's Prop", pPlayer->GetPlayerName() );
+	else
+		Q_snprintf( szOwnerDisplay, sizeof(szOwnerDisplay), "%s's Prop (Unfrozen)", pPlayer->GetPlayerName() );
 	return szOwnerDisplay;
 }

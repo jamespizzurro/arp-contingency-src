@@ -25,6 +25,7 @@ public:
 
 private:
 	CHandle<CBasePlayer> m_hSpawnerPlayer;
+	bool m_bIsFrozen;
 
 	C_Contingency_SpawnableProp( const C_Contingency_SpawnableProp & ); // not defined, not accessible
 };

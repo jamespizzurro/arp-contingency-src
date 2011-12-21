@@ -47,10 +47,16 @@ public:
 
 	bool		ReloadOrSwitchWeapons( void );
 
+	bool		Holster( CBaseCombatWeapon *pSwitchingTo );
+
 	CWeaponDeployableTurret( const CWeaponDeployableTurret & );
 
 private:
 	CNetworkVar( bool, m_bSuccessfulPlacement );
+
+#ifndef CLIENT_DLL
+	bool m_bShouldShowHint;
+#endif
 };
 
 IMPLEMENT_NETWORKCLASS_ALIASED( WeaponDeployableTurret, DT_WeaponDeployableTurret )
@@ -98,14 +104,16 @@ IMPLEMENT_ACTTABLE( CWeaponDeployableTurret );
 //-----------------------------------------------------------------------------
 CWeaponDeployableTurret::CWeaponDeployableTurret( void )
 {
-#ifndef CLIENT_DLL
 	m_bSuccessfulPlacement = false;
-#endif
 
 	ChangeAppearance( false );
 
 #ifndef CLIENT_DLL
 	m_iHealth = CONTINGENCY_TURRET_MAX_HEALTH;
+#endif
+
+#ifndef CLIENT_DLL
+	m_bShouldShowHint = false;
 #endif
 }
 
@@ -156,9 +164,21 @@ void CWeaponDeployableTurret::Precache( void )
 
 bool CWeaponDeployableTurret::Deploy( void )
 {
-	ChangeAppearance( false );
+	if ( BaseClass::Deploy() )
+	{
+		if ( m_bSuccessfulPlacement )
+			ChangeAppearance( true );
+		else
+			ChangeAppearance( false );
 
-	return BaseClass::Deploy();
+#ifndef CLIENT_DLL
+	m_bShouldShowHint = true;
+#endif
+
+		return true;
+	}
+
+	return false;
 }
 
 void CWeaponDeployableTurret::ItemPostFrame( void )
@@ -167,12 +187,20 @@ void CWeaponDeployableTurret::ItemPostFrame( void )
 	if ( !pOwner )
 		return;
 
+#ifndef CLIENT_DLL
+	if ( m_bShouldShowHint )
+	{
+		UTIL_HudHintText( pOwner, "#Contingency_Hint_DeployableTurret" );
+		m_bShouldShowHint = false;
+	}
+#endif
+
 	if ( m_bSuccessfulPlacement && (gpGlobals->curtime >= (m_flNextPrimaryAttack - 0.25f)) )
 	{
+		m_bSuccessfulPlacement = false;
 		pOwner->SwitchToNextBestWeapon( this );
-
 #ifndef CLIENT_DLL
-		Delete();
+		UTIL_Remove( this );
 #endif
 
 		return;	// we're done here
@@ -223,15 +251,6 @@ void CWeaponDeployableTurret::PrimaryAttack()
 	if ( m_bSuccessfulPlacement )
 		return;
 
-	CContingency_Player *pOwner = ToContingencyPlayer( GetOwner() );
-	if ( !pOwner )
-		return;
-
-#ifndef CLIENT_DLL
-	// Move other players back to history positions based on local player's lag
-	lagcompensation->StartLagCompensation( pOwner, pOwner->GetCurrentCommand() );
-#endif
-
 	if ( gpGlobals->curtime >= m_flNextPrimaryAttack )
 	{
 		CContingency_Player *pOwner = ToContingencyPlayer( GetOwner() );
@@ -239,12 +258,17 @@ void CWeaponDeployableTurret::PrimaryAttack()
 			return;
 
 #ifndef CLIENT_DLL
+		// Move other players back to history positions based on local player's lag
+		lagcompensation->StartLagCompensation( pOwner, pOwner->GetCurrentCommand() );
+#endif
+
+#ifndef CLIENT_DLL
 		CNPC_FloorTurret *pDeployedTurret = dynamic_cast<CNPC_FloorTurret*>( Create("npc_turret_floor", pOwner->GetAbsOrigin(), pOwner->GetAbsAngles(), pOwner) );
 		if ( pDeployedTurret )
 		{
 			pDeployedTurret->SetHealth( GetHealth() );	// if applicable, restore deployed turret to its original health (a clever hack?)
 			if ( pOwner->GetDeployedTurret() )	// not sure if this is possible at this point in time, but just in case...
-				Warning( "Player (userid %i) has more than one deployed turret in the world! This is merely a report; no action has or will been taken with regards to this.\n", pOwner->GetUserID() );
+				pOwner->GetDeployedTurret()->Explode();	// ...explode any deployed turrets we currently have in the world first!
 			pOwner->SetDeployedTurret( pDeployedTurret );	// take note that our owner now has a deployable turret in the world
 		}
 #endif
@@ -258,17 +282,15 @@ void CWeaponDeployableTurret::PrimaryAttack()
 
 		AddViewKick();
 
-#ifndef CLIENT_DLL
 		m_bSuccessfulPlacement = true;
-#endif
 
 		m_flNextPrimaryAttack = gpGlobals->curtime + GetFireRate();
-	}
 
 #ifndef CLIENT_DLL
-	// Move other players back to history positions based on local player's lag
-	lagcompensation->FinishLagCompensation( pOwner );
+		// Move other players back to history positions based on local player's lag
+		lagcompensation->FinishLagCompensation( pOwner );
 #endif
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -288,11 +310,11 @@ bool CWeaponDeployableTurret::ReloadOrSwitchWeapons( void )
 		// weapon isn't useable, switch.
 		if ( (GetWeaponFlags() & ITEM_FLAG_NOAUTOSWITCHEMPTY) == false )
 		{
+			m_bSuccessfulPlacement = false;
 			if ( pOwner )
 				pOwner->SwitchToNextBestWeapon( this );
-
 #ifndef CLIENT_DLL
-			Delete();
+			UTIL_Remove( this );
 #endif
 
 			return true;
@@ -314,4 +336,12 @@ bool CWeaponDeployableTurret::ReloadOrSwitchWeapons( void )
 	}
 
 	return false;
+}
+
+bool CWeaponDeployableTurret::Holster( CBaseCombatWeapon *pSwitchingTo )
+{
+	if ( m_bSuccessfulPlacement )
+		return false;
+
+	return BaseClass::Holster( pSwitchingTo );
 }

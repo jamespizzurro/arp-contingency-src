@@ -205,11 +205,13 @@ enum SolidFlags_t
 /////
 
 	// Contingency - James
+	// Allow selected entities to collide with their owners
 	// Added a modified version of Valve's floor turret
+	// https://developer.valvesoftware.com/wiki/Owner
 
 	//FSOLID_MAX_BITS	= 10
 
-	FSOLID_ALLOW_OWNER_TRACING   = 0X0400,	// Allows tracelines involving m_hOwner to function as expected
+	FSOLID_COLLIDE_WITH_OWNER   = 0X0400,	// allows for collisions and tracelines involving owner
 
 	FSOLID_MAX_BITS	= 11
 

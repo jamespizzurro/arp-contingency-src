@@ -350,7 +350,19 @@ void CNPC_PlayerCompanion::GatherConditions()
 
 	CBasePlayer *pPlayer = UTIL_GetNearestPlayer(GetAbsOrigin()); // AI Patch Addition.
 //	if ( AI_IsSinglePlayer() ) // AI Patch Addition.
-	{
+
+/////
+
+	// Contingency - James
+	// Fixed server-side crash
+	// http://forums.steampowered.com/forums/showpost.php?p=13544665&postcount=6
+
+	//{
+
+	if ( !pPlayer )
+		return;
+
+/////
 
 		if ( Classify() == CLASS_PLAYER_ALLY_VITAL )
 		{
@@ -438,7 +450,16 @@ void CNPC_PlayerCompanion::GatherConditions()
 				m_flBoostSpeed *= mult;
 			}
 		}
-	}
+
+/////
+
+	// Contingency - James
+	// Fixed server-side crash
+	// http://forums.steampowered.com/forums/showpost.php?p=13544665&postcount=6
+
+	//}
+
+/////
 
 	// Update our readiness if we're 
 	if ( IsReadinessCapable() )
@@ -973,6 +994,17 @@ int CNPC_PlayerCompanion::TranslateSchedule( int scheduleType )
 				//if ( AI_IsSinglePlayer() ) // AI Patch Addition.
 				{
 					CBasePlayer *pPlayer = UTIL_GetNearestPlayer(GetAbsOrigin()); // AI Patch Addition.
+					
+/////
+
+	// Contingency - James
+	// Fixed server-side crash
+
+					if ( pPlayer )
+					{
+
+/////
+					
 					pWeapon = pPlayer->GetActiveWeapon();
 					if( pWeapon && pWeapon->UsesClipsForAmmo1() && 
 						pWeapon->Clip1() < ( pWeapon->GetMaxClip1() * .75 ) &&
@@ -980,6 +1012,16 @@ int CNPC_PlayerCompanion::TranslateSchedule( int scheduleType )
 					{
 						SpeakIfAllowed( TLK_PLRELOAD );
 					}
+
+/////
+
+	// Contingency - James
+	// Fixed server-side crash
+
+					}
+
+/////
+
 				}
 				return SCHED_RELOAD;
 			}
@@ -3019,8 +3061,22 @@ float CNPC_PlayerCompanion::GetIdealAccel() const
 	float multiplier = 1.0;
 	//	if ( AI_IsSinglePlayer() ) // AI Patch Addition.
 	{
-		if ( m_bMovingAwayFromPlayer && (UTIL_GetNearestPlayer(GetAbsOrigin())->GetAbsOrigin() - GetAbsOrigin()).Length2DSqr() < Square(3.0*12.0) ) // AI Patch Addition.
+
+/////
+
+	// Contingency - James
+	// Fixed server-side crash
+	// http://forums.steampowered.com/forums/showpost.php?p=16363855&postcount=4
+
+		/*if ( m_bMovingAwayFromPlayer && (UTIL_GetNearestPlayer(GetAbsOrigin())->GetAbsOrigin() - GetAbsOrigin()).Length2DSqr() < Square(3.0*12.0) ) // AI Patch Addition.
+			multiplier = 2.0;*/
+
+		CBasePlayer *pPlayer = UTIL_GetNearestPlayer( GetAbsOrigin() );
+		if ( m_bMovingAwayFromPlayer && pPlayer && ((pPlayer->GetAbsOrigin() - GetAbsOrigin()).Length2DSqr() < Square(3.0*12.0)) ) // AI Patch Addition.
 			multiplier = 2.0;
+
+/////
+
 	}
 	return BaseClass::GetIdealAccel() * multiplier;
 }

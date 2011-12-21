@@ -28,7 +28,7 @@ const char* C_NPC_FloorTurret::GetOwnerDisplay( void )
 {
 	C_Contingency_Player *pPlayer = ToContingencyPlayer( GetOwnerEntity() );
 	if ( !pPlayer )
-		return "Turret";
+		return "Orphaned Turret";
 
 	if ( pPlayer == C_Contingency_Player::GetLocalContingencyPlayer() )
 		return "Your Turret";

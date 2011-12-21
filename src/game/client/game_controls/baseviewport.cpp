@@ -54,7 +54,7 @@
 	// Contingency - James
 	// Added a fully-automated nodegraph generation system
 
-#include "navgen_display.h"
+//#include "navgen_display.h"
 
 /////
 
@@ -258,7 +258,7 @@ void CBaseViewport::CreateDefaultPanels( void )
 	// Contingency - James
 	// Added a fully-automated nodegraph generation system
 
-	AddNewPanel( CreatePanelByName(PANEL_NAVGEN_DISPLAY), PANEL_NAVGEN_DISPLAY );
+	//AddNewPanel( CreatePanelByName(PANEL_NAVGEN_DISPLAY), PANEL_NAVGEN_DISPLAY );
 
 /////
 
@@ -330,10 +330,10 @@ IViewPortPanel* CBaseViewport::CreatePanelByName(const char *szPanelName)
 	// Contingency - James
 	// Added a fully-automated nodegraph generation system
 
-	else if ( Q_strcmp(PANEL_NAVGEN_DISPLAY, szPanelName) == 0 )
+	/*else if ( Q_strcmp(PANEL_NAVGEN_DISPLAY, szPanelName) == 0 )
 	{
 		newpanel = new CNavGenDisplay( this );
-	}
+	}*/
 
 /////
 

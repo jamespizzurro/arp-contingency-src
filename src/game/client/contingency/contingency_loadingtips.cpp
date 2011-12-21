@@ -170,12 +170,12 @@ void CContingencyLoadingTips::PerformLayout()
 	tall *= 6;
 
 	// Background for tip area (quite a hack, uses an image since SetBgColor does appear to work with Labels)
-	m_pTipBackground->SetBounds( w/2 - (m_pHTMLPanel->GetWide()/2), 50 + m_pHTMLPanel->GetTall() + 50,
+	m_pTipBackground->SetBounds( 20, 50 + m_pHTMLPanel->GetTall() + 50,
 		w / 2 - 20, tall + 63);
 	m_pTipBackground->SetZPos( -1 );
 
 	m_pTipPanel->SetTextInset(15, 10);
-	m_pTipPanel->SetBounds( w/2 - (m_pHTMLPanel->GetWide()/2), 50 + m_pHTMLPanel->GetTall() + 50,
+	m_pTipPanel->SetBounds( 20, 50 + m_pHTMLPanel->GetTall() + 50,
 		w / 2 - 20, tall + 63);
 	m_pTipPanel->SetFgColor( Color(255,255,255,255) );
 

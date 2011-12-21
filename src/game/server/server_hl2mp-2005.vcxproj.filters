@@ -213,9 +213,6 @@
     <ClCompile Include="ai_scriptconditions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ai_senses.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ai_sentence.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1461,9 +1458,6 @@
     <ClCompile Include="hl2\npc_mossman.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
-    <ClCompile Include="hl2\npc_playercompanion.cpp">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClCompile>
     <ClCompile Include="hl2\npc_rollermine.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
@@ -1755,9 +1749,6 @@
     <ClCompile Include="hl2\npc_citizen17.cpp">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClCompile>
-    <ClCompile Include="contingency\contingency_nodeplacer.cpp">
-      <Filter>Source Files\Contingency</Filter>
-    </ClCompile>
     <ClCompile Include="gameinterface.cpp">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClCompile>
@@ -1790,6 +1781,12 @@
     </ClCompile>
     <ClCompile Include="contingency\npc_contingency_target.cpp">
       <Filter>Source Files\Contingency\Entities\NPCs</Filter>
+    </ClCompile>
+    <ClCompile Include="ai_senses.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hl2\npc_playercompanion.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3520,9 +3517,6 @@
     </ClInclude>
     <ClInclude Include="..\shared\contingency\contingency_system_phase.h">
       <Filter>Source Files\Contingency\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="contingency\contingency_nodeplacer.h">
-      <Filter>Source Files\Contingency</Filter>
     </ClInclude>
     <ClInclude Include="contingency\contingency_boss_spawnpoint.h">
       <Filter>Source Files\Contingency\Entities</Filter>

@@ -15,6 +15,8 @@
 
 #include <game/client/iviewport.h>
 
+#include "c_contingency_player.h"
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -36,9 +38,9 @@ CSpawnableProp_DeletionMenu::CSpawnableProp_DeletionMenu( IViewPort *pViewPort )
 
 	m_pTitle = new Label( this, "TitleLabel", "" );
 	m_pText = new Label( this, "TextLabel", "" );
-	m_pText2 = new Label( this, "TextLabel2", "" );
-	m_pYes = new Button( this, "YesButton", "" );
-	m_pNo = new Button( this, "NoButton", "" );
+	m_pDeleteButton = new Button( this, "DeleteButton", "" );
+	m_pToggleFrozenButton = new Button( this, "ToggleFrozenButton", "");
+	m_pCancelButton = new Button( this, "CancelButton", "" );
 
 	LoadControlSettings( "Resource/UI/SpawnableProp_DeletionMenu.res" );
 
@@ -99,6 +101,9 @@ void CSpawnableProp_DeletionMenu::OnCommand( const char *command )
 {
 	if ( Q_stricmp(command, "removespawnablepropinfocus") == 0 )
 		engine->ServerCmd( "removespawnablepropinfocus\n" );
+
+	if ( Q_stricmp(command, "togglefrozenspawnablepropinfocus") == 0 )
+		engine->ServerCmd( "togglefrozenspawnablepropinfocus\n" );
 
 	Close();
 	gViewPortInterface->ShowBackGround( false );

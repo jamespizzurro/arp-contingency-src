@@ -93,11 +93,39 @@ void CC_RemoveSpawnablePropInFocus( const CCommand &args )
 	if ( !pPlayer )
 		return;
 
-	if ( !pPlayer->GetSpawnablePropInFocus() )
+	if ( ContingencyRules()->GetCurrentPhase() != PHASE_INTERIM )
+	{
+		ClientPrint( pPlayer, HUD_PRINTTALK, "Props can only be operated during interim phases." );
+		return;	// we're only allowed to operate props during interim phases
+	}
+
+	CContingency_SpawnableProp *pProp = pPlayer->GetSpawnablePropInFocus();
+	if ( !pProp )
 		return;	// this concommand has been used improperly
 
-	if ( pPlayer->GetSpawnablePropInFocus()->IsDissolving() )
+	if ( pPlayer != pProp->GetSpawnerPlayer() )
+	{
+		ClientPrint( pPlayer, HUD_PRINTTALK, "This prop is not yours to operate." );
+		return;	// only our spawner can operate us
+	}
+
+	if ( pProp->IsDissolving() )
 		return;	// props that are already dissolving should be ignored
+
+	// Give the player their credits back that they used to purchase this prop
+	pPlayer->AddCredits( Q_atoi(kSpawnablePropTypes[pProp->GetSpawnablePropIndex()][1]) );
+
+	pProp->Dissolve( NULL, gpGlobals->curtime, false, ENTITY_DISSOLVE_NORMAL );
+	pPlayer->SetSpawnablePropInFocus( NULL );
+}
+static ConCommand removespawnablepropinfocus( "removespawnablepropinfocus", CC_RemoveSpawnablePropInFocus, "Removes the spawnable prop currently in focus" );
+
+// Added spawnable prop system
+void CC_ToggleFrozenPropInFocus( const CCommand &args )
+{
+	CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_GetCommandClient() );
+	if ( !pPlayer )
+		return;
 
 	if ( ContingencyRules()->GetCurrentPhase() != PHASE_INTERIM )
 	{
@@ -105,13 +133,23 @@ void CC_RemoveSpawnablePropInFocus( const CCommand &args )
 		return;	// we're only allowed to operate props during interim phases
 	}
 
-	// Give the player their credits back that they used to purchase this prop
-	pPlayer->AddCredits( Q_atoi(kSpawnablePropTypes[pPlayer->GetSpawnablePropInFocus()->GetSpawnablePropIndex()][1]) );
+	CContingency_SpawnableProp *pProp = pPlayer->GetSpawnablePropInFocus();
+	if ( !pProp )
+		return;	// this concommand has been used improperly
 
-	pPlayer->GetSpawnablePropInFocus()->GetBaseAnimating()->Dissolve( NULL, gpGlobals->curtime, false, ENTITY_DISSOLVE_NORMAL );
-	pPlayer->SetSpawnablePropInFocus( NULL );
+	if ( pPlayer != pProp->GetSpawnerPlayer() )
+	{
+		ClientPrint( pPlayer, HUD_PRINTTALK, "This prop is not yours to operate." );
+		return;	// only our spawner can operate us
+	}
+
+	if ( pProp->IsDissolving() )
+		return;	// props that are already dissolving should be ignored
+
+	// Actually toggle frozen state of spawnable prop in focus
+	pProp->SetFrozenState( !pProp->IsFrozen() );
 }
-static ConCommand removespawnablepropinfocus( "removespawnablepropinfocus", CC_RemoveSpawnablePropInFocus, "Removes the spawnable prop currently in focus" );
+static ConCommand togglefrozenspawnablepropinfocus( "togglefrozenspawnablepropinfocus", CC_ToggleFrozenPropInFocus, "Freezes/unfreezes the spawnable prop currently in focus" );
 
 // Added spawnable prop system
 void CC_ForgetSpawnablePropInFocus( const CCommand &args )
@@ -123,5 +161,56 @@ void CC_ForgetSpawnablePropInFocus( const CCommand &args )
 	pPlayer->SetSpawnablePropInFocus( NULL );
 }
 static ConCommand forgetspawnablepropinfocus( "forgetspawnablepropinfocus", CC_ForgetSpawnablePropInFocus, "Resets the spawnable prop currently in focus" );
+
+void CC_CheatSetWaveNumber( const CCommand &args )
+{
+	CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_GetCommandClient() );
+	if ( !pPlayer )
+		return;
+
+	if ( (args.ArgC() < 1) || (Q_strcmp(args.Arg(1), "") == 0) || (atoi(args.Arg(1)) <= 0) )
+	{
+		Msg( "Description: sets the current wave number to the specified positive integer\n" );
+		Msg( "Usage: contingency_cheat_setwavenumber <positive integer>\n" );
+		return;
+	}
+
+	ContingencyRules()->SetWaveNumber( atoi(args.Arg(1)) );
+}
+static ConCommand contingency_cheat_setwavenumber( "contingency_cheat_setwavenumber", CC_CheatSetWaveNumber, "CHEAT: Sets the current wave number to the specified positive integer", FCVAR_CHEAT );
+
+void CC_CheatSetWaveType( const CCommand &args )
+{
+	CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_GetCommandClient() );
+	if ( !pPlayer )
+		return;
+
+	if ( (args.ArgC() < 1) || (Q_strcmp(args.Arg(1), "") == 0) || (atoi(args.Arg(1)) < WAVE_NONE) || (atoi(args.Arg(1)) >= NUM_WAVES) )
+	{
+		Msg( "Description: sets the next wave type according to the integer specified (-1 for no preference, 0 for headcrab, 1 for antlion, 2 for zombie, 3 for combine)\n" );
+		Msg( "Usage: contingency_cheat_setwavetype <integer between -1 and 3 (inclusive)>\n" );
+		return;
+	}
+
+	ContingencyRules()->SetPreferredWaveType( atoi(args.Arg(1)) );
+}
+static ConCommand contingency_cheat_setwavetype( "contingency_cheat_setwavetype", CC_CheatSetWaveType, "CHEAT: Sets the next wave type according to the integer specified (-1 for no preference, 0 for headcrab, 1 for antlion, 2 for zombie, 3 for combine)", FCVAR_CHEAT );
+
+void CC_CheatSetCredits( const CCommand &args )
+{
+	CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_GetCommandClient() );
+	if ( !pPlayer )
+		return;
+
+	if ( (args.ArgC() < 1) || (Q_strcmp(args.Arg(1), "") == 0) || (atoi(args.Arg(1)) < 0) )
+	{
+		Msg( "Description: sets the player's credits to the positive integer specified\n" );
+		Msg( "Usage: contingency_cheat_setcredits <positive integer>\n" );
+		return;
+	}
+
+	pPlayer->SetCredits( atoi(args.Arg(1)) );
+}
+static ConCommand contingency_cheat_setcredits( "contingency_cheat_setcredits", CC_CheatSetCredits, "CHEAT: Sets the player's credits to the positive integer specified", FCVAR_CHEAT );
 
 #endif

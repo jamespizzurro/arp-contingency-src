@@ -511,12 +511,29 @@ int CCollisionEvent::ShouldCollide_2( IPhysicsObject *pObj0, IPhysicsObject *pOb
 	if ( pEntity0->ForceVPhysicsCollide( pEntity1 ) || pEntity1->ForceVPhysicsCollide( pEntity0 ) )
 		return 1;
 
-	if ( pEntity0->edict() && pEntity1->edict() )
+/////
+
+	// Contingency - James
+	// Allow selected entities to collide with their owners
+	// Added a modified version of Valve's floor turret
+	// https://developer.valvesoftware.com/wiki/Owner
+
+	/*if ( pEntity0->edict() && pEntity1->edict() )
 	{
 		// don't collide with your owner
 		if ( pEntity0->GetOwnerEntity() == pEntity1 || pEntity1->GetOwnerEntity() == pEntity0 )
 			return 0;
+	}*/
+
+	if ( pEntity0->edict() && pEntity1->edict() )
+	{
+		// don't collide with your owner
+		if ( (!pEntity0->IsSolidFlagSet(FSOLID_COLLIDE_WITH_OWNER) && pEntity0->GetOwnerEntity() == pEntity1)
+			|| (!pEntity1->IsSolidFlagSet(FSOLID_COLLIDE_WITH_OWNER) && pEntity1->GetOwnerEntity() == pEntity0) )
+			return 0;
 	}
+
+/////
 
 	if ( pEntity0->GetMoveParent() || pEntity1->GetMoveParent() )
 	{

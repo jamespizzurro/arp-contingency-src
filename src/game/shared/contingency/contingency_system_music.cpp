@@ -19,7 +19,7 @@
 		"contingency_client_backgroundmusic",
 		"1",
 		FCVAR_ARCHIVE,
-		"Toggles the automatic playing of background music during combat and interim phases" );
+		"Toggles the automatic playing of background music throughout the game" );
 
 	ConVar contingency_client_backgroundmusic_volume(
 		"contingency_client_backgroundmusic_volume",

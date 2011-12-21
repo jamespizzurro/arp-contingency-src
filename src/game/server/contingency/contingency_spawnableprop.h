@@ -25,12 +25,19 @@ public:
 
 	void Spawn( void );
 
+	void SetFrozenState( bool shouldFreeze );
+	bool IsFrozen( void ) { return m_bIsFrozen; }
+
 	int ObjectCaps() { return BaseClass::ObjectCaps() | FCAP_WCEDIT_POSITION | FCAP_IMPULSE_USE; }
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	int OnTakeDamage( const CTakeDamageInfo &info );
+	void Think( void );
+	bool OnAttemptPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason );
 
 private:
 	CNetworkHandle( CBasePlayer, m_hSpawnerPlayer );
 
+	CNetworkVar( bool, m_bIsFrozen );
 	int m_iSpawnablePropIndex;
 	CNPC_Contingency_Target *pTarget;
 };

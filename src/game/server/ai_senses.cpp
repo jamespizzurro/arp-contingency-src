@@ -417,9 +417,6 @@ int CAI_Senses::LookForHighPriorityEntities( int iDistance )
 		m_TimeLastLookHighPriority = gpGlobals->curtime;
 		
 		BeginGather();
-	
-		float distSq = ( iDistance * iDistance );
-		const Vector &origin = GetAbsOrigin();
 		
 /////
 
@@ -427,8 +424,11 @@ int CAI_Senses::LookForHighPriorityEntities( int iDistance )
 	// Made it so NPCs always know where players are on a map (assuming the map is properly noded!)
 	// http://forums.steampowered.com/forums/showpost.php?p=23251833&postcount=7
 
+		/*float distSq = ( iDistance * iDistance );
+		const Vector &origin = GetAbsOrigin();
+
 		// Players
-		/*for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
 			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 

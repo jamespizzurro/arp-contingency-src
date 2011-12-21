@@ -33,6 +33,7 @@ public:
 
 public:
 	void Precache( void );
+	bool Deploy( void );
 	void ItemPostFrame( void );
 	void PrimaryAttack( void );
 	void Think( void );
@@ -49,6 +50,10 @@ private:
 	trace_t tr;
 	Vector vecAbsStart, vecAbsEnd, vecDir;
 	CBaseEntity *pTarget;
+#endif
+
+#ifndef CLIENT_DLL
+	bool m_bShouldShowHint;
 #endif
 };
 
@@ -105,6 +110,10 @@ CWeaponNyanGun::CWeaponNyanGun( void )
 #endif
 
 	m_flNextPrimaryAttack = 0.0f;
+
+#ifndef CLIENT_DLL
+	m_bShouldShowHint = false;
+#endif
 }
 
 CWeaponNyanGun::~CWeaponNyanGun( void )
@@ -123,11 +132,33 @@ void CWeaponNyanGun::Precache( void )
 #endif
 }
 
+bool CWeaponNyanGun::Deploy( void )
+{
+	if ( BaseClass::Deploy() )
+	{
+#ifndef CLIENT_DLL
+	m_bShouldShowHint = true;
+#endif
+
+		return true;
+	}
+
+	return false;
+}
+
 void CWeaponNyanGun::ItemPostFrame( void )
 {
 	pPlayer = ToContingencyPlayer( GetOwner() );
 	if ( !pPlayer )
 		return;
+
+#ifndef CLIENT_DLL
+	if ( m_bShouldShowHint )
+	{
+		UTIL_HudHintText( pPlayer, "#Contingency_Hint_NyanGun" );
+		m_bShouldShowHint = false;
+	}
+#endif
 
 	if ( pPlayer->m_nButtons & IN_ATTACK )
 	{

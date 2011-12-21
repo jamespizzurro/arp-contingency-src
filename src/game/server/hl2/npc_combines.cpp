@@ -131,9 +131,16 @@ void CNPC_CombineS::Precache()
 
 	PrecacheModel( STRING( GetModelName() ) );
 
-	UTIL_PrecacheOther( "item_healthvial" );
-	UTIL_PrecacheOther( "weapon_frag" );
-	UTIL_PrecacheOther( "item_ammo_ar2_altfire" );
+/////
+
+	// Contingency - James
+	// Prevent Combine NPCs from dropping items
+
+	//UTIL_PrecacheOther( "item_healthvial" );
+	//UTIL_PrecacheOther( "weapon_frag" );
+	//UTIL_PrecacheOther( "item_ammo_ar2_altfire" );
+
+/////
 
 	BaseClass::Precache();
 }
@@ -326,7 +333,13 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 			if ( HasSpawnFlags( SF_COMBINE_NO_AR2DROP ) == false )
 #endif
 			{
-				CBaseEntity *pItem = DropItem( "item_ammo_ar2_altfire", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+
+/////
+
+	// Contingency - James
+	// Prevent Combine NPCs from dropping items
+
+				/*CBaseEntity *pItem = DropItem( "item_ammo_ar2_altfire", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 
 				if ( pItem )
 				{
@@ -354,7 +367,10 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 					{
 						WeaponManager_AddManaged( pItem );
 					}
-				}
+				}*/
+
+/////
+
 			}
 		}
 
@@ -363,7 +379,16 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 		// Attempt to drop health
 		if ( pHL2GameRules->NPC_ShouldDropHealth( pPlayer ) )
 		{
-			DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+
+/////
+
+	// Contingency - James
+	// Prevent Combine NPCs from dropping items
+
+			//DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			
+/////
+			
 			pHL2GameRules->NPC_DroppedHealth();
 		}
 		
@@ -372,7 +397,16 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 			// Attempt to drop a grenade
 			if ( pHL2GameRules->NPC_ShouldDropGrenade( pPlayer ) )
 			{
-				DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+
+/////
+
+	// Contingency - James
+	// Prevent Combine NPCs from dropping items
+
+				//DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+				
+/////
+				
 				pHL2GameRules->NPC_DroppedGrenade();
 			}
 		}

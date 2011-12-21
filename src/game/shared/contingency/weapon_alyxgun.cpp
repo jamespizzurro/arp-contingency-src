@@ -39,12 +39,12 @@ public:
 	virtual void Equip( CBaseCombatCharacter *pOwner );
 	bool	Reload( void );
 
-	float	GetFireRate( void ) { return 0.1f; }
+	float	GetFireRate( void ) { return 0.1f; }	// 10hz
 	Activity	GetPrimaryAttackActivity( void );
 
 	virtual const Vector& GetBulletSpread( void )
 	{
-		static const Vector cone = VECTOR_CONE_10DEGREES;
+		static const Vector cone = VECTOR_CONE_4DEGREES;
 		return cone;
 	}
 
@@ -147,9 +147,9 @@ bool CWeaponAlyxgun::Reload( void )
 //-----------------------------------------------------------------------------
 void CWeaponAlyxgun::AddViewKick( void )
 {
-	#define	EASY_DAMPEN			1.0f
-	#define	MAX_VERTICAL_KICK	2.0f	//Degrees
-	#define	SLIDE_LIMIT			1.0f	//Seconds
+	#define	EASY_DAMPEN			0.5f
+	#define	MAX_VERTICAL_KICK	1.0f	//Degrees
+	#define	SLIDE_LIMIT			2.0f	//Seconds
 	
 	//Get the view kick
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );

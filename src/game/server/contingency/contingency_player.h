@@ -31,11 +31,26 @@ public:
 	int GetCredits( void ) { return credits; }
 	void SetCredits( int newCredits ) { credits = newCredits; }
 
+	// Added spawnable prop system
+	CUtlVector<CContingency_SpawnableProp*> spawnablePropList;
+	int GetNumSpawnableProps( void ) { return numSpawnableProps; }
+	void SetNumSpawnableProps( int newNumSpawnableProps ) { numSpawnableProps = newNumSpawnableProps; }
+
+	// Added a modified version of Valve's floor turret
+	CNPC_FloorTurret *GetDeployedTurret( void ) { return deployedTurret; }
+	void SetDeployedTurret( CNPC_FloorTurret *newDeployedTurret ) { deployedTurret = newDeployedTurret; }
+
 private:
 	bool accessed;
 	const char *steamID;
 	int health;
 	int credits;
+
+	// Added spawnable prop system
+	int numSpawnableProps;
+
+	// Added a modified version of Valve's floor turret
+	CHandle<CNPC_FloorTurret> deployedTurret;
 };
 
 class CContingency_Player : public CHL2MP_Player
@@ -188,9 +203,6 @@ public:
 	// Added spawnable prop system
 	int GetDesiredSpawnablePropIndex( void ) { return m_iDesiredSpawnablePropIndex; }
 	void SetDesiredSpawnablePropIndex( int iNewDesiredSpawnablePropIndex ) { m_iDesiredSpawnablePropIndex = iNewDesiredSpawnablePropIndex; }
-
-	bool CanBeSeenBy( CAI_BaseNPC *pNPC );
-	bool CanBeAnEnemyOf( CBaseEntity *pEnemy );
 
 private:
 

@@ -340,7 +340,6 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClCompile Include="contingency\contingency_client.cpp" />
     <ClCompile Include="contingency\contingency_configuration.cpp" />
     <ClCompile Include="contingency\contingency_gameinterface.cpp" />
-    <ClCompile Include="contingency\contingency_nodeplacer.cpp" />
     <ClCompile Include="contingency\contingency_player.cpp" />
     <ClCompile Include="contingency\contingency_rallypoint.cpp" />
     <ClCompile Include="contingency\contingency_spawnableprop.cpp" />
@@ -1040,7 +1039,6 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClInclude Include="..\..\public\collisionutils.h" />
     <ClInclude Include="contingency\contingency_boss_spawnpoint.h" />
     <ClInclude Include="contingency\contingency_gameinterface.h" />
-    <ClInclude Include="contingency\contingency_nodeplacer.h" />
     <ClInclude Include="contingency\contingency_player.h" />
     <ClInclude Include="contingency\contingency_rallypoint.h" />
     <ClInclude Include="contingency\contingency_spawnableprop.h" />

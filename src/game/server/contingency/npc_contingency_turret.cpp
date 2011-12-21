@@ -189,7 +189,9 @@ void CNPC_FloorTurret::StickToFloor( bool shouldStick )
 			vecStop = vecStart + vecDir * MAX_TRACE_LENGTH;
 
 			// Do the actual traceline
-			UTIL_TraceLine( vecStart, vecStop, MASK_ALL, this, COLLISION_GROUP_DEBRIS, &tr );
+			// Only hit static stuff as we have no way of handling
+			// dynamic interactions while stuck to the floor at this time (TODO?)
+			UTIL_TraceLine( vecStart, vecStop, MASK_NPCWORLDSTATIC, this, COLLISION_GROUP_DEBRIS, &tr );
 
 			// Check to see if we hit anything
 			if ( tr.fraction != 1.0 )
@@ -197,6 +199,11 @@ void CNPC_FloorTurret::StickToFloor( bool shouldStick )
 				// We hit something, so teleport to this location and freeze us in place
 				VPhysicsGetObject()->SetPosition( tr.endpos, QAngle(0, GetAbsAngles().y, 0), true );
 				VPhysicsGetObject()->EnableMotion( false );
+			}
+			else
+			{
+				// Something went very, very wrong; ABORT!
+				Explode();
 			}
 		}
 		else
@@ -364,7 +371,7 @@ void CNPC_FloorTurret::Activate( void )
 bool CNPC_FloorTurret::CreateVPhysics( void )
 {
 	//Spawn our physics hull
-	if ( VPhysicsInitNormal( SOLID_VPHYSICS, FSOLID_ALLOW_OWNER_TRACING, false ) == NULL )
+	if ( VPhysicsInitNormal( SOLID_VPHYSICS, FSOLID_COLLIDE_WITH_OWNER, false ) == NULL )
 	{
 		DevMsg( "npc_turret_floor unable to spawn physics object!\n" );
 	}

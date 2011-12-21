@@ -45,9 +45,9 @@ protected:
 
 	Label *m_pTitle;
 	Label *m_pText;
-	Label *m_pText2;
-	Button *m_pYes;
-	Button *m_pNo;
+	Button *m_pDeleteButton;
+	Button *m_pToggleFrozenButton;
+	Button *m_pCancelButton;
 };
 
 #endif // SPAWNABLEPROP_DELETIONMENU_H

@@ -37,6 +37,7 @@
 	ConVar wrench_previewprop_angles_pitch( "wrench_previewprop_angles_pitch", "0", FCVAR_USERINFO | FCVAR_SERVER_CAN_EXECUTE | FCVAR_HIDDEN );
 	ConVar wrench_previewprop_angles_yaw( "wrench_previewprop_angles_yaw", "0", FCVAR_USERINFO | FCVAR_SERVER_CAN_EXECUTE | FCVAR_HIDDEN );
 	ConVar wrench_previewprop_angles_roll( "wrench_previewprop_angles_roll", "0", FCVAR_USERINFO | FCVAR_SERVER_CAN_EXECUTE | FCVAR_HIDDEN );
+	ConVar wrench_previewprop_ready( "wrench_previewprop_ready", "0", FCVAR_USERINFO | FCVAR_SERVER_CAN_EXECUTE | FCVAR_HIDDEN );
 #endif
 
 class CWeaponWrench : public CBaseHL2MPBludgeonWeapon
@@ -44,6 +45,9 @@ class CWeaponWrench : public CBaseHL2MPBludgeonWeapon
 public:
 	DECLARE_CLASS( CWeaponWrench, CBaseHL2MPBludgeonWeapon );
 
+#ifndef CLIENT_DLL
+	DECLARE_DATADESC();
+#endif
 	DECLARE_NETWORKCLASS(); 
 	DECLARE_PREDICTABLE();
 	DECLARE_ACTTABLE();
@@ -61,29 +65,52 @@ public:
 
 	bool CanSpawnProp( CContingency_Player *pPlayer, bool shouldPrintMessages );
 	void ShowPropSelectionPanel( void );
-	void DrawSpawnablePropPreview( void );
+
+#ifdef CLIENT_DLL
+	void DrawSpawnablePropPreview( CContingency_Player *pOwner );
+#endif
 
 	void Precache( void );
 	bool Deploy( void );
 	void ItemPostFrame( void );
+#ifndef CLIENT_DLL
+	void WaitingOnSpawnablePropDataThink( void );
+#endif
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	void AddViewKick( void );
 	bool Holster( CBaseCombatWeapon *pSwitchingTo );
 	void Drop( const Vector &vecVelocity );
+	void ItemHolsterFrame( void );
 
 private:
 
 #ifdef CLIENT_DLL
 	CHandle<C_Contingency_SpawnableProp> m_hSpawnablePropPreview;
 	QAngle m_angSpawnablePropPreviewLastSavedAngles;
+	float m_flSpawnablePropPreviewOriginX;
+	float m_flSpawnablePropPreviewOriginY;
+	float m_flSpawnablePropPreviewOriginZ;
+	float m_flSpawnablePropPreviewAnglesPitch;
+	float m_flSpawnablePropPreviewAnglesYaw;
+	float m_flSpawnablePropPreviewAnglesRoll;
 #else
 	Vector m_vecSpawnablePropOrigin;
 	QAngle m_angSpawnablePropAngles;
 #endif
+
+#ifndef CLIENT_DLL
+	bool m_bShouldShowHint;
+#endif
 };
 
 IMPLEMENT_NETWORKCLASS_ALIASED( WeaponWrench, DT_WeaponWrench )
+
+#ifndef CLIENT_DLL
+BEGIN_DATADESC( CWeaponWrench )
+	DEFINE_THINKFUNC( WaitingOnSpawnablePropDataThink ),
+END_DATADESC()
+#endif
 
 BEGIN_NETWORK_TABLE( CWeaponWrench, DT_WeaponWrench )
 END_NETWORK_TABLE()
@@ -123,6 +150,17 @@ CWeaponWrench::CWeaponWrench( void )
 		delete m_hSpawnablePropPreview;
 		m_hSpawnablePropPreview = NULL;
 	}
+
+	m_flSpawnablePropPreviewOriginX = 0.0f;
+	m_flSpawnablePropPreviewOriginY = 0.0f;
+	m_flSpawnablePropPreviewOriginZ = 0.0f;
+	m_flSpawnablePropPreviewAnglesPitch = 0.0f;
+	m_flSpawnablePropPreviewAnglesYaw = 0.0f;
+	m_flSpawnablePropPreviewAnglesRoll = 0.0f;
+#endif
+
+#ifndef CLIENT_DLL
+	m_bShouldShowHint = false;
 #endif
 }
 
@@ -206,17 +244,15 @@ void CWeaponWrench::ShowPropSelectionPanel( void )
 #endif
 }
 
-void CWeaponWrench::DrawSpawnablePropPreview( void )
-{
 #ifdef CLIENT_DLL
+void CWeaponWrench::DrawSpawnablePropPreview( CContingency_Player *pOwner )
+{
 	if ( m_hSpawnablePropPreview )
 	{
 		delete m_hSpawnablePropPreview;
 		m_hSpawnablePropPreview = NULL;
 	}
-#endif
 
-	CContingency_Player *pOwner = ToContingencyPlayer( GetOwner() );
 	if ( !pOwner )
 		return;
 	
@@ -231,21 +267,16 @@ void CWeaponWrench::DrawSpawnablePropPreview( void )
 		&tr );
 	//if ( tr.fraction < 1.0 )
 	{
-#ifdef CLIENT_DLL
 		int iSpawnablePropIndex = pOwner->GetDesiredSpawnablePropIndex();
-#endif
 
-#ifdef CLIENT_DLL
 		// Handle preview prop creation & spawning
 		C_Contingency_SpawnableProp* pSpawnablePropPreview = new C_Contingency_SpawnableProp();
 		pSpawnablePropPreview->InitializeAsClientEntity( kSpawnablePropTypes[iSpawnablePropIndex][3], RENDER_GROUP_TRANSLUCENT_ENTITY );
 		pSpawnablePropPreview->SetRenderMode( kRenderTransTexture );
 		pSpawnablePropPreview->SetRenderColorA( 200 );
 		pSpawnablePropPreview->AddEffects( EF_NORECEIVESHADOW | EF_ITEM_BLINK );
-#endif
 
 		// Handle preview prop origin and angles
-#ifdef CLIENT_DLL
 		UTIL_SetOrigin( pSpawnablePropPreview, Vector(tr.endpos.x, tr.endpos.y, tr.endpos.z + Q_atoi(kSpawnablePropTypes[iSpawnablePropIndex][4])) );
 		
 		if ( pOwner->m_nButtons & IN_RELOAD )
@@ -259,25 +290,15 @@ void CWeaponWrench::DrawSpawnablePropPreview( void )
 
 		m_angSpawnablePropPreviewLastSavedAngles = pSpawnablePropPreview->GetLocalAngles();
 
-		// Update origin and angles ConVars
-		wrench_previewprop_origin_x.SetValue( pSpawnablePropPreview->GetLocalOrigin().x );
-		wrench_previewprop_origin_y.SetValue( pSpawnablePropPreview->GetLocalOrigin().y );
-		wrench_previewprop_origin_z.SetValue( pSpawnablePropPreview->GetLocalOrigin().z );
-		wrench_previewprop_angles_pitch.SetValue( pSpawnablePropPreview->GetLocalAngles()[PITCH] );
-		wrench_previewprop_angles_yaw.SetValue( pSpawnablePropPreview->GetLocalAngles()[YAW] );
-		wrench_previewprop_angles_roll.SetValue( pSpawnablePropPreview->GetLocalAngles()[ROLL] );
-#else
-		// Read from client's origin and angles ConVars
-		m_vecSpawnablePropOrigin = Vector( Q_atof(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_origin_x")),
-			Q_atof(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_origin_y")),
-			Q_atof(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_origin_z")) );
-		m_angSpawnablePropAngles = QAngle( Q_atof(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_angles_pitch")),
-			Q_atof(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_angles_yaw")),
-			Q_atof(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_angles_roll")) );
-#endif
+		// Update origin and angles variables
+		m_flSpawnablePropPreviewOriginX = pSpawnablePropPreview->GetLocalOrigin().x;
+		m_flSpawnablePropPreviewOriginY = pSpawnablePropPreview->GetLocalOrigin().y;
+		m_flSpawnablePropPreviewOriginZ = pSpawnablePropPreview->GetLocalOrigin().z;
+		m_flSpawnablePropPreviewAnglesPitch = pSpawnablePropPreview->GetLocalAngles()[PITCH];
+		m_flSpawnablePropPreviewAnglesYaw = pSpawnablePropPreview->GetLocalAngles()[YAW];
+		m_flSpawnablePropPreviewAnglesRoll = pSpawnablePropPreview->GetLocalAngles()[ROLL];
 
-		// Handle preview prop color according to whether or not the prop could actually be spawned
-#ifdef CLIENT_DLL
+		// Handle preview prop's color
 		color32 color = pSpawnablePropPreview->GetRenderColor();
 
 		if ( CanSpawnProp(pOwner, false) )
@@ -286,9 +307,9 @@ void CWeaponWrench::DrawSpawnablePropPreview( void )
 			pSpawnablePropPreview->SetRenderColor( color.r, 0, 0 );
 
 		m_hSpawnablePropPreview = pSpawnablePropPreview;
-#endif
 	}
 }
+#endif
 
 void CWeaponWrench::Precache( void )
 {
@@ -313,6 +334,10 @@ bool CWeaponWrench::Deploy( void )
 		}
 #endif
 
+#ifndef CLIENT_DLL
+	m_bShouldShowHint = true;
+#endif
+
 		return true;
 	}
 
@@ -321,11 +346,21 @@ bool CWeaponWrench::Deploy( void )
 
 void CWeaponWrench::ItemPostFrame( void )
 {
-	DrawSpawnablePropPreview();
-
-	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+	CContingency_Player *pOwner = ToContingencyPlayer( GetOwner() );
 	if ( !pOwner )
 		return;
+
+#ifndef CLIENT_DLL
+	if ( m_bShouldShowHint )
+	{
+		UTIL_HudHintText( pOwner, "#Contingency_Hint_Wrench" );
+		m_bShouldShowHint = false;
+	}
+#endif
+
+#ifdef CLIENT_DLL
+	DrawSpawnablePropPreview( pOwner );
+#endif
 
 	if ( (pOwner->m_nButtons & IN_ATTACK) && (m_flNextPrimaryAttack <= gpGlobals->curtime) )
 		PrimaryAttack();
@@ -344,32 +379,23 @@ void CWeaponWrench::PrimaryAttack( void )
 	if ( !CanSpawnProp(pPlayer, true) )
 		goto FinishingStuff;
 
-#ifndef CLIENT_DLL
-	// Handle prop creation & spawning
-	CContingency_SpawnableProp *pSpawnableProp = dynamic_cast<CContingency_SpawnableProp*>( CreateEntityByName("contingency_spawnableprop") );
-	if ( pSpawnableProp )
-	{
-		int iSpawnablePropIndex = pPlayer->GetDesiredSpawnablePropIndex();
-		pSpawnableProp->SetModel( kSpawnablePropTypes[iSpawnablePropIndex][3] );
-		pSpawnableProp->SetAbsOrigin( m_vecSpawnablePropOrigin );
-		pSpawnableProp->SetAbsAngles( m_angSpawnablePropAngles );
-
-		pSpawnableProp->SetSpawnerPlayer( pPlayer );
-		pSpawnableProp->SetSpawnablePropIndex( iSpawnablePropIndex );
-		if ( pPlayer->m_SpawnablePropList.Find( pSpawnableProp ) == -1 )
-		{
-			pPlayer->m_SpawnablePropList.AddToTail( pSpawnableProp );	// add to our spawner's list of spawnable props
-			pPlayer->SetNumSpawnableProps( pPlayer->GetNumSpawnableProps() + 1 );
-		}
-
-		// Actually spawn it and stuff
-		pSpawnableProp->Precache();
-		DispatchSpawn( pSpawnableProp );
-		pSpawnableProp->Activate();
-
-		pPlayer->UseCredits( Q_atoi(kSpawnablePropTypes[iSpawnablePropIndex][1]) );	// spawned, so use up some of the player's credits
-	}
+#ifdef CLIENT_DLL
+	// Update origin and angles ConVars according to the values of our respective variables
+	wrench_previewprop_origin_x.SetValue( m_flSpawnablePropPreviewOriginX );
+	wrench_previewprop_origin_y.SetValue( m_flSpawnablePropPreviewOriginY );
+	wrench_previewprop_origin_z.SetValue( m_flSpawnablePropPreviewOriginZ );
+	wrench_previewprop_angles_pitch.SetValue( m_flSpawnablePropPreviewAnglesPitch );
+	wrench_previewprop_angles_yaw.SetValue( m_flSpawnablePropPreviewAnglesYaw );
+	wrench_previewprop_angles_roll.SetValue( m_flSpawnablePropPreviewAnglesRoll );
+	wrench_previewprop_ready.SetValue( 1 );	// indicates to the server that new data has been written to our ConVars that needs to be read ASAP
+#else
+	// Get updated origin and angles from our client's ConVars as soon as possible
+	SetThink( &CWeaponWrench::WaitingOnSpawnablePropDataThink );
+	SetNextThink( gpGlobals->curtime );
 #endif
+
+	// Play a nice construction sound
+	WeaponSound( SINGLE );
 
 	// Handle weapon animations
 	SendWeaponAnim( ACT_VM_HITCENTER );
@@ -383,6 +409,74 @@ FinishingStuff:
 	m_flNextPrimaryAttack = gpGlobals->curtime + GetFireRate();
 	m_flNextSecondaryAttack = gpGlobals->curtime + GetFireRate();
 }
+
+#ifndef CLIENT_DLL
+void CWeaponWrench::WaitingOnSpawnablePropDataThink( void )
+{
+	// Here, we wait on the client to send us updated origin and angles data
+	// that we'll need to accurately spawn our spawnable prop
+
+	CContingency_Player *pOwner = ToContingencyPlayer( GetOwner() );
+	if ( !pOwner )
+	{
+		SetNextThink( NULL );
+		return;
+	}
+
+	if ( Q_strcmp(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_ready"), "0") == 0 )
+	{
+		// We have not yet received the data the client sent us,
+		// so continue checking until we do
+		SetNextThink( gpGlobals->curtime );
+		return;
+	}
+
+	// We have received the data the client sent to us,
+	// so we can now use that data to update ours
+
+	m_vecSpawnablePropOrigin = Vector( Q_atof(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_origin_x")),
+		Q_atof(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_origin_y")),
+		Q_atof(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_origin_z")) );
+	m_angSpawnablePropAngles = QAngle( Q_atof(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_angles_pitch")),
+		Q_atof(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_angles_yaw")),
+		Q_atof(engine->GetClientConVarValue(engine->IndexOfEdict(pOwner->edict()), "wrench_previewprop_angles_roll")) );
+
+	// Reset the client's ready ConVar now that the client's data
+	// has been received and processed
+	engine->ClientCommand( pOwner->edict(), "wrench_previewprop_ready 0" );
+
+	// Spawn our spawnable prop now that we have the
+	// latest origin and angles data from the client to do so
+	CContingency_SpawnableProp *pSpawnableProp = dynamic_cast<CContingency_SpawnableProp*>( CreateEntityByName("contingency_spawnableprop") );
+	if ( pSpawnableProp )
+	{
+		int iSpawnablePropIndex = pOwner->GetDesiredSpawnablePropIndex();
+		pSpawnableProp->SetModel( kSpawnablePropTypes[iSpawnablePropIndex][3] );
+		pSpawnableProp->SetAbsOrigin( m_vecSpawnablePropOrigin );
+		pSpawnableProp->SetAbsAngles( m_angSpawnablePropAngles );
+
+		pSpawnableProp->SetSpawnerPlayer( pOwner );
+		pSpawnableProp->SetSpawnablePropIndex( iSpawnablePropIndex );
+		if ( pOwner->m_SpawnablePropList.Find( pSpawnableProp ) == -1 )
+		{
+			pOwner->m_SpawnablePropList.AddToTail( pSpawnableProp );	// add to our spawner's list of spawnable props
+			pOwner->SetNumSpawnableProps( pOwner->GetNumSpawnableProps() + 1 );
+		}
+
+		// Actually spawn it and stuff
+		pSpawnableProp->Precache();
+		DispatchSpawn( pSpawnableProp );
+		pSpawnableProp->Activate();
+
+		pOwner->UseCredits( Q_atoi(kSpawnablePropTypes[iSpawnablePropIndex][1]) );	// spawned, so use up some of the player's credits
+	}
+
+	// Reaffirm the creation of the prop by playing our nice construction sound again
+	WeaponSound( SINGLE );
+
+	SetNextThink( NULL );	// our work here is done...until next time...
+}
+#endif
 
 void CWeaponWrench::SecondaryAttack( void )
 {
@@ -431,4 +525,23 @@ void CWeaponWrench::Drop( const Vector &vecVelocity )
 #ifndef CLIENT_DLL
 	UTIL_Remove( this );
 #endif
+}
+
+void CWeaponWrench::ItemHolsterFrame( void )
+{
+	// Must be player held
+	if ( GetOwner() && GetOwner()->IsPlayer() == false )
+		return;
+
+	// We can't be active
+	if ( GetOwner()->GetActiveWeapon() == this )
+		return;
+
+#ifdef CLIENT_DLL
+	if ( m_hSpawnablePropPreview )
+	{
+		delete m_hSpawnablePropPreview;
+		m_hSpawnablePropPreview = NULL;
+	}
+#endif	
 }

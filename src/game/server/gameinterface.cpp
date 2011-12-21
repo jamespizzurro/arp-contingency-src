@@ -103,7 +103,7 @@
 	// Contingency - James
 	// Added a fully-automated nodegraph generation system
 
-#include "contingency_nodeplacer.h"
+//#include "contingency_nodeplacer.h"
 
 /////
 
@@ -1134,8 +1134,8 @@ void CServerGameDLL::GameFrame( bool simulating )
 	// Contingency - James
 	// Added a fully-automated nodegraph generation system
 
-	if ( g_pNodeGenerator )
-		g_pNodeGenerator->Update();
+	/*if ( g_pNodeGenerator )
+		g_pNodeGenerator->Update();*/
 
 /////
 

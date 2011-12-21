@@ -212,7 +212,9 @@ bool PassServerEntityFilter( const IHandleEntity *pTouch, const IHandleEntity *p
 /////
 
 	// Contingency - James
+	// Allow selected entities to collide with their owners
 	// Added a modified version of Valve's floor turret
+	// https://developer.valvesoftware.com/wiki/Owner
 
 	/*// don't clip against own missiles
 	if ( pEntTouch->GetOwnerEntity() == pEntPass )
@@ -223,11 +225,11 @@ bool PassServerEntityFilter( const IHandleEntity *pTouch, const IHandleEntity *p
 		return false;*/
 
 	// don't clip against own missiles
-	if ( !pEntTouch->IsSolidFlagSet(FSOLID_ALLOW_OWNER_TRACING) && pEntTouch->GetOwnerEntity() == pEntPass )
+	if ( !pEntTouch->IsSolidFlagSet(FSOLID_COLLIDE_WITH_OWNER) && pEntTouch->GetOwnerEntity() == pEntPass )
 		return false;
  
 	// don't clip against owner
-	if ( !pEntPass->IsSolidFlagSet(FSOLID_ALLOW_OWNER_TRACING) && pEntPass->GetOwnerEntity() == pEntTouch )
+	if ( !pEntPass->IsSolidFlagSet(FSOLID_COLLIDE_WITH_OWNER) && pEntPass->GetOwnerEntity() == pEntTouch )
 		return false;
 
 /////

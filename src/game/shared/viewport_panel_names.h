@@ -50,7 +50,7 @@
 	// Contingency - James
 	// Added a fully-automated nodegraph generation system
 
-#define PANEL_NAVGEN_DISPLAY "navgen_display"
+//#define PANEL_NAVGEN_DISPLAY "navgen_display"
 
 /////
 
