@@ -30,7 +30,6 @@ public:
 
 private:
 	float m_flNextThinkTime;
-	int m_iCredits;
 };	
 
 DECLARE_HUDELEMENT( CHudCreditsDisplay );
@@ -53,7 +52,6 @@ void CHudCreditsDisplay::VidInit( void )
 void CHudCreditsDisplay::Reset( void )
 {
 	m_flNextThinkTime = 0.0f;
-	m_iCredits = 0;
 
 	wchar_t *tempString = g_pVGuiLocalize->Find( "#Contingency_HUD_CreditsDisplay" );
 	if (tempString)
@@ -61,7 +59,7 @@ void CHudCreditsDisplay::Reset( void )
 	else
 		SetLabelText( L"CREDITS" );
 
-	SetDisplayValue( m_iCredits );
+	SetDisplayValue( 0 );
 }
 
 void CHudCreditsDisplay::OnThink( void )

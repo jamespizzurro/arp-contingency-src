@@ -263,6 +263,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="contingency\contingency_loadingtips.cpp" />
+    <ClCompile Include="contingency\creditslist.cpp" />
     <ClCompile Include="contingency\c_contingency_player.cpp" />
     <ClCompile Include="contingency\c_contingency_spawnableprop.cpp" />
     <ClCompile Include="contingency\c_npc_citizen17.cpp" />
@@ -271,6 +272,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClCompile Include="contingency\hud_contingency_credits.cpp" />
     <ClCompile Include="contingency\hud_contingency_damageindicator.cpp" />
     <ClCompile Include="contingency\hud_contingency_ammo.cpp" />
+    <ClCompile Include="contingency\hud_contingency_numprops.cpp" />
     <ClCompile Include="contingency\hud_contingency_phasedisplay.cpp" />
     <ClCompile Include="contingency\hud_contingency_playerstatus.cpp" />
     <ClCompile Include="contingency\hud_contingency_radar.cpp" />
@@ -899,6 +901,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClInclude Include="..\shared\achievementmgr.h" />
     <ClInclude Include="..\shared\baseachievement.h" />
     <ClInclude Include="contingency\contingency_loadingtips.h" />
+    <ClInclude Include="contingency\creditslist.h" />
     <ClInclude Include="contingency\c_contingency_player.h" />
     <ClInclude Include="contingency\c_contingency_spawnableprop.h" />
     <ClInclude Include="contingency\c_npc_citizen17.h" />

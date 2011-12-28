@@ -1551,9 +1551,6 @@
     <ClCompile Include="..\shared\hl2mp\weapon_ar2.cpp">
       <Filter>Source Files\HL2MP\Weapons</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\hl2mp\weapon_crossbow.cpp">
-      <Filter>Source Files\HL2MP\Weapons</Filter>
-    </ClCompile>
     <ClCompile Include="..\shared\hl2mp\weapon_crowbar.cpp">
       <Filter>Source Files\HL2MP\Weapons</Filter>
     </ClCompile>
@@ -1786,6 +1783,9 @@
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClCompile>
     <ClCompile Include="hl2\npc_playercompanion.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\hl2mp\weapon_crossbow.cpp">
       <Filter>Source Files\Contingency\Modified Engine Files</Filter>
     </ClCompile>
   </ItemGroup>

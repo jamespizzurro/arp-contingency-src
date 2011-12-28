@@ -437,6 +437,15 @@ class CWeaponCrossbow : public CBaseHL2MPCombatWeapon
 public:
 
 	CWeaponCrossbow( void );
+
+/////
+
+	// Contingency - James
+	// Fixed crossbow zoom glitch on weapon removal
+
+	~CWeaponCrossbow( void );
+
+/////
 	
 	virtual void	Precache( void );
 	virtual void	PrimaryAttack( void );
@@ -545,6 +554,21 @@ CWeaponCrossbow::CWeaponCrossbow( void )
 	m_bInZoom			= false;
 	m_bMustReload		= false;
 }
+
+/////
+
+	// Contingency - James
+	// Fixed crossbow zoom glitch on weapon removal
+
+CWeaponCrossbow::~CWeaponCrossbow( void )
+{
+	if ( m_bInZoom )
+		ToggleZoom();
+
+	SetChargerState( CHARGER_STATE_OFF );
+}
+
+/////
 
 #define	CROSSBOW_GLOW_SPRITE	"sprites/light_glow02_noz.vmt"
 #define	CROSSBOW_GLOW_SPRITE2	"sprites/blueflare1.vmt"

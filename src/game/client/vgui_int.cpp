@@ -49,6 +49,15 @@ vgui::IInputInternal *g_InputInternal = NULL;
 /////
 
 	// Contingency - James
+	// Added credits list
+
+#include "creditslist.h"
+
+/////
+
+/////
+
+	// Contingency - James
 	// Added loading screen tips
 
 #include "GameUI/IGameUI.h"
@@ -221,6 +230,15 @@ void VGui_CreateGlobalPanels( void )
 /////
 
 	// Contingency - James
+	// Added credits list
+
+	creditslist->Create( enginevgui->GetPanel(PANEL_GAMEUIDLL) );
+
+/////
+
+/////
+
+	// Contingency - James
 	// Added loading screen tips
 
 	CreateInterfaceFn gameUIFactory = g_GameUI.GetFactory();
@@ -263,6 +281,15 @@ void VGui_Shutdown()
 	// Added loadout menu
 
 	loadoutmenu->Destroy();
+
+/////
+
+/////
+
+	// Contingency - James
+	// Added credits list
+
+	creditslist->Destroy();
 
 /////
 

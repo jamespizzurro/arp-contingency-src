@@ -182,7 +182,8 @@ void CContingencyWaveSpawner::MakeNPC( void )
 
 	// Apply any defined squads and hint groups the mapper may have defined
 	// as well as weapons (if applicable)
-	pent->SetSquadName( m_SquadName );
+	if ( currentWaveType != WAVE_COMBINE )
+		pent->SetSquadName( m_SquadName );	// Combine do not use squads (broke shit)
 	pent->SetHintGroup( m_strHintGroup );
 	if ( equipmentName != NULL_STRING )
 		pent->m_spawnEquipment = equipmentName;

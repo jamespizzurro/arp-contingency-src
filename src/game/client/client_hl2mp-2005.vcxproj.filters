@@ -1638,6 +1638,12 @@
     <ClCompile Include="..\shared\contingency\contingency_system_music.cpp">
       <Filter>Source Files\Contingency\Systems</Filter>
     </ClCompile>
+    <ClCompile Include="contingency\hud_contingency_numprops.cpp">
+      <Filter>Source Files\Contingency\HUD</Filter>
+    </ClCompile>
+    <ClCompile Include="contingency\creditslist.cpp">
+      <Filter>Source Files\Contingency\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="achievement_notification_panel.h">
@@ -3493,6 +3499,9 @@
     </ClInclude>
     <ClInclude Include="..\shared\contingency\contingency_system_music.h">
       <Filter>Source Files\Contingency\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="contingency\creditslist.h">
+      <Filter>Source Files\Contingency\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

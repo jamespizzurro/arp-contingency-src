@@ -48,6 +48,15 @@
 /////
 
 	// Contingency - James
+	// Added credits list
+
+#define PANEL_CREDITS "creditslist"
+
+/////
+
+/////
+
+	// Contingency - James
 	// Added a fully-automated nodegraph generation system
 
 //#define PANEL_NAVGEN_DISPLAY "navgen_display"
