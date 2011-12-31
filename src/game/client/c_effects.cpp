@@ -33,8 +33,17 @@ Vector g_vSplashColor( 0.5, 0.5, 0.5 );
 float g_flSplashScale = 0.15;
 float g_flSplashLifetime = 0.5f;
 float g_flSplashAlpha = 0.3f;
-ConVar r_RainSplashPercentage( "r_RainSplashPercentage", "20", FCVAR_CHEAT ); // N% chance of a rain particle making a splash.
 
+/////
+
+	// Contingency - James
+	// Added rain splash particles to func_precipitation
+
+//ConVar r_RainSplashPercentage( "r_RainSplashPercentage", "20", FCVAR_CHEAT ); // N% chance of a rain particle making a splash.
+
+ConVar r_RainSplashPercentage( "r_RainSplashPercentage", "90", FCVAR_CHEAT ); // N% chance of a rain particle making a splash.
+
+/////
 
 float GUST_INTERVAL_MIN = 1;
 float GUST_INTERVAL_MAX = 2;
@@ -328,7 +337,13 @@ inline bool CClient_Precipitation::SimulateRain( CPrecipitationParticle* pPartic
 	if ( !IsInAir( pParticle->m_Pos ) )
 	{
 		// Possibly make a splash if we hit a water surface and it's in front of the view.
-		if ( m_Splashes.Count() < 20 )
+
+/////
+
+	// Contingency - James
+	// Added rain splash particles to func_precipitation
+
+		/*if ( m_Splashes.Count() < 20 )
 		{
 			if ( RandomInt( 0, 100 ) < r_RainSplashPercentage.GetInt() )
 			{
@@ -339,7 +354,23 @@ inline bool CClient_Precipitation::SimulateRain( CPrecipitationParticle* pPartic
 					m_Splashes.AddToTail( trace.endpos );
 				}
 			}
+		}*/
+
+		if ( m_Splashes.Count() < 99 )
+		{
+			if ( RandomInt( 0, 100 ) < r_RainSplashPercentage.GetInt() )
+			{
+				trace_t trace;
+				UTIL_TraceLine(vOldPos, pParticle->m_Pos, MASK_ALL, NULL, COLLISION_GROUP_PLAYER, &trace);
+				if( trace.fraction < 1 )
+				{
+					DispatchParticleEffect( "rainsplash", trace.endpos, trace.m_pEnt->GetAbsAngles() , NULL );
+					m_Splashes.AddToTail( trace.endpos );
+				}
+			}
 		}
+
+/////
 
 		// Tell the framework it's time to remove the particle from the list
 		return false;

@@ -314,12 +314,6 @@ void CWeaponWrench::DrawSpawnablePropPreview( CContingency_Player *pOwner )
 void CWeaponWrench::Precache( void )
 {
 	BaseClass::Precache();
-
-#ifndef CLIENT_DLL
-	// TODO: Do this sooner (?)
-	for ( int i = 0; i < NUM_SPAWNABLEPROP_TYPES; i++ )
-		PrecacheModel( kSpawnablePropTypes[i][3] );
-#endif
 }
 
 bool CWeaponWrench::Deploy( void )

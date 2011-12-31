@@ -132,6 +132,12 @@ void CContingencySupportWaveSpawner::MakeNPC( void )
 
 	DispatchSpawn( pent );
 	pent->SetOwnerEntity( this );
+
+	// Fade spawned NPC in to the world
+	pent->SetRenderColorA( 0 );
+	pent->m_nRenderFX = kRenderFxSolidFast;
+	pent->m_flSpeed = gpGlobals->curtime + 3.0f;
+
 	DispatchActivate( pent );
 
 	if ( m_ChildTargetName != NULL_STRING )

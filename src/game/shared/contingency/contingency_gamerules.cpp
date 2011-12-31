@@ -31,6 +31,9 @@
 	#include "hl2mp_gameinterface.h"
 	#include "hl2mp_cvars.h"
 
+	// Added spawnable prop system
+	#include "contingency_system_propspawning.h"
+
 #ifdef DEBUG	
 	#include "hl2mp_bot_temp.h"
 #endif
@@ -256,6 +259,9 @@ void CContingencyRules::Precache( void )
 // This is in gamerules because all the precaching done here is really gameplay-dependent
 void CContingencyRules::PrecacheStuff( void )
 {
+	// Added rain splash particles to func_precipitation
+	PrecacheParticleSystem( "rainsplash" );
+
 	int i;
 
 	// Added wave system
@@ -267,6 +273,68 @@ void CContingencyRules::PrecacheStuff( void )
 		UTIL_PrecacheOther( kWaveZombiesNPCTypes[i] );
 	for ( i = 0; i < NUM_COMBINE_NPCS; i++ )
 		UTIL_PrecacheOther( kWaveCombineNPCTypes[i] );
+
+	// Added spawnable prop system
+	for ( i = 0; i < NUM_SPAWNABLEPROP_TYPES; i++ )
+		CBaseEntity::PrecacheModel( kSpawnablePropTypes[i][3] );
+	
+	// Added spawnable prop system
+	// Because at least some (currently all) of our spawnable props are breakable,
+	// we need to precache all the possible pieces of shit that each can break down into
+	// NOTE: If additional spawnable props are added that are breakable,
+	// this list will likely have to be expanded, so REMEMBER THAT (just check console for warnings)!
+	// TODO: Organize this and just generally make it all neater!
+	CBaseEntity::PrecacheModel( "models/props_debris/wood_chunk04a.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_debris/wood_chunk04c.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_debris/wood_splinters01a.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_debris/wood_splinters01b.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_debris/wood_splinters01c.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_debris/wood_splinters01d.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_debris/wood_splinters01e.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_debris/wood_chunk04d.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_debris/wood_chunk04b.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_debris/wood_chunk04e.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_debris/wood_chunk04f.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_pallet001a_chunka.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_pallet001a_chunka4.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_pallet001a_chunkb2.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_pallet001a_chunka1.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_pallet001a_shard01.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_pallet001a_chunka3.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_pallet001a_chunkb3.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_c17/furniturechair001a_chunk01.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_c17/furnituredrawer001a_shard01.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_c17/furniturechair001a_chunk02.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_c17/furniturechair001a_chunk03.mdl" );
+	CBaseEntity::PrecacheModel( "models/gibs/furniture_gibs/furnituretable002a_chunk01.mdl" );
+	CBaseEntity::PrecacheModel( "models/gibs/furniture_gibs/furnituretable002a_chunk02.mdl" );
+	CBaseEntity::PrecacheModel( "models/gibs/furniture_gibs/furnituretable002a_shard01.mdl" );
+	CBaseEntity::PrecacheModel( "models/gibs/furniture_gibs/furnituretable002a_chunk03.mdl" );
+	CBaseEntity::PrecacheModel( "models/gibs/furniture_gibs/furnituretable002a_chunk07.mdl" );
+	CBaseEntity::PrecacheModel( "models/gibs/furniture_gibs/furnituretable002a_chunk08.mdl" );
+	CBaseEntity::PrecacheModel( "models/gibs/furniture_gibs/furnituretable002a_chunk11.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_c17/furnituredrawer001a_chunk01.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_c17/furnituredrawer001a_chunk02.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_c17/furnituredrawer001a_chunk03.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_c17/furnituredrawer001a_chunk04.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_c17/furnituredrawer001a_chunk05.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_c17/furnituredrawer001a_chunk06.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_crate001a_chunk01.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_crate001a_chunk02.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_crate001a_chunk03.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_crate001a_chunk04.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_crate001a_chunk05.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_crate001a_chunk07.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_junk/wood_crate001a_chunk09.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_wasteland/wood_fence02a_shard01a.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_wasteland/wood_fence02a_board01a.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_wasteland/wood_fence02a_board05a.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_wasteland/wood_fence02a_board03a.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_wasteland/wood_fence02a_board07a.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_wasteland/wood_fence02a_board09a.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_wasteland/wood_fence02a_board10a.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_wasteland/wood_fence02a_board04a.mdl" );
+	CBaseEntity::PrecacheModel( "models/props_wasteland/wood_fence02a_board08a.mdl" );
 
 	// Added support wave system
 	for ( i = 0; i < NUM_SUPPORT_NPCS; i++ )

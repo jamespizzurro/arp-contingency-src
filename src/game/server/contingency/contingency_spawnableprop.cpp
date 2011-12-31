@@ -67,6 +67,11 @@ void CContingency_SpawnableProp::Spawn( void )
 	AddEffects( EF_NOSHADOW );	// save some FPS (?)
 	AddSolidFlags( FSOLID_COLLIDE_WITH_OWNER );
 
+	// Fade spawned prop in to the world
+	SetRenderColorA( 0 );
+	m_nRenderFX = kRenderFxSolidFast;
+	m_flSpeed = gpGlobals->curtime + 3.0f;
+
 	SetFrozenState( true );	// default to frozen
 
 	pTarget = static_cast<CNPC_Contingency_Target*>( CreateEntityByName("npc_contingency_target") );

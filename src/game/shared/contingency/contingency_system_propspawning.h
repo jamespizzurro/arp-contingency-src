@@ -24,4 +24,8 @@ static const char* kSpawnablePropTypes[NUM_SPAWNABLEPROP_TYPES][NUM_PROPSPAWNING
 	{ "Large Wooden Fence", "5", "spawnableprops/largewoodenfence", "models/props_wasteland/wood_fence01a.mdl", "65", "90" }
 };
 
+// *** IMPORTANT INFO REGARDING ADDING/REMOVING PROP TYPES FROM ABOVE LIST ***
+// See CContingencyRules::PrecacheStuff regarding some precaching I've done for
+// some breakable props to prevent console warnings and possibly other issues
+
 #endif // CONTINGENCY_SYSTEM_PROPSPAWNING_H
