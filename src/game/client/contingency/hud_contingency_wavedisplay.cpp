@@ -123,20 +123,25 @@ void CHudContingencyWaveDisplay::OnThink()
 			{
 				// Determine what (if any) image we should show according to the current wave type
 				imagePath = "";
-				switch ( ContingencyRules()->GetWaveType() )
+				if ( ContingencyRules()->IsChallengeWave() )
+					imagePath = "HUDicons/icon_wave_challenge";
+				else
 				{
-				case WAVE_HEADCRABS:
-					imagePath = "HUDicons/icon_wave_headcrab";
-					break;
-				case WAVE_ANTLIONS:
-					imagePath = "HUDicons/icon_wave_antlion";
-					break;
-				case WAVE_ZOMBIES:
-					imagePath = "HUDicons/icon_wave_zombie";
-					break;
-				case WAVE_COMBINE:
-					imagePath = "HUDicons/icon_wave_combine";
-					break;
+					switch ( ContingencyRules()->GetWaveType() )
+					{
+					/*case WAVE_HEADCRABS:
+						imagePath = "HUDicons/icon_wave_headcrab";
+						break;*/
+					case WAVE_ANTLIONS:
+						imagePath = "HUDicons/icon_wave_antlion";
+						break;
+					case WAVE_ZOMBIES:
+						imagePath = "HUDicons/icon_wave_zombie";
+						break;
+					case WAVE_COMBINE:
+						imagePath = "HUDicons/icon_wave_combine";
+						break;
+					}
 				}
 
 				if ( Q_strcmp(imagePath, "") != 0 )

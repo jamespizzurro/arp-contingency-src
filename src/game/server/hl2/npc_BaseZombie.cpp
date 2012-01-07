@@ -47,6 +47,15 @@
 #include "weapon_physcannon.h"
 #include "ammodef.h"
 #include "vehicle_base.h"
+
+/////
+
+	// Contingency - James
+	// Consider any detatched headcrabs of wave NPCs, well, wave NPCs
+
+#include "contingency_gamerules.h"
+
+/////
  
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -761,14 +770,7 @@ bool CNPC_BaseZombie::ShouldBecomeTorso( const CTakeDamageInfo &info, float flDa
 //-----------------------------------------------------------------------------
 HeadcrabRelease_t CNPC_BaseZombie::ShouldReleaseHeadcrab( const CTakeDamageInfo &info, float flDamageThreshold )
 {
-	
-/////
-
-	// Contingency - James
-	// Disable headcrabs on zombies
-	// http://developer.valvesoftware.com/wiki/HL2_snippets#Remove_Head_Crab
-	
-	/*if ( m_iHealth <= 0 )
+	if ( m_iHealth <= 0 )
 	{
 		if ( info.GetDamageType() & DMG_REMOVENORAGDOLL )
 			return RELEASE_NO;
@@ -806,12 +808,7 @@ HeadcrabRelease_t CNPC_BaseZombie::ShouldReleaseHeadcrab( const CTakeDamageInfo 
 		}
 	}
 
-	return RELEASE_NO;*/
-
-	return ((m_iHealth <= 0) && m_fIsTorso && IsChopped(info)) ? RELEASE_RAGDOLL_SLICED_OFF : RELEASE_NO;
-
-/////
-
+	return RELEASE_NO;
 }
 
 //-----------------------------------------------------------------------------
@@ -2384,13 +2381,7 @@ bool CNPC_BaseZombie::HeadcrabFits( CBaseAnimating *pCrab )
 //-----------------------------------------------------------------------------
 void CNPC_BaseZombie::ReleaseHeadcrab( const Vector &vecOrigin, const Vector &vecVelocity, bool fRemoveHead, bool fRagdollBody, bool fRagdollCrab )
 {
-
-/////
-
-	// Contingency - James
-	// Disable headcrabs on zombies
-
-	/*CAI_BaseNPC		*pCrab;
+	CAI_BaseNPC		*pCrab;
 	Vector vecSpot = vecOrigin;
 
 	// Until the headcrab is a bodygroup, we have to approximate the
@@ -2514,6 +2505,28 @@ void CNPC_BaseZombie::ReleaseHeadcrab( const Vector &vecOrigin, const Vector &ve
 		CopyRenderColorTo( pCrab );
 
 		pCrab->Activate();
+
+/////
+
+	// Contingency - James
+	// Consider any released headcrabs of wave NPCs, well, wave NPCs
+
+	if ( ContingencyRules()->GetCurrentWaveNPCList()->Find(this) != -1 )
+	{
+		// This zombie is a wave NPC!
+		// That means any of its released headcrabs should also be considered wave NPCs...
+
+		if ( ContingencyRules()->GetCurrentWaveNPCList() && (ContingencyRules()->GetCurrentWaveNPCList()->Find(pCrab) == -1) )
+		{
+			ContingencyRules()->GetCurrentWaveNPCList()->AddToTail( pCrab );
+			ContingencyRules()->IncrementNumEnemiesRemaining();
+			// notice how ContingencyRules()->IncrementNumEnemiesSpawned() is NOT used here
+			// so as not to throw off our original wave count
+		}
+	}
+
+/////
+
 	}
 
 	if( fRemoveHead )
@@ -2524,10 +2537,7 @@ void CNPC_BaseZombie::ReleaseHeadcrab( const Vector &vecOrigin, const Vector &ve
 	if( fRagdollBody )
 	{
 		BecomeRagdollOnClient( vec3_origin );
-	}*/
-
-/////
-
+	}
 }
 
 

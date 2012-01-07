@@ -453,13 +453,12 @@ int CAI_Senses::LookForHighPriorityEntities( int iDistance )
 
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
-			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+			CBasePlayer *pPlayer = UTIL_PlayerByIndex( i );
+			if ( !pPlayer )
+				continue;
 
-			if ( pPlayer )
-			{
-				if ( Look(pPlayer) )
-					nSeen++;
-			}
+			if ( Look(pPlayer) )
+				nSeen++;
 		}
 
 /////

@@ -43,6 +43,9 @@
 
 	#include "npc_citizen17.h"
 	#include "npc_contingency_turret.h"
+
+	// Added wave system
+	#include "contingency_wave_spawnpoint.h"
 #endif
 
 REGISTER_GAMERULES_CLASS( CContingencyRules );
@@ -108,10 +111,12 @@ IMPLEMENT_NETWORKCLASS_ALIASED( ContingencyRulesProxy, DT_ContingencyRulesProxy 
 	ConVar contingency_wave_support( "contingency_wave_support", "1", FCVAR_NOTIFY, "Toggles the spawning support NPCs during interim phases when server isn't full" );
 
 	// Added wave system
-	ConVar contingency_wave_multiplier_headcrabs( "contingency_wave_multiplier_headcrabs", "3", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during headcrab waves" );
-	ConVar contingency_wave_multiplier_antlions( "contingency_wave_multiplier_antlions", "4", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during antlion waves" );
-	ConVar contingency_wave_multiplier_zombies( "contingency_wave_multiplier_zombies", "5", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during zombie waves" );
-	ConVar contingency_wave_multiplier_combine( "contingency_wave_multiplier_combine", "2", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during combine waves" );
+	ConVar contingency_wave_multiplier_arbitrary( "contingency_wave_multiplier_arbitrary", "5", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by based on nothing (i.e. a magic number)" );
+	ConVar contingency_wave_multiplier_players( "contingency_wave_multiplier_players", "0.125", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by based on the number of players" );
+	//ConVar contingency_wave_multiplier_headcrabs( "contingency_wave_multiplier_headcrabs", "3", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during headcrab waves" );
+	ConVar contingency_wave_multiplier_antlions( "contingency_wave_multiplier_antlions", "1.25", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during antlion waves" );
+	ConVar contingency_wave_multiplier_zombies( "contingency_wave_multiplier_zombies", "1", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during zombie waves" );
+	ConVar contingency_wave_multiplier_combine( "contingency_wave_multiplier_combine", "0.75", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during combine waves" );
 #else
 	ConVar contingency_client_heartbeatsounds( "contingency_client_heartbeatsounds", "1", FCVAR_ARCHIVE, "Toggles heartbeat sounds when health is low" );
 
@@ -124,6 +129,9 @@ IMPLEMENT_NETWORKCLASS_ALIASED( ContingencyRulesProxy, DT_ContingencyRulesProxy 
 	ConVar contingency_client_preferredequipment( "contingency_client_preferredequipment", "weapon_frag", FCVAR_USERINFO | FCVAR_ARCHIVE | FCVAR_SERVER_CAN_EXECUTE, "Defines the classname of the preferred equipment to use" );
 	ConVar contingency_client_updateloadout( "contingency_client_updateloadout", "0", FCVAR_USERINFO | FCVAR_SERVER_CAN_EXECUTE, "Requests a manual update to the preferred loadout" );
 #endif
+
+// Added wave system
+ConVar contingency_wave_challenge_frequency( "contingency_wave_challenge_frequency", "5", FCVAR_NOTIFY | FCVAR_REPLICATED, "Defines the frequency of challenge waves (i.e. defines x, where every x wave is a challenge wave)" );
 
 #ifdef CLIENT_DLL
 	void RecvProxy_ContingencyRules( const RecvProp *pProp, void **pOut, void *pData, int objectID )
@@ -160,7 +168,7 @@ CContingencyRules::CContingencyRules()
 	m_iRestartDelay = 0;
 
 	// Added phase system
-	m_iInterimPhaseLength = 30;
+	m_iInterimPhaseLength = 60;
 
 	// Added radar display
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
@@ -168,11 +176,11 @@ CContingencyRules::CContingencyRules()
 
 	// Added spawnable prop system
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
-	m_iMapMaxPropsPerPlayer = 100;
+	m_iMapMaxPropsPerPlayer = 50;
 
 	// Added credits system
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
-	m_iMapStartingCredits = 0;
+	m_iMapStartingCredits = 3;
 
 	// Added wave system
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
@@ -227,6 +235,7 @@ void CContingencyRules::ResetPhaseVariables( void )
 	SetWaveNumber( 0 );	// wave number is set to 1 after the first interim phase (i.e. this is intentional)
 	SetWaveType( WAVE_NONE );
 	SetPreferredWaveType( WAVE_NONE );
+	SetPreferredNPCType( "" );
 	SetNumEnemiesRemaining( 0 );
 	SetCalculatedNumEnemies( 0 );
 	SetNumEnemiesSpawned( 0 );
@@ -265,8 +274,8 @@ void CContingencyRules::PrecacheStuff( void )
 	int i;
 
 	// Added wave system
-	for ( i = 0; i < NUM_HEADCRAB_NPCS; i++ )
-		UTIL_PrecacheOther( kWaveHeadcrabsNPCTypes[i] );
+	/*for ( i = 0; i < NUM_HEADCRAB_NPCS; i++ )
+		UTIL_PrecacheOther( kWaveHeadcrabsNPCTypes[i] );*/
 	for ( i = 0; i < NUM_ANTLION_NPCS; i++ )
 		UTIL_PrecacheOther( kWaveAntlionsNPCTypes[i] );
 	for ( i = 0; i < NUM_ZOMBIE_NPCS; i++ )
@@ -539,19 +548,16 @@ void CContingencyRules::ClientDisconnected( edict_t *pClient )
 #ifndef CLIENT_DLL
 void CContingencyRules::PerformWaveCalculations( void )
 {
-	// See what wave types our current map supports
-	// via our custom contingency_configuration entity
-	// (if a map doesn't have one, then we're assuming
-	// it supports all wave types)
-
-	if ( !DoesMapSupportHeadcrabs() && !DoesMapSupportAntlions() && !DoesMapSupportZombies() && !DoesMapSupportCombine() )
+	// See what wave types our current map supports via our custom contingency_configuration entity
+	// (if a map doesn't have one, then we're assuming it supports all wave types)
+	if ( /*!DoesMapSupportHeadcrabs() && */!DoesMapSupportAntlions() && !DoesMapSupportZombies() && !DoesMapSupportCombine() )
 	{
 		// The current map does not appear to support any type of wave
 		// This isn't allowed, so just pretend we support all of them
 
 		Warning("The current map is set not to allow any waves. This is not allowed, and to prevent the game from breaking, all waves have been enabled. Please check your contingency_configuration entity flags!\n");
 
-		DoesMapSupportHeadcrabs( true );
+		//DoesMapSupportHeadcrabs( true );
 		DoesMapSupportAntlions( true );
 		DoesMapSupportZombies( true );
 		DoesMapSupportCombine( true );
@@ -562,7 +568,7 @@ void CContingencyRules::PerformWaveCalculations( void )
 	if ( waveSelected == WAVE_NONE )
 	{
 		waveSelected = random->RandomInt( WAVE_NONE + 1, NUM_WAVES - 1 );
-		while ( ((waveSelected == WAVE_HEADCRABS) && !DoesMapSupportHeadcrabs()) ||
+		while ( /*((waveSelected == WAVE_HEADCRABS) && !DoesMapSupportHeadcrabs()) ||*/
 				((waveSelected == WAVE_ANTLIONS) && !DoesMapSupportAntlions()) ||
 				((waveSelected == WAVE_ZOMBIES) && !DoesMapSupportZombies()) ||
 				((waveSelected == WAVE_COMBINE) && !DoesMapSupportCombine()) )
@@ -573,47 +579,150 @@ void CContingencyRules::PerformWaveCalculations( void )
 
 	SetWaveType( waveSelected );
 
-	// Now we need to calculate exactly how many NPCs to spawn,
-	// which depends on several variables, including how many
-	// waves players have successfully defeated as well as
-	// the type of NPCs we're going to be spawning, the ladder
-	// of which was just determined above
-
-	// For this task, I've chosen to use some simple multiplers for each wave type,
-	// each of which is tied to its own ConVar for easy editing
-	// (maps can now manipulate these ConVars using addition/subtraction-based offsets too)
-
-	// So yeah, we're also going to want to factor in how many players are
-	// on the server so as not to overwhelm (or underwhelm) folks
-	// so quickly that we turn them off from the game entirely...
-
-	// ...so instead of just using wave multipliers, I've opted for
-	// multiplying the current wave number by the total number of players
-	// on the server as a base...
-
-	// ...which seems kind of random, and it is, so I would imagine
-	// this is going to be changed eventually, but we'll see!
-
-	int numEnemiesToSpawnThisWave = GetWaveNumber() * GetTotalNumPlayers();
-
+	// Start by factoring in the current wave number
+	int numEnemiesToSpawnThisWave = contingency_wave_multiplier_arbitrary.GetFloat() * GetWaveNumber();
+	
+	// Next, we consider the wave type that's been selected
 	switch ( waveSelected )
 	{
-	case WAVE_HEADCRABS:
+	/*case WAVE_HEADCRABS:
 		numEnemiesToSpawnThisWave = numEnemiesToSpawnThisWave *
 			(contingency_wave_multiplier_headcrabs.GetFloat() + GetMapHeadcrabWaveMultiplierOffset());
-		break;
+		break;*/
 	case WAVE_ANTLIONS:
-		numEnemiesToSpawnThisWave = numEnemiesToSpawnThisWave *
-			(contingency_wave_multiplier_antlions.GetFloat() + GetMapAntlionWaveMultiplierOffset());
+		numEnemiesToSpawnThisWave *= contingency_wave_multiplier_antlions.GetFloat() + GetMapAntlionWaveMultiplierOffset();
 		break;
 	case WAVE_ZOMBIES:
-		numEnemiesToSpawnThisWave = numEnemiesToSpawnThisWave *
-			(contingency_wave_multiplier_zombies.GetFloat() + GetMapZombieWaveMultiplierOffset());
+		numEnemiesToSpawnThisWave *= contingency_wave_multiplier_zombies.GetFloat() + GetMapZombieWaveMultiplierOffset();
 		break;
 	case WAVE_COMBINE:
-		numEnemiesToSpawnThisWave = numEnemiesToSpawnThisWave *
-			(contingency_wave_multiplier_combine.GetFloat() + GetMapCombineWaveMultiplierOffset());
+		numEnemiesToSpawnThisWave *= contingency_wave_multiplier_combine.GetFloat() + GetMapCombineWaveMultiplierOffset();
 		break;
+	}
+
+	// Lastly, we consider how many players there are
+	numEnemiesToSpawnThisWave *= 1 - ((GetMaxNumPlayers() - GetTotalNumPlayers()) * contingency_wave_multiplier_players.GetFloat());
+
+	// Handle challenge waves
+	if ( IsChallengeWave() )
+	{
+		// Firstly, we need to figure out exactly what NPCs we can and cannot spawn on this map
+		// to prevent us from picking an NPC type for our challenge wave that we
+		// cannot actually spawn, which would throw the whole game out of whack
+
+		// We do this by looping through all of the wave spawnpoints on this map,
+		// seeing what NPC types each one supports, where NPC types that are not supported
+		// by any wave spawnpoints should be ignored with regards to our challenge wave "drawing"
+
+		/*bool bConsiderHeadcrab = false;
+		bool bConsiderHeadcrabFast = false;
+		bool bConsiderHeadcrabBlack = false;*/
+		bool bConsiderAntlion = false;
+		bool bConsiderZombie = false;
+		bool bConsiderZombieTorso = false;
+		bool bConsiderZombieFast = false;
+		bool bConsiderZombiePoison = false;
+		bool bConsiderCombine = false;
+		bool bConsiderCombineMetro = false;
+		bool bConsiderCombineScanner = false;
+		bool bConsiderCombineManhack = false;
+		bool bConsiderCombineStalker = false;
+		CBaseEntity *pEntity = gEntList.FindEntityByClassname( NULL, "contingency_wave_spawnpoint" );
+		while ( pEntity != NULL )
+		{
+			/*if ( waveSelected == WAVE_HEADCRABS )
+			{
+				if ( !bConsiderHeadcrab && pEntity->HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB) )
+					bConsiderHeadcrab = true;
+
+				if ( !bConsiderHeadcrabFast && pEntity->HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_FAST) )
+					bConsiderHeadcrabFast = true;
+
+				if ( !bConsiderHeadcrabBlack && pEntity->HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_BLACK) )
+					bConsiderHeadcrabBlack = true;
+			}
+			else */if ( waveSelected == WAVE_ANTLIONS )
+			{
+				if ( !bConsiderAntlion && pEntity->HasSpawnFlags(SF_WAVESPAWNER_ANTLION) )
+					bConsiderAntlion = true;
+			}
+			else if ( waveSelected == WAVE_ZOMBIES )
+			{
+				if ( !bConsiderZombie && pEntity->HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE) )
+					bConsiderZombie = true;
+
+				if ( !bConsiderZombieTorso && pEntity->HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_TORSO) )
+					bConsiderZombieTorso = true;
+
+				if ( !bConsiderZombieFast && pEntity->HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_FAST) )
+					bConsiderZombieFast = true;
+
+				if ( !bConsiderZombiePoison && pEntity->HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_POISON) )
+					bConsiderZombiePoison = true;
+			}
+			else if ( waveSelected == WAVE_COMBINE )
+			{
+				if ( !bConsiderCombine && pEntity->HasSpawnFlags(SF_WAVESPAWNER_COMBINE) )
+					bConsiderCombine = true;
+
+				if ( !bConsiderCombineMetro && pEntity->HasSpawnFlags(SF_WAVESPAWNER_COMBINE_METRO) )
+					bConsiderCombineMetro = true;
+
+				if ( !bConsiderCombineScanner && pEntity->HasSpawnFlags(SF_WAVESPAWNER_COMBINE_SCANNER) )
+					bConsiderCombineScanner = true;
+
+				if ( !bConsiderCombineManhack && pEntity->HasSpawnFlags(SF_WAVESPAWNER_COMBINE_MANHACK) )
+					bConsiderCombineManhack = true;
+
+				if ( !bConsiderCombineStalker && pEntity->HasSpawnFlags(SF_WAVESPAWNER_COMBINE_STALKER) )
+					bConsiderCombineStalker = true;
+			}
+ 
+			pEntity = gEntList.FindEntityByClassname( pEntity, "contingency_wave_spawnpoint" );
+		}
+
+		// At this point, we implicitly know exactly what NPCs we can and cannot choose
+		// to spawn for our challenge wave, we just need to act on that knowledge
+
+		// We do this by mapping each of our boolean variables to an NPC classname,
+		// adding those NPC types we are considering to a linked list and finally
+		// randomly choosing an NPC classname from that linked list
+
+		CUtlLinkedList<const char*, unsigned short> *pConsiderationList = new CUtlLinkedList<const char*, unsigned short>;
+		
+		/*if ( bConsiderHeadcrab )
+			pConsiderationList->AddToTail( "npc_headcrab" );
+		if ( bConsiderHeadcrabFast )
+			pConsiderationList->AddToTail( "npc_headcrab_fast" );
+		if ( bConsiderHeadcrabBlack )
+			pConsiderationList->AddToTail( "npc_headcrab_black" );*/
+		if ( bConsiderAntlion )
+			pConsiderationList->AddToTail( "npc_antlion" );
+		if ( bConsiderZombie )
+			pConsiderationList->AddToTail( "npc_zombie" );
+		if ( bConsiderZombieTorso )
+			pConsiderationList->AddToTail( "npc_zombie_torso" );
+		if ( bConsiderZombieFast )
+			pConsiderationList->AddToTail( "npc_fastzombie" );
+		if ( bConsiderZombiePoison )
+			pConsiderationList->AddToTail( "npc_poisonzombie" );
+		if ( bConsiderCombine )
+			pConsiderationList->AddToTail( "npc_combine_s" );
+		if ( bConsiderCombineMetro )
+			pConsiderationList->AddToTail( "npc_metropolice" );
+		if ( bConsiderCombineScanner )
+			pConsiderationList->AddToTail( "npc_cscanner" );
+		if ( bConsiderCombineManhack )
+			pConsiderationList->AddToTail( "npc_manhack" );
+		if ( bConsiderCombineStalker )
+			pConsiderationList->AddToTail( "npc_stalker" );
+		
+		SetPreferredNPCType( pConsiderationList->Element(random->RandomInt(0, pConsiderationList->Count() - 1)) );
+
+		delete pConsiderationList;	// we're done with this now
+
+		// All in all, this might not be the cleanest solution, but it works!
+		// ...and actually, I think it's pretty good. :D
 	}
 
 	// Update wave-specific variables and stuff to reflect the calculations made above
@@ -727,9 +836,17 @@ void CContingencyRules::Think( void )
 			IncrementWaveNumber();
 			PerformWaveCalculations();
 
-			DisplayAnnouncement( UTIL_VarArgs("WAVE %i COMMENCING...", GetWaveNumber()), 3.0f );
+			if ( IsChallengeWave() )
+			{
+				DisplayAnnouncement( UTIL_VarArgs("CHALLENGE WAVE %i COMMENCING...", GetWaveNumber()), 5.0f );
+				CContingency_System_Music::PlayAnnouncementSound( "Contingency.InterimToCombatChallenge" );
+			}
+			else
+			{
+				DisplayAnnouncement( UTIL_VarArgs("WAVE %i COMMENCING...", GetWaveNumber()), 3.0f );
+				CContingency_System_Music::PlayAnnouncementSound( "Contingency.InterimToCombat" );
+			}
 
-			CContingency_System_Music::PlayAnnouncementSound( "Contingency.InterimToCombat" );
 			CContingency_System_Music::PlayBackgroundMusic( BACKGROUND_MUSIC_COMBAT );
 
 			SetCurrentPhase( PHASE_COMBAT );
@@ -960,6 +1077,10 @@ bool CContingencyRules::ShouldCollide( int collisionGroup0, int collisionGroup1 
 	if ( collisionGroup0 > collisionGroup1 )
 		swap( collisionGroup0, collisionGroup1 );	// swap so that lowest is always first
 
+	if ( (collisionGroup0 == COLLISION_GROUP_PLAYER || collisionGroup0 == COLLISION_GROUP_PLAYER_MOVEMENT) &&
+		 (collisionGroup1 == COLLISION_GROUP_PLAYER || collisionGroup1 == COLLISION_GROUP_PLAYER_MOVEMENT) )
+		 return false;	// prevent player-player collisions
+
 	return BaseClass::ShouldCollide( collisionGroup0, collisionGroup1 ); 
 }
 
@@ -1014,6 +1135,8 @@ CAmmoDef *GetAmmoDef()
 		// New ammo type for turrets
 		def.AddAmmoType("TURRET",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			5,		99999,		BULLET_IMPULSE(200, 1225),	0 );	// based on the AR2 ammo type
 
+		def.AddAmmoType("hopwire",			DMG_BLAST,					TRACER_NONE,			0,			0,		1,			0,							0 );
+
 		def.AddAmmoType("AlyxGun",			DMG_BULLET,					TRACER_LINE,			"sk_plr_dmg_alyxgun",		"sk_npc_dmg_alyxgun",		"sk_max_alyxgun",		BULLET_IMPULSE(200, 1225), 0 );
 		def.AddAmmoType("SniperRound",		DMG_BULLET | DMG_SNIPER,	TRACER_NONE,			"sk_plr_dmg_sniper_round",	"sk_npc_dmg_sniper_round",	"sk_max_sniper_round",	BULLET_IMPULSE(650, 6000), 0 );
 		def.AddAmmoType("SniperPenetratedRound", DMG_BULLET | DMG_SNIPER, TRACER_NONE,			"sk_dmg_sniper_penetrate_plr", "sk_dmg_sniper_penetrate_npc", "sk_max_sniper_round", BULLET_IMPULSE(150, 6000), 0 );
@@ -1028,7 +1151,7 @@ CAmmoDef *GetAmmoDef()
 		def.AddAmmoType("StriderMinigunDirect",	DMG_BULLET,				TRACER_LINE,			2, 2, 15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 1.0kg weight at 750 ft/s
 		def.AddAmmoType("HelicopterGun",	DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_npc_dmg_helicopter_to_plr", "sk_npc_dmg_helicopter",	"sk_max_smg1",	BULLET_IMPULSE(400, 1225), AMMO_FORCE_DROP_IF_CARRIED | AMMO_INTERPRET_PLRDAMAGE_AS_DAMAGE_TO_PLAYER );
 #ifdef HL2_EPISODIC
-		def.AddAmmoType("Hopwire",			DMG_BLAST,					TRACER_NONE,			"sk_plr_dmg_grenade",		"sk_npc_dmg_grenade",		"sk_max_hopwire",		0, 0);
+		//def.AddAmmoType("Hopwire",			DMG_BLAST,					TRACER_NONE,			"sk_plr_dmg_grenade",		"sk_npc_dmg_grenade",		"sk_max_hopwire",		0, 0);
 		def.AddAmmoType("CombineHeavyCannon",	DMG_BULLET,				TRACER_LINE,			40,	40, NULL, 10 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 10 kg weight at 750 ft/s
 		def.AddAmmoType("ammo_proto1",			DMG_BULLET,				TRACER_LINE,			0, 0, 10, 0, 0 );
 #endif // HL2_EPISODIC
@@ -1097,6 +1220,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_ANTLION,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_ANTLION, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_BARNACLE
 	//
@@ -1132,6 +1264,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_BARNACLE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_BARNACLE, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_BULLSEYE
 	// ------------------------------------------------------------
@@ -1163,6 +1304,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_PLAYER_ALLY,		D_NU, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_BULLSEYE,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
+
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_BULLSEYE, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_NU, 0 );
+
+/////
 
 	// ------------------------------------------------------------
 	//	> CLASS_BULLSQUID
@@ -1229,6 +1379,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_PASSIVE,	CLASS_HACKED_ROLLERMINE,D_NU, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_CITIZEN_PASSIVE, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_NU, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_CITIZEN_REBEL
 	// ------------------------------------------------------------
@@ -1260,6 +1419,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_PLAYER_ALLY,		D_NU, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CITIZEN_REBEL,		CLASS_HACKED_ROLLERMINE,D_NU, 0);
+
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_CITIZEN_REBEL, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_NU, 0 );
+
+/////
 
 	// ------------------------------------------------------------
 	//	> CLASS_COMBINE
@@ -1293,6 +1461,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_COMBINE, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_COMBINE_GUNSHIP
 	// ------------------------------------------------------------
@@ -1324,6 +1501,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_PLAYER_ALLY,		D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_GUNSHIP,		CLASS_HACKED_ROLLERMINE,D_HT, 0);
+
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_COMBINE_GUNSHIP, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
 
 	// ------------------------------------------------------------
 	//	> CLASS_COMBINE_HUNTER
@@ -1357,6 +1543,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_COMBINE_HUNTER,		CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_COMBINE_HUNTER, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_CONSCRIPT
 	// ------------------------------------------------------------
@@ -1389,6 +1584,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONSCRIPT,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
 	
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_CONSCRIPT, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_NU, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_FLARE
 	// ------------------------------------------------------------
@@ -1422,6 +1626,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_FLARE,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_FLARE, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_NU, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_HEADCRAB
 	// ------------------------------------------------------------
@@ -1453,6 +1666,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_PLAYER_ALLY,		D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_HEADCRAB,			CLASS_HACKED_ROLLERMINE,D_FR, 0);
+
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_HEADCRAB, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
 
 	// ------------------------------------------------------------
 	//	> CLASS_HOUNDEYE
@@ -1520,6 +1742,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_MANHACK,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_MANHACK, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_METROPOLICE
 	// ------------------------------------------------------------
@@ -1551,6 +1782,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_PLAYER_ALLY,		D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_METROPOLICE,		CLASS_HACKED_ROLLERMINE,D_HT, 0);
+
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_METROPOLICE, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
 
 	// ------------------------------------------------------------
 	//	> CLASS_MILITARY
@@ -1584,6 +1824,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_MILITARY,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_MILITARY, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_MISSILE
 	// ------------------------------------------------------------
@@ -1616,6 +1865,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_MISSILE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_MISSILE, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_NONE
 	// ------------------------------------------------------------
@@ -1646,6 +1904,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_PLAYER_ALLY,		D_NU, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_NONE,				CLASS_HACKED_ROLLERMINE,D_NU, 0);
+
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_NONE, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_NU, 0 );
+
+/////
 
 	// ------------------------------------------------------------
 	//	> CLASS_PLAYER
@@ -1679,6 +1946,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER,			CLASS_HACKED_ROLLERMINE,D_LI, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_PLAYER, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_NU, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_PLAYER_ALLY
 	// ------------------------------------------------------------
@@ -1710,6 +1986,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_PLAYER_ALLY,		D_LI, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
     CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY,			CLASS_HACKED_ROLLERMINE,D_LI, 0);
+
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_PLAYER_ALLY, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_LI, 0 );
+
+/////
 
 	// ------------------------------------------------------------
 	//	> CLASS_PLAYER_ALLY_VITAL
@@ -1743,6 +2028,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_PLAYER_ALLY_VITAL,	CLASS_HACKED_ROLLERMINE,D_LI, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_PLAYER_ALLY_VITAL, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_LI, 0 );
+
+/////
+
 	// ------------------------------------------------------------
     //	> CLASS_SCANNER
 	// ------------------------------------------------------------	
@@ -1774,6 +2068,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_PLAYER_ALLY,		D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_SCANNER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_SCANNER, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
 
 	// ------------------------------------------------------------
 	//	> CLASS_STALKER
@@ -1807,6 +2110,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_STALKER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_STALKER, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_VORTIGAUNT
 	// ------------------------------------------------------------	
@@ -1838,6 +2150,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_PLAYER_ALLY,		D_LI, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_VORTIGAUNT,		CLASS_HACKED_ROLLERMINE,D_LI, 0);
+
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_VORTIGAUNT, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_LI, 0 );
+
+/////
 
 	// ------------------------------------------------------------
 	//	> CLASS_ZOMBIE
@@ -1871,6 +2192,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_ZOMBIE,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_ZOMBIE, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_PROTOSNIPER
 	// ------------------------------------------------------------	
@@ -1902,6 +2232,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_PLAYER_ALLY,		D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_PROTOSNIPER,			CLASS_HACKED_ROLLERMINE,D_HT, 0);
+
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_PROTOSNIPER, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
 
 	// ------------------------------------------------------------
 	//	> CLASS_EARTH_FAUNA
@@ -1938,6 +2277,15 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_PLAYER_ALLY_VITAL,D_HT, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_EARTH_FAUNA,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_EARTH_FAUNA, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_HT, 0 );
+
+/////
+
 	// ------------------------------------------------------------
 	//	> CLASS_HACKED_ROLLERMINE
 	// ------------------------------------------------------------
@@ -1969,6 +2317,57 @@ void CContingencyRules::InitDefaultAIRelationships( void )
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_PLAYER_ALLY,		D_LI, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_PLAYER_ALLY_VITAL,D_LI, 0);
 	CBaseCombatCharacter::SetDefaultRelationship(CLASS_HACKED_ROLLERMINE,			CLASS_HACKED_ROLLERMINE,D_LI, 0);
+
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_HACKED_ROLLERMINE, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_LI, 0 );
+
+/////
+
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	// ------------------------------------------------------------
+	//	> CLASS_CONTINGENCY_SPAWNABLE_PROP
+	// ------------------------------------------------------------
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_NONE,				D_NU, 0);			
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_PLAYER,			D_NU, 0);			
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_ANTLION,			D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_BARNACLE,			D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_BULLSEYE,			D_NU, 0);
+	//CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_BULLSQUID,		D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_CITIZEN_PASSIVE,	D_NU, 0);	
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_CITIZEN_REBEL,	D_NU, 0);
+    CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_COMBINE,			D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_COMBINE_GUNSHIP,	D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_COMBINE_HUNTER,	D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_CONSCRIPT,		D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_FLARE,			D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_HEADCRAB,			D_NU, 0);
+	//CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_HOUNDEYE,			D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_MANHACK,			D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_METROPOLICE,		D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_MILITARY,			D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_MISSILE,			D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_SCANNER,			D_NU, 0);		
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_STALKER,			D_NU, 0);		
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_VORTIGAUNT,		D_NU, 0);		
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_ZOMBIE,			D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_PROTOSNIPER,		D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_EARTH_FAUNA,		D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_PLAYER_ALLY,		D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_PLAYER_ALLY_VITAL,D_NU, 0);
+	CBaseCombatCharacter::SetDefaultRelationship(CLASS_CONTINGENCY_SPAWNABLE_PROP,			CLASS_HACKED_ROLLERMINE,D_NU, 0);
+	
+	CBaseCombatCharacter::SetDefaultRelationship( CLASS_CONTINGENCY_SPAWNABLE_PROP, CLASS_CONTINGENCY_SPAWNABLE_PROP, D_NU, 0 );
+
+/////
+
 }
 
 //===== End Of AI Patch ======

@@ -24,6 +24,15 @@
 #include "engine/IEngineSound.h"
 #include "npc_BaseZombie.h"
 
+/////
+
+	// Contingency - James
+	// Consider any detatched headcrabs of wave NPCs, well, wave NPCs
+
+#include "contingency_gamerules.h"
+
+/////
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -285,17 +294,7 @@ void CNPC_PoisonZombie::Spawn( void )
 {
 	Precache();
 
-/////
-
-	// Contingency - James
-	// Disable headcrabs on zombies
-
-	//m_fIsTorso = m_fIsHeadless = false;
-
-	m_fIsTorso = false;
-	m_fIsHeadless = true;
-
-/////
+	m_fIsTorso = m_fIsHeadless = false;
 
 #ifdef HL2_EPISODIC
 	SetBloodColor( BLOOD_COLOR_ZOMBIE );
@@ -319,12 +318,7 @@ void CNPC_PoisonZombie::Spawn( void )
 	m_pSlowBreathSound = ENVELOPE_CONTROLLER.SoundCreate( filter2, entindex(), CHAN_ITEM, "NPC_PoisonZombie.Moan1", ATTN_NORM );
 	ENVELOPE_CONTROLLER.Play( m_pSlowBreathSound, BREATH_VOL_MAX, 100 );
 
-/////
-
-	// Contingency - James
-	// Disable headcrabs on zombies
-
-	/*int nCrabs = m_nCrabCount;
+	int nCrabs = m_nCrabCount;
 	if ( !nCrabs )
 	{
 		nCrabs = MAX_CRABS;
@@ -361,12 +355,7 @@ void CNPC_PoisonZombie::Spawn( void )
 	for ( int i = 0; i < MAX_CRABS; i++ )
 	{
 		EnableCrab( i, ( nBitMask & ( 1 << i ) ) != 0 );
-	}*/
-
-	m_nCrabCount = 0;
-
-/////
-
+	}
 }
 
 
@@ -727,6 +716,27 @@ void CNPC_PoisonZombie::HandleAnimEvent( animevent_t *pEvent )
 			pCrab->ThrowAt( vecEnemyEyePos );
 		}
 
+/////
+
+	// Contingency - James
+	// Consider any released headcrabs of wave NPCs, well, wave NPCs
+
+		if ( ContingencyRules()->GetCurrentWaveNPCList()->Find(this) != -1 )
+		{
+			// This zombie is a wave NPC!
+			// That means any of its released headcrabs should also be considered wave NPCs...
+
+			if ( ContingencyRules()->GetCurrentWaveNPCList() && (ContingencyRules()->GetCurrentWaveNPCList()->Find(pCrab) == -1) )
+			{
+				ContingencyRules()->GetCurrentWaveNPCList()->AddToTail( pCrab );
+				ContingencyRules()->IncrementNumEnemiesRemaining();
+				// notice how ContingencyRules()->IncrementNumEnemiesSpawned() is NOT used here
+				// so as not to throw off our original wave count
+			}
+		}
+
+/////
+
 		if (m_nCrabCount == 0)
 		{
 			CapabilitiesRemove( bits_CAP_INNATE_RANGE_ATTACK1 | bits_CAP_INNATE_RANGE_ATTACK2 );
@@ -833,6 +843,28 @@ void CNPC_PoisonZombie::EvacuateNest( bool bExplosion, float flDamage, CBaseEnti
 
 			pCrab->Eject( vecAngles, flVelocityScale, pAttacker );
 			EnableCrab( i, false );
+
+/////
+
+	// Contingency - James
+	// Consider any released headcrabs of wave NPCs, well, wave NPCs
+
+			if ( ContingencyRules()->GetCurrentWaveNPCList()->Find(this) != -1 )
+			{
+				// This zombie is a wave NPC!
+				// That means any of its released headcrabs should also be considered wave NPCs...
+
+				if ( ContingencyRules()->GetCurrentWaveNPCList() && (ContingencyRules()->GetCurrentWaveNPCList()->Find(pCrab) == -1) )
+				{
+					ContingencyRules()->GetCurrentWaveNPCList()->AddToTail( pCrab );
+					ContingencyRules()->IncrementNumEnemiesRemaining();
+					// notice how ContingencyRules()->IncrementNumEnemiesSpawned() is NOT used here
+					// so as not to throw off our original wave count
+				}
+			}
+
+/////
+
 		}
 	}
 }

@@ -116,6 +116,22 @@ enum Class_T
 	CLASS_HACKED_ROLLERMINE,
 	CLASS_COMBINE_HUNTER,
 
+/////
+
+	// Contingency - James
+	// Added spawnable prop system
+
+	CLASS_CONTINGENCY_SPAWNABLE_PROP,
+
+	// This class should be neutral towards everything,
+	// but every other class's disposition towards it
+	// should be the same as CLASS_PLAYER, just with a lower priority
+	
+	// The result should be a class that is handled like CLASS_PLAYER,
+	// but is considered less frequently due to the lower priority level
+
+/////
+
 	NUM_AI_CLASSES
 };
 

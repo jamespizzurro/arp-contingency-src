@@ -444,8 +444,11 @@ void CWeaponWrench::WaitingOnSpawnablePropDataThink( void )
 	CContingency_SpawnableProp *pSpawnableProp = dynamic_cast<CContingency_SpawnableProp*>( CreateEntityByName("contingency_spawnableprop") );
 	if ( pSpawnableProp )
 	{
+		pSpawnableProp->AddFlag( EF_NODRAW );	// initially, we're not visible just in case we need to be removed
 		int iSpawnablePropIndex = pOwner->GetDesiredSpawnablePropIndex();
 		pSpawnableProp->SetModel( kSpawnablePropTypes[iSpawnablePropIndex][3] );
+		pSpawnableProp->SetMaxHealth( Q_atoi(kSpawnablePropTypes[iSpawnablePropIndex][6]) );
+		pSpawnableProp->SetHealth( pSpawnableProp->GetMaxHealth() );
 		pSpawnableProp->SetAbsOrigin( m_vecSpawnablePropOrigin );
 		pSpawnableProp->SetAbsAngles( m_angSpawnablePropAngles );
 
@@ -461,6 +464,24 @@ void CWeaponWrench::WaitingOnSpawnablePropDataThink( void )
 		pSpawnableProp->Precache();
 		DispatchSpawn( pSpawnableProp );
 		pSpawnableProp->Activate();
+
+		// Do one final check to make sure we can actually spawn a prop here
+		trace_t trace;
+		Vector mins, maxs;
+		CPhysCollide *pSpawnablePropCollide = modelinfo->GetVCollide( pSpawnableProp->GetModelIndex() )->solids[0];
+		physcollision->CollideGetAABB( &mins, &maxs, pSpawnablePropCollide, pSpawnableProp->GetAbsOrigin(), pSpawnableProp->GetAbsAngles() );
+		Vector vHalfDims = ( maxs - mins ) * 0.5f;
+		Vector vCenter = mins + vHalfDims;
+		UTIL_TraceHull( vCenter, vCenter, -vHalfDims, vHalfDims, MASK_ALL, pSpawnableProp, pSpawnableProp->GetCollisionGroup(), &trace );
+		if ( trace.m_pEnt && (trace.m_pEnt->IsPlayer() || trace.m_pEnt->IsNPC()) )	// as long as we don't hit a player or NPC, we're good
+		{
+			ClientPrint( pOwner, HUD_PRINTTALK, "Unable to spawn prop. There's something in the way." );
+			pSpawnableProp->SUB_Remove();
+			SetNextThink( NULL );
+			return;
+		}
+
+		pSpawnableProp->RemoveFlag( EF_NODRAW );	// we've made it past all our checks, so we should be made visible now!
 
 		pOwner->UseCredits( Q_atoi(kSpawnablePropTypes[iSpawnablePropIndex][1]) );	// spawned, so use up some of the player's credits
 	}

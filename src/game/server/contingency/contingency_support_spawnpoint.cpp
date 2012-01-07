@@ -119,7 +119,12 @@ void CContingencySupportWaveSpawner::MakeNPC( void )
 	pent->AddSpawnFlags( SF_NPC_NO_WEAPON_DROP );
 
 	pent->AddSpawnFlags( SF_NPC_ALWAYSTHINK );
-	pent->AddSpawnFlags( SF_NPC_LONG_RANGE );
+	
+	// As long as we aren't wielding a weapon, we're safe to look long ranges
+	// NOTE: NPCs who have a weapon and this spawn flag enabled fire at insanely long distances,
+	// hence why we're preventing that from happening here!
+	if ( equipmentName == NULL_STRING )
+		pent->AddSpawnFlags( SF_NPC_LONG_RANGE );
 
 	// Apply any defined squads and hint groups the mapper may have defined
 	// as well as weapons (if applicable)

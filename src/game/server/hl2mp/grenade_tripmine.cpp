@@ -13,6 +13,20 @@
 #include "engine/IEngineSound.h"
 #include "explode.h"
 
+/////
+
+	// Contingency - James
+	// Prevent S.L.A.M. tripmines from being set off by certain entities
+
+#include "npc_citizen17.h"
+
+// Added spawnable prop system
+#include "contingency_spawnableprop.h"
+
+#include "npc_contingency_turret.h"
+
+/////
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -244,8 +258,13 @@ void CTripmineGrenade::BeamBreakThink( void  )
 			bAttachMoved = true;
 	}
 
+/////
+
+	// Contingency - James
+	// Prevent S.L.A.M. tripmines from being set off by certain entities
+
 	// Also blow up if the attached entity goes away, ie: a crate
-	if (pBCC || fabs( m_flBeamLength - tr.fraction ) > 0.001 || ( m_bAttached && m_hAttachEntity.Get() == NULL) || bAttachMoved )
+	/*if (pBCC || fabs( m_flBeamLength - tr.fraction ) > 0.001 || ( m_bAttached && m_hAttachEntity.Get() == NULL) || bAttachMoved )
 	{
 		m_iHealth = 0;
 		if (m_pConstraint)
@@ -253,7 +272,42 @@ void CTripmineGrenade::BeamBreakThink( void  )
 
 		Event_Killed( CTakeDamageInfo( (CBaseEntity*)m_hOwner, this, 100, GIB_NORMAL ) );
 		return;
+	}*/
+
+	bool shouldBlowUp = true;
+
+	CBasePlayer *pPlayer = ToBasePlayer( pEntity );
+	if ( pPlayer )
+		shouldBlowUp = false;
+
+	CNPC_Citizen *pCitizen = dynamic_cast<CNPC_Citizen*>( pEntity );
+	if ( pCitizen )
+		shouldBlowUp = false;
+
+	// Added spawnable prop system
+	CContingency_SpawnableProp *pSpawnableProp = dynamic_cast<CContingency_SpawnableProp*>( pEntity );
+	if ( pSpawnableProp )
+		shouldBlowUp = false;
+
+	CNPC_FloorTurret *pTurret = dynamic_cast<CNPC_FloorTurret*>( pEntity );
+	if ( pTurret )
+		shouldBlowUp = false;
+
+	if ( shouldBlowUp )
+	{
+		// Also blow up if the attached entity goes away, ie: a crate
+		if (pBCC || fabs( m_flBeamLength - tr.fraction ) > 0.001 || ( m_bAttached && m_hAttachEntity.Get() == NULL) || bAttachMoved )
+		{
+			m_iHealth = 0;
+			if (m_pConstraint)
+				m_pConstraint->Deactivate();
+
+			Event_Killed( CTakeDamageInfo( (CBaseEntity*)m_hOwner, this, 100, GIB_NORMAL ) );
+			return;
+		}
 	}
+
+/////
 
 	SetNextThink( gpGlobals->curtime + 0.05f );
 }

@@ -7,7 +7,7 @@
 
 // Spawnflags
 // Added wave system
-#define SF_CONFIGURATION_SUPPORTSHEADCRABS 1
+//#define SF_CONFIGURATION_SUPPORTSHEADCRABS 1
 #define SF_CONFIGURATION_SUPPORTSANTLIONS 16
 #define SF_CONFIGURATION_SUPPORTSZOMBIES 32
 #define SF_CONFIGURATION_SUPPORTSCOMBINE 64
@@ -40,7 +40,7 @@ private:	// map-defined stuff
 
 	// Added wave system
 	int m_iMaxLivingNPCs;
-	float m_flHeadcrabWaveMultiplierOffset;
+	//float m_flHeadcrabWaveMultiplierOffset;
 	float m_flAntlionWaveMultiplierOffset;
 	float m_flZombieWaveMultiplierOffset;
 	float m_flCombineWaveMultiplierOffset;
@@ -71,7 +71,7 @@ BEGIN_DATADESC( CContingencyConfiguration )
 
 	// Added wave system
 	DEFINE_KEYFIELD( m_iMaxLivingNPCs, FIELD_INTEGER, "MaxLivingNPCs" ),
-	DEFINE_KEYFIELD( m_flHeadcrabWaveMultiplierOffset, FIELD_FLOAT, "HeadcrabWaveMultiplierOffset" ),
+	//DEFINE_KEYFIELD( m_flHeadcrabWaveMultiplierOffset, FIELD_FLOAT, "HeadcrabWaveMultiplierOffset" ),
 	DEFINE_KEYFIELD( m_flAntlionWaveMultiplierOffset, FIELD_FLOAT, "AntlionWaveMultiplierOffset" ),
 	DEFINE_KEYFIELD( m_flZombieWaveMultiplierOffset, FIELD_FLOAT, "ZombieWaveMultiplierOffset" ),
 	DEFINE_KEYFIELD( m_flCombineWaveMultiplierOffset, FIELD_FLOAT, "CombineWaveMultiplierOffset" ),
@@ -109,14 +109,14 @@ void CContingencyConfiguration::Spawn( void )
 	// Check to see what types of waves our map supports by its spawnflags
 	// and update our gamerules accordingly
 	ContingencyRules()->SetMapMaxLivingNPCs( m_iMaxLivingNPCs );
-	ContingencyRules()->DoesMapSupportHeadcrabs( HasSpawnFlags(SF_CONFIGURATION_SUPPORTSHEADCRABS) );
+	//ContingencyRules()->DoesMapSupportHeadcrabs( HasSpawnFlags(SF_CONFIGURATION_SUPPORTSHEADCRABS) );
 	ContingencyRules()->DoesMapSupportAntlions( HasSpawnFlags(SF_CONFIGURATION_SUPPORTSANTLIONS) );
 	ContingencyRules()->DoesMapSupportZombies( HasSpawnFlags(SF_CONFIGURATION_SUPPORTSZOMBIES) );
 	ContingencyRules()->DoesMapSupportCombine( HasSpawnFlags(SF_CONFIGURATION_SUPPORTSCOMBINE) );
 
 	// Added wave system
 	// Send our wave multiplier offsets to our gamerules
-	ContingencyRules()->SetMapHeadcrabWaveMultiplierOffset( m_flHeadcrabWaveMultiplierOffset );
+	//ContingencyRules()->SetMapHeadcrabWaveMultiplierOffset( m_flHeadcrabWaveMultiplierOffset );
 	ContingencyRules()->SetMapAntlionWaveMultiplierOffset( m_flAntlionWaveMultiplierOffset );
 	ContingencyRules()->SetMapZombieWaveMultiplierOffset( m_flZombieWaveMultiplierOffset );
 	ContingencyRules()->SetMapCombineWaveMultiplierOffset( m_flCombineWaveMultiplierOffset );

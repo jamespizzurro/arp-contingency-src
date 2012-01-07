@@ -6,6 +6,9 @@
 
 #include "contingency_system_propspawning.h"
 
+#include "props_shared.h"
+#include "npc_citizen17.h"
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -13,7 +16,6 @@ LINK_ENTITY_TO_CLASS( contingency_spawnableprop, CContingency_SpawnableProp );
 
 IMPLEMENT_SERVERCLASS_ST( CContingency_SpawnableProp, DT_Contingency_SpawnableProp )
 	SendPropEHandle( SENDINFO(m_hSpawnerPlayer) ),
-	SendPropBool( SENDINFO(m_bIsFrozen) ),
 END_SEND_TABLE()
 
 BEGIN_DATADESC( CContingency_SpawnableProp )
@@ -21,7 +23,6 @@ END_DATADESC()
 
 CContingency_SpawnableProp::CContingency_SpawnableProp( void )
 {
-	m_bIsFrozen = false;
 	m_hSpawnerPlayer = NULL;
 	m_iSpawnablePropIndex = 0;
 	pTarget = NULL;
@@ -59,74 +60,52 @@ CContingency_SpawnableProp::~CContingency_SpawnableProp( void )
 	}
 }
 
+Class_T CContingency_SpawnableProp::Classify( void )
+{
+	return CLASS_CONTINGENCY_SPAWNABLE_PROP;
+
+	// See Class_T enumerator in baseentity.h for
+	// a description of CLASS_CONTINGENCY_SPAWNABLE_PROP
+}
+
 void CContingency_SpawnableProp::Spawn( void )
 {
-	BaseClass::Spawn();
+	Precache();
+	// Model should be set by what is spawning us
 
-	SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS );
-	AddEffects( EF_NOSHADOW );	// save some FPS (?)
+	SetSolid( SOLID_VPHYSICS );
 	AddSolidFlags( FSOLID_COLLIDE_WITH_OWNER );
+	SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS );
+	SetMoveType( MOVETYPE_NONE );
+	SetBlocksLOS( true );
+	SetAIWalkable( true );
+	SetGravity( 0.0 );
+	AddEffects( EF_NOSHADOW );	// save some FPS (?)
+	SetBloodColor( BLOOD_COLOR_MECH );	// change to DONT_BLEED?
+
+	m_flFieldOfView = 0.0f;
+
+	AddFlag( FL_NPC );
+
+	if ( VPhysicsGetObject() )
+	{
+		VPhysicsGetObject()->EnableCollisions( false );
+		VPhysicsGetObject()->EnableMotion( false );
+		VPhysicsGetObject()->EnableDrag( false );
+		VPhysicsGetObject()->EnableGravity( false );
+	}
+	
+	m_takedamage = DAMAGE_YES;
+
+	CapabilitiesAdd( bits_CAP_SKIP_NAV_GROUND_CHECK );
+
+	// Our initial "health" depends on what type of spawnable prop we are
+	// and therefore should be set by whatever is spawning us
 
 	// Fade spawned prop in to the world
 	SetRenderColorA( 0 );
 	m_nRenderFX = kRenderFxSolidFast;
 	m_flSpeed = gpGlobals->curtime + 3.0f;
-
-	SetFrozenState( true );	// default to frozen
-
-	pTarget = static_cast<CNPC_Contingency_Target*>( CreateEntityByName("npc_contingency_target") );
-	if ( pTarget )
-	{
-		pTarget->SetAbsOrigin( this->GetAbsOrigin() );
-		pTarget->SetAbsAngles( this->GetAbsAngles() );
-		pTarget->AddSpawnFlags( SF_BULLSEYE_NONSOLID | SF_BULLSEYE_ENEMYDAMAGEONLY | SF_BULLSEYE_PERFECTACC );
-		pTarget->Spawn();
-		DispatchSpawn( pTarget );
-		pTarget->Activate();
-		pTarget->SetParent( this );
-		pTarget->SetHealth( this->GetHealth() );
-		pTarget->SetPainPartner( this );
-	}
-
-	SetNextThink( gpGlobals->curtime );
-}
-
-void CContingency_SpawnableProp::SetFrozenState( bool shouldFreeze )
-{
-	if ( shouldFreeze )
-	{
-		// Freeze us!
-
-		SetMoveType( MOVETYPE_NONE );
-		SetBlocksLOS( true );
-		SetAIWalkable( true );
-
-		if ( VPhysicsGetObject() )
-		{
-			VPhysicsGetObject()->EnableCollisions( false );
-			VPhysicsGetObject()->EnableMotion( false );
-			VPhysicsGetObject()->EnableDrag( false );
-			VPhysicsGetObject()->EnableGravity( false );
-		}
-	}
-	else
-	{
-		// Unfreeze us!
-
-		SetMoveType( MOVETYPE_VPHYSICS );
-		SetBlocksLOS( false );
-		SetAIWalkable( false );
-
-		if ( VPhysicsGetObject() )
-		{
-			VPhysicsGetObject()->EnableCollisions( true );
-			VPhysicsGetObject()->EnableMotion( true );
-			VPhysicsGetObject()->EnableDrag( true );
-			VPhysicsGetObject()->EnableGravity( true );
-		}
-	}
-
-	m_bIsFrozen = shouldFreeze;
 }
 
 void CContingency_SpawnableProp::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
@@ -156,35 +135,81 @@ void CContingency_SpawnableProp::Use( CBaseEntity *pActivator, CBaseEntity *pCal
 
 int CContingency_SpawnableProp::OnTakeDamage( const CTakeDamageInfo &info )
 {
-	// Don't let players damage each other's spawnable props
-	// Players can still damage their own props though
-	CBasePlayer *pPlayerAttacker = dynamic_cast<CBasePlayer*>( info.GetAttacker() );
+	// Don't let players damage each other's spawned props
+	// Players can still damage their own spawned props though
+	CBasePlayer *pPlayerAttacker = ToBasePlayer( info.GetAttacker() );
 	if ( pPlayerAttacker && (pPlayerAttacker != GetSpawnerPlayer()) )
 		return 0;
+
+	if ( info.GetAttacker() && info.GetAttacker()->IsNPC() )
+	{
+		// Don't let support NPCs do damage to us
+		CNPC_Citizen *pCitizenAttacker = dynamic_cast<CNPC_Citizen*>( info.GetAttacker() );
+		if ( pCitizenAttacker )
+			return 0;
+
+		// Don't let deployed turrets do damage to us
+		CNPC_FloorTurret *pTurretAttacker = dynamic_cast<CNPC_FloorTurret*>( info.GetAttacker() );
+		if ( pTurretAttacker )
+			return 0;
+	}
 
 	return BaseClass::OnTakeDamage( info );
 }
 
-void CContingency_SpawnableProp::Think( void )
+void CContingency_SpawnableProp::Event_Killed( const CTakeDamageInfo &info )
 {
-	BaseClass::Think();
+	BaseClass::Event_Killed( info );
 
-	// This is an absolutely horrible hack that prevents spawnable props from sleeping
-	// when unfrozen so that we can still perform tracelines that require them to be awake
-	// TODO: For the love of all that is good, come up with a better solution!
-	if ( !m_bIsFrozen && VPhysicsGetObject() )
-		VPhysicsGetObject()->Wake();
+	SetMoveType( MOVETYPE_NONE );
+	AddSolidFlags( FSOLID_NOT_SOLID );
 
-	SetNextThink( gpGlobals->curtime );
-}
+	if ( !IsDissolving() )	// don't break if we're dissolving
+	{
+//
+// This next block of code is taken directly from CAI_BaseNPC::Break,
+// which is a private function of CAI_BaseNPC
 
-bool CContingency_SpawnableProp::OnAttemptPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t reason )
-{
-	if ( m_bIsFrozen )
-		return false;	// frozen props cannot be picked up
+	m_takedamage = DAMAGE_NO;
 
-	if ( pPhysGunUser != GetSpawnerPlayer() )
-		return false;	// props that do not belong to us cannot be picked up
+	Vector velocity;
+	AngularImpulse angVelocity;
+	IPhysicsObject *pPhysics = VPhysicsGetObject();
+	Vector origin;
+	QAngle angles;
+	AddSolidFlags( FSOLID_NOT_SOLID );
+	if ( pPhysics )
+	{
+		pPhysics->GetVelocity( &velocity, &angVelocity );
+		pPhysics->GetPosition( &origin, &angles );
+		pPhysics->RecheckCollisionFilter();
+	}
+	else
+	{
+		velocity = GetAbsVelocity();
+		QAngleToAngularImpulse( GetLocalAngularVelocity(), angVelocity );
+		origin = GetAbsOrigin();
+		angles = GetAbsAngles();
+	}
 
-	return true;
+	breakablepropparams_t params( GetAbsOrigin(), GetAbsAngles(), velocity, angVelocity );
+	params.impactEnergyScale = m_impactEnergyScale;
+	params.defCollisionGroup = GetCollisionGroup();
+	if ( params.defCollisionGroup == COLLISION_GROUP_NONE )
+	{
+		// don't automatically make anything COLLISION_GROUP_NONE or it will
+		// collide with debris being ejected by breaking
+		params.defCollisionGroup = COLLISION_GROUP_INTERACTIVE;
+	}
+
+	// no damage/damage force? set a burst of 100 for some movement
+	params.defBurstScale = 100;//pDamageInfo ? 0 : 100;
+	PropBreakableCreateAll( GetModelIndex(), pPhysics, params, this, -1, false );
+
+// END of code block from CAI_BaseNPC::Break
+//
+	}
+
+	SetNextThink( gpGlobals->curtime + 0.1f );
+	SetThink( &CBaseEntity::SUB_Remove );
 }

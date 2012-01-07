@@ -225,6 +225,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClCompile Include="..\shared\contingency\weapon_axe.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_deployableturret.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_healthkit.cpp" />
+    <ClCompile Include="..\shared\contingency\weapon_hopwire.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_nyangun.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_pistols.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_wrench.cpp" />
@@ -345,6 +346,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClCompile Include="contingency\contingency_spawnableprop.cpp" />
     <ClCompile Include="contingency\contingency_support_spawnpoint.cpp" />
     <ClCompile Include="contingency\contingency_wave_spawnpoint.cpp" />
+    <ClCompile Include="contingency\grenade_hopwire.cpp" />
     <ClCompile Include="contingency\npc_contingency_target.cpp" />
     <ClCompile Include="contingency\npc_contingency_stalker.cpp" />
     <ClCompile Include="contingency\npc_contingency_turret.cpp" />
@@ -941,6 +943,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClInclude Include="..\shared\contingency\contingency_system_phase.h" />
     <ClInclude Include="..\shared\contingency\contingency_system_propspawning.h" />
     <ClInclude Include="..\shared\contingency\contingency_system_wave.h" />
+    <ClInclude Include="..\shared\contingency\weapon_hopwire.h" />
     <ClInclude Include="..\shared\hl2mp\hl2mp_weapon_parse.h" />
     <ClInclude Include="ai_baseactor.h" />
     <ClInclude Include="ai_basehumanoid.h" />
@@ -1044,6 +1047,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\program file
     <ClInclude Include="contingency\contingency_spawnableprop.h" />
     <ClInclude Include="contingency\contingency_support_spawnpoint.h" />
     <ClInclude Include="contingency\contingency_wave_spawnpoint.h" />
+    <ClInclude Include="contingency\grenade_hopwire.h" />
     <ClInclude Include="contingency\npc_contingency_target.h" />
     <ClInclude Include="contingency\npc_contingency_stalker.h" />
     <ClInclude Include="contingency\npc_contingency_turret.h" />

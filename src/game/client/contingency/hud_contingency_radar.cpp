@@ -209,6 +209,18 @@ void CHudRadarDisplay::Paint()
 	// Update any NPCs on radar
 	for ( i = 0; i < m_NPCList.Count(); i++ )
 	{
+		// Added prop spawning system
+		// Update any spawnable props on radar
+		pTargetSpawnableProp = dynamic_cast<C_Contingency_SpawnableProp*>( m_NPCList[i] );
+		if ( pTargetSpawnableProp )
+		{
+			if ( pTargetSpawnableProp->GetSpawnerPlayer() != pLocalPlayer )
+				continue;	// only show the local player's spawnable props on the radar
+
+			DrawRadarDot( pTargetSpawnableProp, COLOR_BLUE );
+			continue;
+		}
+
 		pTargetCitizen = dynamic_cast<C_NPC_Citizen*>( m_NPCList[i] );
 		if ( pTargetCitizen )
 		{
@@ -236,21 +248,6 @@ void CHudRadarDisplay::Paint()
 				continue;
 
 			DrawRadarDot( pTargetNPC, COLOR_RED );	// all other NPCs are assumed to be EVIL (hence the red)
-			continue;
-		}
-	}
-
-	// Added prop spawning system
-	// Update any spawnable props on radar
-	for ( i = 0; i < m_SpawnablePropList.Count(); i++ )
-	{
-		pTargetSpawnableProp = dynamic_cast<C_Contingency_SpawnableProp*>( m_SpawnablePropList[i] );
-		if ( pTargetSpawnableProp )
-		{
-			if ( pTargetSpawnableProp->GetSpawnerPlayer() != pLocalPlayer )
-				continue;	// only show the local player's spawnable props on the radar
-
-			DrawRadarDot( pTargetSpawnableProp, COLOR_BLUE );
 			continue;
 		}
 	}

@@ -31,6 +31,9 @@
 	#define CContingencyRulesProxy C_ContingencyRulesProxy
 #endif
 
+// Added wave system
+extern ConVar contingency_wave_challenge_frequency;
+
 enum CONTINGENCY_TEAMS
 {
 	TEAM_PLAYER = 0,
@@ -227,9 +230,20 @@ public:
 	void SetWaveType( int newWaveType ) { m_iWaveType = newWaveType; }
 	void SetPreferredWaveType( int newPreferredWaveType ) { m_iPreferredWaveType = newPreferredWaveType; }
 #endif
+	bool IsChallengeWave( void ) {
+		if ( contingency_wave_challenge_frequency.GetInt() <= 0 )
+			return false;	// avoid math headaches
+
+		return ((GetWaveNumber() % contingency_wave_challenge_frequency.GetInt()) == 0);
+	}
+#ifndef CLIENT_DLL
+	const char *GetPreferredNPCType( void ) { return m_PreferredNPCType; }
+	void SetPreferredNPCType( const char *newPreferredNPCType ) { m_PreferredNPCType = newPreferredNPCType; }
+#endif
 	int GetNumEnemiesRemaining( void ) { return m_iNumEnemiesRemaining; }
 #ifndef CLIENT_DLL
 	void SetNumEnemiesRemaining( int newNumEnemiesRemaining ) { m_iNumEnemiesRemaining = newNumEnemiesRemaining; }
+	void IncrementNumEnemiesRemaining( void ) { m_iNumEnemiesRemaining = m_iNumEnemiesRemaining + 1; }
 	void DecrementNumEnemiesRemaining( void ) { m_iNumEnemiesRemaining = m_iNumEnemiesRemaining - 1; }
 #endif
 #ifndef CLIENT_DLL
@@ -274,8 +288,8 @@ public:
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
 	int GetMapMaxLivingNPCs( void ) { return m_iMapMaxLivingNPCs; }
 	void SetMapMaxLivingNPCs( int iNewMapMaxLivingNPCs ) { m_iMapMaxLivingNPCs = iNewMapMaxLivingNPCs; }
-	bool DoesMapSupportHeadcrabs( void ) { return m_bMapHeadcrabSupport; }
-	void DoesMapSupportHeadcrabs( bool boolean ) { m_bMapHeadcrabSupport = boolean; }
+	/*bool DoesMapSupportHeadcrabs( void ) { return m_bMapHeadcrabSupport; }
+	void DoesMapSupportHeadcrabs( bool boolean ) { m_bMapHeadcrabSupport = boolean; }*/
 	bool DoesMapSupportAntlions( void ) { return m_bMapAntlionSupport; }
 	void DoesMapSupportAntlions( bool boolean ) { m_bMapAntlionSupport = boolean; }
 	bool DoesMapSupportZombies( void ) { return m_bMapZombieSupport; }
@@ -285,8 +299,8 @@ public:
 
 	// Added wave system
 	// This information is updated by a contingency_configuration entity (if one exists) when it spawns
-	float GetMapHeadcrabWaveMultiplierOffset( void ) { return m_flMapHeadcrabWaveMultiplierOffset; }
-	void SetMapHeadcrabWaveMultiplierOffset( float newMapHeadcrabWaveMultiplierOffset ) { m_flMapHeadcrabWaveMultiplierOffset = newMapHeadcrabWaveMultiplierOffset; }
+	/*float GetMapHeadcrabWaveMultiplierOffset( void ) { return m_flMapHeadcrabWaveMultiplierOffset; }
+	void SetMapHeadcrabWaveMultiplierOffset( float newMapHeadcrabWaveMultiplierOffset ) { m_flMapHeadcrabWaveMultiplierOffset = newMapHeadcrabWaveMultiplierOffset; }*/
 	float GetMapAntlionWaveMultiplierOffset( void ) { return m_flMapAntlionWaveMultiplierOffset; }
 	void SetMapAntlionWaveMultiplierOffset( float newMapAntlionWaveMultiplierOffset ) { m_flMapAntlionWaveMultiplierOffset = newMapAntlionWaveMultiplierOffset; }
 	float GetMapZombieWaveMultiplierOffset( void ) { return m_flMapZombieWaveMultiplierOffset; }
@@ -325,6 +339,7 @@ private:
 	CNetworkVar( int, m_iPreferredWaveType );
 	CNetworkVar( int, m_iNumEnemiesRemaining );
 #ifndef CLIENT_DLL
+	const char *m_PreferredNPCType;
 	int m_iCalculatedNumEnemies;
 	int m_iNumEnemiesSpawned;
 	bool m_bPlayersDefeated;

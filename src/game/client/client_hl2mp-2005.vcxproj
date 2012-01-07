@@ -225,6 +225,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClCompile Include="..\shared\contingency\weapon_axe.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_deployableturret.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_healthkit.cpp" />
+    <ClCompile Include="..\shared\contingency\weapon_hopwire.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_nyangun.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_pistols.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_wrench.cpp" />
@@ -268,6 +269,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClCompile Include="contingency\c_contingency_spawnableprop.cpp" />
     <ClCompile Include="contingency\c_npc_citizen17.cpp" />
     <ClCompile Include="contingency\c_npc_contingency_turret.cpp" />
+    <ClCompile Include="contingency\c_weapon_hopwire.cpp" />
     <ClCompile Include="contingency\hud_contingency_chat.cpp" />
     <ClCompile Include="contingency\hud_contingency_credits.cpp" />
     <ClCompile Include="contingency\hud_contingency_damageindicator.cpp" />
@@ -896,6 +898,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program file
     <ClInclude Include="..\shared\contingency\contingency_system_phase.h" />
     <ClInclude Include="..\shared\contingency\contingency_system_propspawning.h" />
     <ClInclude Include="..\shared\contingency\contingency_system_wave.h" />
+    <ClInclude Include="..\shared\contingency\weapon_hopwire.h" />
     <ClInclude Include="achievement_notification_panel.h" />
     <ClInclude Include="..\shared\achievement_saverestore.h" />
     <ClInclude Include="..\shared\achievementmgr.h" />

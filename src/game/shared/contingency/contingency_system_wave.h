@@ -7,7 +7,7 @@
 enum CONTINGENCY_WAVES
 {
 	WAVE_NONE = -1,
-	WAVE_HEADCRABS,
+	//WAVE_HEADCRABS,
 	WAVE_ANTLIONS,
 	WAVE_ZOMBIES,
 	WAVE_COMBINE,
@@ -16,13 +16,13 @@ enum CONTINGENCY_WAVES
 };
 
 // Wave types
-static const int NUM_HEADCRAB_NPCS = 3;
+/*static const int NUM_HEADCRAB_NPCS = 3;
 static const char* kWaveHeadcrabsNPCTypes[NUM_HEADCRAB_NPCS] =
 {
 	"npc_headcrab",
 	"npc_headcrab_fast",
 	"npc_headcrab_black"
-};
+};*/
 static const int NUM_ANTLION_NPCS = 1;
 static const char* kWaveAntlionsNPCTypes[NUM_ANTLION_NPCS] =
 {

@@ -102,12 +102,12 @@ void CContingencyBossSpawner::MakeNPC( void )
 	int currentWaveType = ContingencyRules()->GetWaveType();
 	const char *NPCClassName = STRING(m_BossNPCType);
 	string_t equipmentName = NULL_STRING;
-	if ( currentWaveType == WAVE_HEADCRABS )
+	/*if ( currentWaveType == WAVE_HEADCRABS )
 	{
 		// There are no headcrab wave bosses yet! :(
 		return;
 	}
-	else if ( currentWaveType == WAVE_ANTLIONS )
+	else */if ( currentWaveType == WAVE_ANTLIONS )
 	{
 		// Only spawn bosses associated with an antlion wave
 		if ( Q_strcmp(NPCClassName, "npc_antlionguard") != 0 )
@@ -152,7 +152,12 @@ void CContingencyBossSpawner::MakeNPC( void )
 	pent->AddSpawnFlags( SF_NPC_NO_WEAPON_DROP );
 
 	pent->AddSpawnFlags( SF_NPC_ALWAYSTHINK );
-	pent->AddSpawnFlags( SF_NPC_LONG_RANGE );
+	
+	// As long as we aren't wielding a weapon, we're safe to look long ranges
+	// NOTE: NPCs who have a weapon and this spawn flag enabled fire at insanely long distances,
+	// hence why we're preventing that from happening here!
+	if ( equipmentName == NULL_STRING )
+		pent->AddSpawnFlags( SF_NPC_LONG_RANGE );
 
 	// Apply any defined squads and hint groups the mapper may have defined
 	// as well as weapons (if applicable)

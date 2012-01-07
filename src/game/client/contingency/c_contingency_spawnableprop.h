@@ -4,28 +4,25 @@
 #define C_CONTINGENCY_SPAWNABLEPROP_H
 #pragma once
 
-#include "cbase.h"
-#include "c_physicsprop.h"
+#include "c_ai_basenpc.h"
 
-// memdbgon must be the last include file in a .cpp file!!!
-#include "tier0/memdbgon.h"
-
-class C_Contingency_SpawnableProp : public C_PhysicsProp
+class C_Contingency_SpawnableProp : public C_AI_BaseNPC
 {
 public:
-	DECLARE_CLASS( C_Contingency_SpawnableProp, C_PhysicsProp );
+	DECLARE_CLASS( C_Contingency_SpawnableProp, C_AI_BaseNPC );
 	DECLARE_CLIENTCLASS();
 
 	C_Contingency_SpawnableProp();
 	virtual	~C_Contingency_SpawnableProp();
 
 	const char* GetOwnerDisplay( void );
+	const char* GetHealthCondition( void );
+	Color GetHealthConditionColor( void );
 
 	CBasePlayer *GetSpawnerPlayer( void ) { return m_hSpawnerPlayer; }
 
 private:
 	CHandle<CBasePlayer> m_hSpawnerPlayer;
-	bool m_bIsFrozen;
 
 	C_Contingency_SpawnableProp( const C_Contingency_SpawnableProp & ); // not defined, not accessible
 };

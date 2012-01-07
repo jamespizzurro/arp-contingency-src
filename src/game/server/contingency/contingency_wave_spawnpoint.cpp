@@ -84,8 +84,10 @@ void CContingencyWaveSpawner::MakeNPC( void )
 	// Spawn a random type of NPC type associated with the current wave
 	int currentWaveType = ContingencyRules()->GetWaveType();
 	const char *NPCClassName = "";
+	if ( ContingencyRules()->IsChallengeWave() )
+		NPCClassName = ContingencyRules()->GetPreferredNPCType();
 	string_t equipmentName = NULL_STRING;
-	if ( currentWaveType == WAVE_HEADCRABS )
+	/*if ( currentWaveType == WAVE_HEADCRABS )
 	{
 		if ( !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB) &&
 			 !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_FAST) &&
@@ -93,21 +95,33 @@ void CContingencyWaveSpawner::MakeNPC( void )
 			return;	// this spawner cannot spawn any headcrabs
 
 		// Choose a random type of headcrab to spawn
-		NPCClassName = kWaveHeadcrabsNPCTypes[random->RandomInt(0, NUM_HEADCRAB_NPCS - 1)];
+		if ( !ContingencyRules()->IsChallengeWave() )
+			NPCClassName = kWaveHeadcrabsNPCTypes[random->RandomInt(0, NUM_HEADCRAB_NPCS - 1)];
 		while ( ((Q_strcmp(NPCClassName, "npc_headcrab") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB)) ||
 				((Q_strcmp(NPCClassName, "npc_headcrab_fast") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_FAST)) ||
 				((Q_strcmp(NPCClassName, "npc_headcrab_black") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_BLACK)) )
-			NPCClassName = kWaveHeadcrabsNPCTypes[random->RandomInt(0, NUM_HEADCRAB_NPCS - 1)];
+		{
+			if ( ContingencyRules()->IsChallengeWave() )
+				return;	// if we can't spawn our challenge wave NPC, that's okay, another wave spawnpoint will
+			else
+				NPCClassName = kWaveHeadcrabsNPCTypes[random->RandomInt(0, NUM_HEADCRAB_NPCS - 1)];
+		}
 	}
-	else if ( currentWaveType == WAVE_ANTLIONS )
+	else */if ( currentWaveType == WAVE_ANTLIONS )
 	{
 		if ( !HasSpawnFlags(SF_WAVESPAWNER_ANTLION) )
 			return;	// this spawner cannot spawn any antlions
 
 		// Choose a random type of antlion to spawn
-		NPCClassName = kWaveAntlionsNPCTypes[random->RandomInt(0, NUM_ANTLION_NPCS - 1)];
-		while ( ((Q_strcmp(NPCClassName, "npc_antlion") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ANTLION)) )
+		if ( !ContingencyRules()->IsChallengeWave() )
 			NPCClassName = kWaveAntlionsNPCTypes[random->RandomInt(0, NUM_ANTLION_NPCS - 1)];
+		while ( ((Q_strcmp(NPCClassName, "npc_antlion") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ANTLION)) )
+		{
+			if ( ContingencyRules()->IsChallengeWave() )
+				return;	// if we can't spawn our challenge wave NPC, that's okay, another wave spawnpoint will
+			else
+				NPCClassName = kWaveAntlionsNPCTypes[random->RandomInt(0, NUM_ANTLION_NPCS - 1)];
+		}
 	}
 	else if ( currentWaveType == WAVE_ZOMBIES )
 	{
@@ -118,12 +132,18 @@ void CContingencyWaveSpawner::MakeNPC( void )
 			return;	// this spawner cannot spawn any zombies
 
 		// Choose a random type of zombie to spawn
-		NPCClassName = kWaveZombiesNPCTypes[random->RandomInt(0, NUM_ZOMBIE_NPCS - 1)];
+		if ( !ContingencyRules()->IsChallengeWave() )
+			NPCClassName = kWaveZombiesNPCTypes[random->RandomInt(0, NUM_ZOMBIE_NPCS - 1)];
 		while ( ((Q_strcmp(NPCClassName, "npc_zombie") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE)) ||
 				((Q_strcmp(NPCClassName, "npc_zombie_torso") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_TORSO)) ||
 				((Q_strcmp(NPCClassName, "npc_fastzombie") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_FAST)) ||
 				((Q_strcmp(NPCClassName, "npc_poisonzombie") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_POISON)) )
-			NPCClassName = kWaveZombiesNPCTypes[random->RandomInt(0, NUM_ZOMBIE_NPCS - 1)];
+		{
+			if ( ContingencyRules()->IsChallengeWave() )
+				return;	// if we can't spawn our challenge wave NPC, that's okay, another wave spawnpoint will
+			else
+				NPCClassName = kWaveZombiesNPCTypes[random->RandomInt(0, NUM_ZOMBIE_NPCS - 1)];
+		}
 	}
 	else if ( currentWaveType == WAVE_COMBINE )
 	{
@@ -135,13 +155,19 @@ void CContingencyWaveSpawner::MakeNPC( void )
 			return;	// this spawner cannot spawn any zombies
 
 		// Choose a random type of zombie to spawn
-		NPCClassName = kWaveCombineNPCTypes[random->RandomInt(0, NUM_COMBINE_NPCS - 1)];
+		if ( !ContingencyRules()->IsChallengeWave() )
+			NPCClassName = kWaveCombineNPCTypes[random->RandomInt(0, NUM_COMBINE_NPCS - 1)];
 		while ( ((Q_strcmp(NPCClassName, "npc_combine_s") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_COMBINE)) ||
 				((Q_strcmp(NPCClassName, "npc_metropolice") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_COMBINE_METRO)) ||
 				((Q_strcmp(NPCClassName, "npc_cscanner") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_COMBINE_SCANNER)) ||
 				((Q_strcmp(NPCClassName, "npc_manhack") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_COMBINE_MANHACK)) ||
 				((Q_strcmp(NPCClassName, "npc_stalker") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_COMBINE_STALKER)) )
-			NPCClassName = kWaveCombineNPCTypes[random->RandomInt(0, NUM_COMBINE_NPCS - 1)];
+		{
+			if ( ContingencyRules()->IsChallengeWave() )
+				return;	// if we can't spawn our challenge wave NPC, that's okay, another wave spawnpoint will
+			else
+				NPCClassName = kWaveCombineNPCTypes[random->RandomInt(0, NUM_COMBINE_NPCS - 1)];
+		}
 
 		// Certain combine types should be given equipment (weapons)
 		if ( Q_strcmp(NPCClassName, "npc_combine_s") == 0 )
@@ -178,7 +204,12 @@ void CContingencyWaveSpawner::MakeNPC( void )
 	pent->AddSpawnFlags( SF_NPC_NO_WEAPON_DROP );
 
 	pent->AddSpawnFlags( SF_NPC_ALWAYSTHINK );
-	pent->AddSpawnFlags( SF_NPC_LONG_RANGE );
+
+	// As long as we aren't wielding a weapon, we're safe to look long ranges
+	// NOTE: NPCs who have a weapon and this spawn flag enabled fire at insanely long distances,
+	// hence why we're preventing that from happening here!
+	if ( equipmentName == NULL_STRING )
+		pent->AddSpawnFlags( SF_NPC_LONG_RANGE );
 
 	// Apply any defined squads and hint groups the mapper may have defined
 	// as well as weapons (if applicable)

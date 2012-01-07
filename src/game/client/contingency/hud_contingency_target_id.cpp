@@ -202,6 +202,14 @@ void CTargetID::Paint()
 			vgui::surface()->DrawSetTextPos( (ScreenWidth() - wide) / 2, YRES(260) );
 			vgui::surface()->DrawSetTextColor( GetColorForTargetTeam(pTargetSpawnableProp->GetTeamNumber()) );
 			vgui::surface()->DrawPrintText( wszSpawnablePropOwnerName, wcslen(wszSpawnablePropOwnerName) );
+
+			wchar_t wszHealthConditionText[256];
+			g_pVGuiLocalize->ConvertANSIToUnicode( pTargetSpawnableProp->GetHealthCondition(), wszHealthConditionText, sizeof(wszHealthConditionText) );
+			vgui::surface()->GetTextSize( m_hFont, wszHealthConditionText, wide, tall );
+			vgui::surface()->DrawSetTextFont( m_hFont );
+			vgui::surface()->DrawSetTextPos( (ScreenWidth() - wide) / 2, YRES(280) );
+			vgui::surface()->DrawSetTextColor( pTargetSpawnableProp->GetHealthConditionColor() );
+			vgui::surface()->DrawPrintText( wszHealthConditionText, wcslen(wszHealthConditionText) );
 		}
 	}
 }

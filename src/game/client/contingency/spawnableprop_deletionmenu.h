@@ -46,7 +46,6 @@ protected:
 	Label *m_pTitle;
 	Label *m_pText;
 	Button *m_pDeleteButton;
-	Button *m_pToggleFrozenButton;
 	Button *m_pCancelButton;
 };
 

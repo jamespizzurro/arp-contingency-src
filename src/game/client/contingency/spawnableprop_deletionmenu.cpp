@@ -39,7 +39,6 @@ CSpawnableProp_DeletionMenu::CSpawnableProp_DeletionMenu( IViewPort *pViewPort )
 	m_pTitle = new Label( this, "TitleLabel", "" );
 	m_pText = new Label( this, "TextLabel", "" );
 	m_pDeleteButton = new Button( this, "DeleteButton", "" );
-	m_pToggleFrozenButton = new Button( this, "ToggleFrozenButton", "");
 	m_pCancelButton = new Button( this, "CancelButton", "" );
 
 	LoadControlSettings( "Resource/UI/SpawnableProp_DeletionMenu.res" );
@@ -101,9 +100,6 @@ void CSpawnableProp_DeletionMenu::OnCommand( const char *command )
 {
 	if ( Q_stricmp(command, "removespawnablepropinfocus") == 0 )
 		engine->ServerCmd( "removespawnablepropinfocus\n" );
-
-	if ( Q_stricmp(command, "togglefrozenspawnablepropinfocus") == 0 )
-		engine->ServerCmd( "togglefrozenspawnablepropinfocus\n" );
 
 	Close();
 	gViewPortInterface->ShowBackGround( false );

@@ -273,17 +273,7 @@ void CZombie::Spawn( void )
 		m_fIsTorso = true;
 	}
 
-/////
-
-	// Contingency - James
-	// Disable headcrabs on zombies
-	// http://developer.valvesoftware.com/wiki/HL2_snippets#Remove_Head_Crab
-
-	//m_fIsHeadless = false;
-
-	m_fIsHeadless = true;
-
-/////
+	m_fIsHeadless = false;
 
 #ifdef HL2_EPISODIC
 	SetBloodColor( BLOOD_COLOR_ZOMBIE );

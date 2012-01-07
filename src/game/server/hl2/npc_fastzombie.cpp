@@ -652,17 +652,7 @@ void CFastZombie::Spawn( void )
 
 	m_fJustJumped = false;
 
-/////
-
-	// Contingency - James
-	// Disable headcrabs on zombies
-
-	//m_fIsTorso = m_fIsHeadless = false;
-
-	m_fIsTorso = false;
-	m_fIsHeadless = true;
-
-/////
+	m_fIsTorso = m_fIsHeadless = false;
 
 	if( FClassnameIs( this, "npc_fastzombie" ) )
 	{

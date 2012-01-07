@@ -996,9 +996,6 @@
     <ClCompile Include="c_basetempentity.cpp">
       <Filter>Source Files\Temporary Entities</Filter>
     </ClCompile>
-    <ClCompile Include="c_effects.cpp">
-      <Filter>Source Files\Temporary Entities</Filter>
-    </ClCompile>
     <ClCompile Include="c_impact_effects.cpp">
       <Filter>Source Files\Temporary Entities</Filter>
     </ClCompile>
@@ -1643,6 +1640,15 @@
     </ClCompile>
     <ClCompile Include="contingency\creditslist.cpp">
       <Filter>Source Files\Contingency\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="c_effects.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\contingency\weapon_hopwire.cpp">
+      <Filter>Source Files\Contingency\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="contingency\c_weapon_hopwire.cpp">
+      <Filter>Source Files\Contingency\Weapons</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3502,6 +3508,9 @@
     </ClInclude>
     <ClInclude Include="contingency\creditslist.h">
       <Filter>Source Files\Contingency\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\contingency\weapon_hopwire.h">
+      <Filter>Source Files\Contingency\Weapons</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

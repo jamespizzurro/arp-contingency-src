@@ -6,15 +6,14 @@
 
 static const int NUM_WEAPON_TYPE_PARAMETERS = 2;
 
-static const int NUM_PRIMARY_WEAPON_TYPES = 6;
+static const int NUM_PRIMARY_WEAPON_TYPES = 5;
 static const char* kPrimaryWeaponTypes[NUM_PRIMARY_WEAPON_TYPES][NUM_WEAPON_TYPE_PARAMETERS] =
 {
 	{ "weapon_smg1", "SMG1" },
 	{ "weapon_alyxgun", "Alyx's Gun" },
 	{ "weapon_shotgun", "Shotgun" },
 	{ "weapon_ar2", "AR2" },
-	{ "weapon_crossbow", "Crossbow" },
-	{ "weapon_rpg", "RPG" }
+	{ "weapon_crossbow", "Crossbow" }
 };
 
 static const int NUM_SECONDARY_WEAPON_TYPES = 4;
@@ -34,13 +33,15 @@ static const char* kMeleeWeaponTypes[NUM_MELEE_WEAPON_TYPES][NUM_WEAPON_TYPE_PAR
 	{ "weapon_stunstick", "Stunstick" }
 };
 
-static const int NUM_EQUIPMENT_TYPES = 4;
+static const int NUM_EQUIPMENT_TYPES = 6;
 static const char* kEquipmentTypes[NUM_EQUIPMENT_TYPES][NUM_WEAPON_TYPE_PARAMETERS] =
 {
-	{ "weapon_frag", "Frag Grenade" },
-	{ "weapon_slam", "S.L.A.M." },
+	{ "weapon_frag", "Frag Grenades" },
+	{ "weapon_slam", "S.L.A.M.s" },
 	{ "weapon_deployableturret", "Turret" },
-	{ "weapon_healthkit", "Health Kit" }
+	{ "weapon_healthkit", "Health Kit" },
+	{ "weapon_rpg", "RPG" },
+	{ "weapon_hopwire", "Vortex Grenade" }
 };
 
 // Special weapons are weapons that can be picked up regardless of a player's loadout

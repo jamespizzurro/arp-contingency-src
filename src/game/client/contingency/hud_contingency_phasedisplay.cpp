@@ -140,15 +140,28 @@ void CHudContingencyPhaseDisplay::OnThink()
 			m_pWarmupLabel->SetFgColor( Color(255, 255, 255, 255) );
 
 			if ( ContingencyRules()->GetCurrentPhase() == PHASE_INTERIM )
+			{
 				Q_snprintf( text, sizeof(text), "%s:\n%i seconds remaining before wave %i",
 				ContingencyRules()->GetCurrentPhaseName(),
 				ContingencyRules()->GetInterimPhaseTimeLeft(),
 				ContingencyRules()->GetWaveNumber() + 1 );
+			}
 			else
-				Q_snprintf( text, sizeof(text), "%s:\nWave %i (%i enemies remaining)",
-				ContingencyRules()->GetCurrentPhaseName(),
-				ContingencyRules()->GetWaveNumber(),
-				ContingencyRules()->GetNumEnemiesRemaining() );
+			{
+				if ( ContingencyRules()->IsChallengeWave() )
+				{
+					Q_snprintf( text, sizeof(text), "%s:\nChallenge Wave %i",
+					ContingencyRules()->GetCurrentPhaseName(),
+					ContingencyRules()->GetWaveNumber() );
+				}
+				else
+				{
+					Q_snprintf( text, sizeof(text), "%s:\nWave %i (%i enemies remaining)",
+					ContingencyRules()->GetCurrentPhaseName(),
+					ContingencyRules()->GetWaveNumber(),
+					ContingencyRules()->GetNumEnemiesRemaining() );
+				}
+			}
 
 			m_pWarmupLabel->SetText( text );
 			m_pWarmupLabel->SetVisible( true );

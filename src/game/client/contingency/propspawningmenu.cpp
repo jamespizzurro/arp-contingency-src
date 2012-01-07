@@ -141,6 +141,9 @@ void CPropSpawningMenu::Reset()
 	currentSpawnablePropSelected[1] = kSpawnablePropTypes[currentSpawnablePropIndex][1];
 	currentSpawnablePropSelected[2] = kSpawnablePropTypes[currentSpawnablePropIndex][2];
 	currentSpawnablePropSelected[3] = kSpawnablePropTypes[currentSpawnablePropIndex][3];
+	currentSpawnablePropSelected[4] = kSpawnablePropTypes[currentSpawnablePropIndex][4];
+	currentSpawnablePropSelected[5] = kSpawnablePropTypes[currentSpawnablePropIndex][5];
+	currentSpawnablePropSelected[6] = kSpawnablePropTypes[currentSpawnablePropIndex][6];
 }
 
 void CPropSpawningMenu::OnThink()
@@ -169,7 +172,7 @@ void CPropSpawningMenu::OnThink()
 		else if ( Q_strcmp(labelName, "PropCost") == 0 )
 		{
 			char szPropCost[128];
-			Q_snprintf( szPropCost, sizeof(szPropCost), "COST: %s credits", currentSpawnablePropSelected[1] );
+			Q_snprintf( szPropCost, sizeof(szPropCost), "COST: %s credits\nHP: %s", currentSpawnablePropSelected[1], currentSpawnablePropSelected[6] );
 			pLabel->SetText( szPropCost );
 		}
 	}
@@ -208,6 +211,9 @@ void CPropSpawningMenu::OnCommand( const char *command )
 		currentSpawnablePropSelected[1] = kSpawnablePropTypes[currentSpawnablePropIndex][1];
 		currentSpawnablePropSelected[2] = kSpawnablePropTypes[currentSpawnablePropIndex][2];
 		currentSpawnablePropSelected[3] = kSpawnablePropTypes[currentSpawnablePropIndex][3];
+		currentSpawnablePropSelected[4] = kSpawnablePropTypes[currentSpawnablePropIndex][4];
+		currentSpawnablePropSelected[5] = kSpawnablePropTypes[currentSpawnablePropIndex][5];
+		currentSpawnablePropSelected[6] = kSpawnablePropTypes[currentSpawnablePropIndex][6];
 	}
 	else if ( Q_stricmp(command, "previousprop") == 0 )
 	{
@@ -220,6 +226,9 @@ void CPropSpawningMenu::OnCommand( const char *command )
 		currentSpawnablePropSelected[1] = kSpawnablePropTypes[currentSpawnablePropIndex][1];
 		currentSpawnablePropSelected[2] = kSpawnablePropTypes[currentSpawnablePropIndex][2];
 		currentSpawnablePropSelected[3] = kSpawnablePropTypes[currentSpawnablePropIndex][3];
+		currentSpawnablePropSelected[4] = kSpawnablePropTypes[currentSpawnablePropIndex][4];
+		currentSpawnablePropSelected[5] = kSpawnablePropTypes[currentSpawnablePropIndex][5];
+		currentSpawnablePropSelected[6] = kSpawnablePropTypes[currentSpawnablePropIndex][6];
 	}
 	else if ( Q_stricmp(command, "selectprop") == 0 )
 	{

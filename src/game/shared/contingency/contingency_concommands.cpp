@@ -16,6 +16,46 @@
 #ifdef CLIENT_DLL
 #else
 
+void CC_Teleport( void )
+{
+	CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_GetCommandClient() );
+	if ( !pPlayer )
+		return;
+
+	// Determine whether or not we are actually stuck inside something
+	// We can only teleport back to spawn if we are
+	Ray_t ray;
+	ray.Init( pPlayer->GetAbsOrigin(), pPlayer->GetAbsOrigin(), pPlayer->GetPlayerMins(), pPlayer->GetPlayerMaxs() );
+	trace_t trace;
+	UTIL_TraceRay( ray, MASK_PLAYERSOLID, pPlayer, COLLISION_GROUP_PLAYER_MOVEMENT, &trace );
+	if ( (trace.contents & MASK_PLAYERSOLID) && trace.m_pEnt )
+	{
+		// We are in fact stuck, so we are allowed to teleport!
+
+		// Find all spawnpoints on the map
+		CUtlVector<CBaseEntity*> *spawnpointsList = new CUtlVector<CBaseEntity*>();
+		CBaseEntity *pEntity = gEntList.FindEntityByClassname( NULL, "info_player_deathmatch" );
+		while ( pEntity != NULL )
+		{
+			spawnpointsList->AddToTail( pEntity );
+			pEntity = gEntList.FindEntityByClassname( pEntity, "info_player_deathmatch" );
+		}
+
+		// Choose a random spawnpoint to use
+		pEntity = spawnpointsList->Element( random->RandomInt(0, spawnpointsList->Count() - 1) );
+
+		delete spawnpointsList;	// we don't need this anymore
+
+		// Actually teleport the player
+		pPlayer->SetAbsVelocity( Vector(0, 0, 0) );	// make sure we don't kill the player from fall damage or something when teleporting them
+		pPlayer->SetAbsOrigin( pEntity->GetAbsOrigin() );
+		pPlayer->SetAbsAngles( pEntity->GetAbsAngles() );
+	}
+	else
+		ClientPrint( pPlayer, HUD_PRINTTALK, "You must be stuck to teleport back to spawn!" );
+}
+static ConCommand teleport( "teleport", CC_Teleport, "Teleport to spawn (only when stuck)" );
+
 // Added drop system
 void CC_DropCurrentWeapon( void )
 {
@@ -121,37 +161,6 @@ void CC_RemoveSpawnablePropInFocus( const CCommand &args )
 static ConCommand removespawnablepropinfocus( "removespawnablepropinfocus", CC_RemoveSpawnablePropInFocus, "Removes the spawnable prop currently in focus" );
 
 // Added spawnable prop system
-void CC_ToggleFrozenPropInFocus( const CCommand &args )
-{
-	CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_GetCommandClient() );
-	if ( !pPlayer )
-		return;
-
-	if ( ContingencyRules()->GetCurrentPhase() != PHASE_INTERIM )
-	{
-		ClientPrint( pPlayer, HUD_PRINTTALK, "Props can only be operated during interim phases." );
-		return;	// we're only allowed to operate props during interim phases
-	}
-
-	CContingency_SpawnableProp *pProp = pPlayer->GetSpawnablePropInFocus();
-	if ( !pProp )
-		return;	// this concommand has been used improperly
-
-	if ( pPlayer != pProp->GetSpawnerPlayer() )
-	{
-		ClientPrint( pPlayer, HUD_PRINTTALK, "This prop is not yours to operate." );
-		return;	// only our spawner can operate us
-	}
-
-	if ( pProp->IsDissolving() )
-		return;	// props that are already dissolving should be ignored
-
-	// Actually toggle frozen state of spawnable prop in focus
-	pProp->SetFrozenState( !pProp->IsFrozen() );
-}
-static ConCommand togglefrozenspawnablepropinfocus( "togglefrozenspawnablepropinfocus", CC_ToggleFrozenPropInFocus, "Freezes/unfreezes the spawnable prop currently in focus" );
-
-// Added spawnable prop system
 void CC_ForgetSpawnablePropInFocus( const CCommand &args )
 {
 	CContingency_Player *pPlayer = ToContingencyPlayer( UTIL_GetCommandClient() );
@@ -187,14 +196,14 @@ void CC_CheatSetWaveType( const CCommand &args )
 
 	if ( (args.ArgC() < 1) || (Q_strcmp(args.Arg(1), "") == 0) || (atoi(args.Arg(1)) < WAVE_NONE) || (atoi(args.Arg(1)) >= NUM_WAVES) )
 	{
-		Msg( "Description: sets the next wave type according to the integer specified (-1 for no preference, 0 for headcrab, 1 for antlion, 2 for zombie, 3 for combine)\n" );
-		Msg( "Usage: contingency_cheat_setwavetype <integer between -1 and 3 (inclusive)>\n" );
+		Msg( "Description: sets the next wave type according to the integer specified (-1 for no preference, 0 for antlion, 1 for zombie, 2 for combine)\n" );
+		Msg( "Usage: contingency_cheat_setwavetype <integer between -1 and 2 (inclusive)>\n" );
 		return;
 	}
 
 	ContingencyRules()->SetPreferredWaveType( atoi(args.Arg(1)) );
 }
-static ConCommand contingency_cheat_setwavetype( "contingency_cheat_setwavetype", CC_CheatSetWaveType, "CHEAT: Sets the next wave type according to the integer specified (-1 for no preference, 0 for headcrab, 1 for antlion, 2 for zombie, 3 for combine)", FCVAR_CHEAT );
+static ConCommand contingency_cheat_setwavetype( "contingency_cheat_setwavetype", CC_CheatSetWaveType, "CHEAT: Sets the next wave type according to the integer specified (-1 for no preference, 0 for antlion, 1 for zombie, 2 for combine)", FCVAR_CHEAT );
 
 void CC_CheatSetCredits( const CCommand &args )
 {
