@@ -97,6 +97,8 @@ static ConVar mat_viewportscale( "mat_viewportscale", "1.0", FCVAR_CHEAT, "Scale
 								  true, (1.0f / 640.0f), true, 1.0f );
 ConVar cl_leveloverview( "cl_leveloverview", "0", FCVAR_CHEAT );
 
+ConVar cl_propfade( "cl_propfade", "0", FCVAR_USERINFO | FCVAR_ARCHIVE );
+
 static ConVar r_mapextents( "r_mapextents", "16384", FCVAR_CHEAT, 
 						   "Set the max dimension for the map.  This determines the far clipping plane" );
 

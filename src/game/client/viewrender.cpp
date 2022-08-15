@@ -160,6 +160,7 @@ static ConVar cl_drawmonitors( "cl_drawmonitors", "1" );
 static ConVar r_eyewaterepsilon( "r_eyewaterepsilon", "7.0f", FCVAR_CHEAT );
 
 extern ConVar cl_leveloverview;
+extern ConVar cl_propfade;
 
 //-----------------------------------------------------------------------------
 // Globals
@@ -3127,7 +3128,7 @@ void CRendering3dView::UpdateRenderablesOpacity()
 		flFactor = pLocal->GetFOVDistanceAdjustFactor();
 	}
 
-	if ( cl_leveloverview.GetFloat() > 0 )
+	if ( cl_leveloverview.GetFloat() > 0 || cl_propfade.GetFloat() > 0 )
 	{
 		// disable prop fading
 		flFactor = -1;

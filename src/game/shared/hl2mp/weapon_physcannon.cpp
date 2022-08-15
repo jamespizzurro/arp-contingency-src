@@ -3535,6 +3535,15 @@ void PhysCannonForceDrop( CBaseCombatWeapon *pActiveWeapon, CBaseEntity *pOnlyIf
 	}
 }
 
+void PhysCannonForceDropUnconditional( CBaseCombatWeapon *pActiveWeapon) // If at the end of the interim phase player has the gravity gun out...
+{
+	CWeaponPhysCannon *pCannon = dynamic_cast<CWeaponPhysCannon *>(pActiveWeapon);
+	if ( pCannon && IN_ATTACK2) // ...and is carrying and object with it,...
+	{
+		pCannon->ForceDrop(); //...drop that object properly
+	}
+}
+
 bool PlayerPickupControllerIsHoldingEntity( CBaseEntity *pPickupControllerEntity, CBaseEntity *pHeldEntity )
 {
 	CPlayerPickupController *pController = dynamic_cast<CPlayerPickupController *>(pPickupControllerEntity);

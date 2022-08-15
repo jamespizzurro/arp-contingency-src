@@ -42,6 +42,7 @@ ConVar r_FadeProps( "r_FadeProps", "1" );
 #endif
 bool g_MakingDevShots = false;
 extern ConVar cl_leveloverview;
+extern ConVar cl_propfade;
 
 //-----------------------------------------------------------------------------
 // Purpose: Performs a var args printf into a static return buffer
@@ -989,7 +990,7 @@ unsigned char UTIL_ComputeEntityFade( C_BaseEntity *pEntity, float flMinDist, fl
 	unsigned char nAlpha = 255;
 
 	// If we're taking devshots, don't fade props at all
-	if ( g_MakingDevShots || cl_leveloverview.GetFloat() > 0 )
+	if ( g_MakingDevShots || cl_leveloverview.GetFloat() > 0 || cl_propfade.GetFloat() == 0)
 		return 255;
 
 #ifdef _DEBUG

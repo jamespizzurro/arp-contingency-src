@@ -9,6 +9,8 @@
 
 #include "contingency_gamerules.h"
 
+#include "../hl2/weapon_physcannon.h"
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -127,6 +129,18 @@ void CContingency_Player::ApplyLoadout( void )
 
 	// Remove any shit we have before we get new shit
 	//ContingencyRules()->RemoveSatchelsAndTripmines( this );
+
+	CBaseCombatWeapon *wpn = GetActiveWeapon();
+
+	if ( ContingencyRules()->GetCurrentPhase() == PHASE_COMBAT && wpn != NULL ) //only execute weapon methods if the player exists at the end of the interim phase
+	{
+		const char* ActiveWeaponName = wpn->GetName();
+		if (strcmp(ActiveWeaponName, "weapon_physcannon") == 0) // If at the end of the interim phase player has the gravity gun out...
+		{
+			PhysCannonForceDropUnconditional(wpn); //...and is carrying an object with it, drop that object properly
+		}
+	}
+
 	RemoveAllWeapons();
 
 	// Added loadout system
@@ -146,6 +160,7 @@ void CContingency_Player::ApplyLoadout( void )
 	}
 	else
 	{
+
 		const char *szPreferredEquipmentClassname = "";
 
 		// During combat phases, players are given their full loadout
@@ -170,7 +185,7 @@ void CContingency_Player::ApplyLoadout( void )
 		if ( Q_strcmp(szPreferredEquipmentClassname, "weapon_slam") != 0 )
 		{
 			// We do not want SLAMs
-			ContingencyRules()->RemoveSatchelsAndTripmines( this );	// remove any we have on the amp
+			ContingencyRules()->RemoveSatchelsAndTripmines( this );	// remove any we have on the map
 		}
 
 		// Added a modified version of Valve's floor turret
@@ -414,7 +429,7 @@ void CContingency_Player::Spawn( void )
 			pViewModel->RemoveEffects( EF_NODRAW );
 
 		// Added loadout system
-		ApplyLoadout();
+		ApplyLoadout( );
 	}
 	else	// by default, players are forced to be observers
 	{

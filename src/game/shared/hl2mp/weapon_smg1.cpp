@@ -519,7 +519,8 @@ void CWeaponSMG1::SecondaryAttack( void )
 	pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 0.5 ); //AI Patch Addition
 #endif
 
-	SendWeaponAnim( ACT_VM_SECONDARYATTACK );
+	//SendWeaponAnim( ACT_VM_SECONDARYATTACK );
+	SendWeaponAnim(ACT_VM_SECONDARYATTACK_NO_RELOAD);
 
 	// player "shoot" animation
 	pPlayer->SetAnimation( PLAYER_ATTACK1 );

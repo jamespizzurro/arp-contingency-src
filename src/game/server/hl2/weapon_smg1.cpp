@@ -363,7 +363,8 @@ void CWeaponSMG1::SecondaryAttack( void )
 	pGrenade->SetThrower( GetOwner() );
 	pGrenade->SetDamage( sk_plr_dmg_smg1_grenade.GetFloat() );
 
-	SendWeaponAnim( ACT_VM_SECONDARYATTACK );
+	//SendWeaponAnim( ACT_VM_SECONDARYATTACK );
+	SendWeaponAnim(ACT_VM_SECONDARYATTACK_NO_RELOAD);
 
 	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), 1000, 0.2, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
 

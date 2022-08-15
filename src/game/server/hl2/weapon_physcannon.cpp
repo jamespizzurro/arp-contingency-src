@@ -4487,6 +4487,15 @@ void PhysCannonForceDrop( CBaseCombatWeapon *pActiveWeapon, CBaseEntity *pOnlyIf
 	}
 }
 
+void PhysCannonForceDropUnconditional( CBaseCombatWeapon *pActiveWeapon) // If at the end of the interim phase player has the gravity gun out...
+{
+	CWeaponPhysCannon *pCannon = dynamic_cast<CWeaponPhysCannon *>(pActiveWeapon);
+	if ( pCannon && pCannon->m_bActive && IN_ATTACK2) // ...and is carrying and object with it,...
+	{
+		pCannon->ForceDrop(); //...drop that object properly
+	}
+}
+
 void PhysCannonBeginUpgrade( CBaseAnimating *pAnim )
 {
 	CWeaponPhysCannon *pWeaponPhyscannon = assert_cast<	CWeaponPhysCannon* >( pAnim );

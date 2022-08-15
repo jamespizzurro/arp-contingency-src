@@ -96,7 +96,7 @@ public:
 
 	// Added announcements system
 	// This function allows the server to display a certain block of text at the center of a particular player's or all players' HUDs
-	void DisplayAnnouncement( const char* announcementText, float timeOnScreen = 8.0f, bool shouldFade = true, CBasePlayer *pTargetPlayer = NULL );
+	void DisplayAnnouncement( const char* announcementText, float timeOnScreen = 8.0f, bool shouldFade = false, CBasePlayer *pTargetPlayer = NULL );
 
 	void RemoveSatchelsAndTripmines( CContingency_Player *pPlayer = NULL );
 

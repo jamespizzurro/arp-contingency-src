@@ -185,7 +185,7 @@ extern ConVar ai_vehicle_avoidance;
 #endif
 
 // NPC damage adjusters
-ConVar	sk_npc_head( "sk_npc_head","2" );
+ConVar	sk_npc_head( "sk_npc_head","4" );
 ConVar	sk_npc_chest( "sk_npc_chest","1" );
 ConVar	sk_npc_stomach( "sk_npc_stomach","1" );
 ConVar	sk_npc_arm( "sk_npc_arm","1" );
