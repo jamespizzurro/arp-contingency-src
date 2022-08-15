@@ -1,0 +1,1 @@
+The complete game files of Contingency, a Half-Life 2 modification built using the Source engine. See [the mod's page on the Valve Developer Community wiki](https://developer.valvesoftware.com/wiki/Contingency) for more information about it. Contingency's game files are also available [here](https://github.com/jamespizzurro/arp-contingency).
