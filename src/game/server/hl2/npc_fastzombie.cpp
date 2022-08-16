@@ -670,7 +670,7 @@ void CFastZombie::Spawn( void )
 	SetBloodColor( BLOOD_COLOR_YELLOW );
 #endif // HL2_EPISODIC
 
-	m_iHealth			= 50;
+	m_iHealth			= 40;
 	m_flFieldOfView		= 0.2;
 
 	CapabilitiesClear();
