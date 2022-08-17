@@ -34,7 +34,7 @@ const char* C_Contingency_SpawnableProp::GetOwnerDisplay( void )
 	if ( pPlayer == C_Contingency_Player::GetLocalContingencyPlayer() )
 		return "Your Prop";
 
-	char szOwnerDisplay[256];
+	char szOwnerDisplay[512]; // because each Unicode char is 4 bytes, and MAX_PLAYER_NAME_LENGTH is 256 bytes
 	Q_snprintf( szOwnerDisplay, sizeof(szOwnerDisplay), "%s's Prop", pPlayer->GetPlayerName() );
 	return szOwnerDisplay;
 }

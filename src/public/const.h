@@ -33,9 +33,9 @@
 #define ABSOLUTE_PLAYER_LIMIT 255  // not 256, so we can send the limit as a byte 
 #define ABSOLUTE_PLAYER_LIMIT_DW	( (ABSOLUTE_PLAYER_LIMIT/32) + 1 )
 
-// a player name may have 31 chars + 0 on the PC.
+// a player name may have 63 chars + 0 on the PC, each char being Unicode 4 bytes.
 // the 360 only allows 15 char + 0, but stick with the larger PC size for cross-platform communication
-#define MAX_PLAYER_NAME_LENGTH		32
+#define MAX_PLAYER_NAME_LENGTH		256
 
 #ifdef _X360
 #define MAX_PLAYERS_PER_CLIENT		XUSER_MAX_COUNT	// Xbox 360 supports 4 players per console
