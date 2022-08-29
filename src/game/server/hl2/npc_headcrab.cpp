@@ -2566,7 +2566,7 @@ void CFastHeadcrab::Spawn( void )
 
 	BaseClass::Spawn();
 
-	m_iHealth = sk_headcrab_health.GetFloat();
+	m_iHealth = sk_headcrab_fast_health.GetFloat();
 
 	m_iRunMode = HEADCRAB_RUNMODE_IDLE;
 	m_flPauseTime = 999999;
@@ -3268,13 +3268,13 @@ void CBlackHeadcrab::TouchDamage( CBaseEntity *pOther )
 		if ( CalcDamageInfo( &info ) >= pOther->m_iHealth )
 			info.SetDamage( pOther->m_iHealth - 1 );
 
-		pOther->TakeDamage( info  );
+		// pOther->TakeDamage( info  );
 
 		if ( pOther->IsAlive() && pOther->m_iHealth > 1)
 		{
 			// Episodic change to avoid NPCs dying too quickly from poison bites
-			if ( hl2_episodic.GetBool() )
-			{
+			// if ( hl2_episodic.GetBool() )
+			// {
 				if ( pOther->IsPlayer() )
 				{
 					// That didn't finish them. Take them down to one point with poison damage. It'll heal.
@@ -3285,12 +3285,12 @@ void CBlackHeadcrab::TouchDamage( CBaseEntity *pOther )
 					// Just take some amount of slash damage instead
 					pOther->TakeDamage( CTakeDamageInfo( this, this, sk_headcrab_poison_npc_damage.GetFloat(), DMG_SLASH ) );
 				}
-			}
-			else
+			// }
+			/*else
 			{
 				// That didn't finish them. Take them down to one point with poison damage. It'll heal.
 				pOther->TakeDamage( CTakeDamageInfo( this, this, pOther->m_iHealth - 1, DMG_POISON ) );
-			}
+			}*/
 		}
 	}
 }

@@ -19,3 +19,10 @@ The complete game source code of Contingency, a Half-Life 2 modification built u
 * Players' weapons damage values now are 5 for SMG1, 8 for 9mm pistol(s) and Alyx's gun, 10 for AR2, 15 for the turret.
 * SMG1, 9mm pistol(s) and AR2s deal the same damage when wielded by enemies and players.
 * Both players and NPCs take 4x damage from headshots.
+
+### v 0.1.8
+
+**Balance improvements in binaries**
+
+* Fast headcrab now has 10 hp to die from one AR2 shot or two shots from other automatic weapons. Didn't notice before that in code it had read the classic headcrab health entry from skill.cfg.
+* Fast zombie health has been de-hardcoded and brought to skill.cfg.
