@@ -128,8 +128,11 @@ void CContingencyWaveSpawner::MakeNPC( void )
 		if ( !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE) &&
 			 !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_TORSO) &&
 			 !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_FAST) &&
-			 !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_POISON) )
-			return;	// this spawner cannot spawn any zombies
+			 !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_POISON) &&
+			 !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB) &&
+			 !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_FAST) &&
+			 !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_BLACK) )
+			return;	// this spawner cannot spawn any zombies or headcrabs
 
 		// Choose a random type of zombie to spawn
 		if ( !ContingencyRules()->IsChallengeWave() )
@@ -137,7 +140,10 @@ void CContingencyWaveSpawner::MakeNPC( void )
 		while ( ((Q_strcmp(NPCClassName, "npc_zombie") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE)) ||
 				((Q_strcmp(NPCClassName, "npc_zombie_torso") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_TORSO)) ||
 				((Q_strcmp(NPCClassName, "npc_fastzombie") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_FAST)) ||
-				((Q_strcmp(NPCClassName, "npc_poisonzombie") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_POISON)) )
+				((Q_strcmp(NPCClassName, "npc_poisonzombie") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE_POISON)) ||
+				((Q_strcmp(NPCClassName, "npc_headcrab") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB)) ||
+				((Q_strcmp(NPCClassName, "npc_headcrab_fast") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_FAST)) ||
+				((Q_strcmp(NPCClassName, "npc_headcrab_black") == 0) && !HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_BLACK)))
 		{
 			if ( ContingencyRules()->IsChallengeWave() )
 				return;	// if we can't spawn our challenge wave NPC, that's okay, another wave spawnpoint will

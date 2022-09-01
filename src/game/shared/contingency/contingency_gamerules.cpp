@@ -115,7 +115,8 @@ IMPLEMENT_NETWORKCLASS_ALIASED( ContingencyRulesProxy, DT_ContingencyRulesProxy 
 	ConVar contingency_wave_multiplier_players( "contingency_wave_multiplier_players", "0.125", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by based on the number of players" );
 	//ConVar contingency_wave_multiplier_headcrabs( "contingency_wave_multiplier_headcrabs", "3", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during headcrab waves" );
 	ConVar contingency_wave_multiplier_antlions( "contingency_wave_multiplier_antlions", "1.25", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during antlion waves" );
-	ConVar contingency_wave_multiplier_zombies( "contingency_wave_multiplier_zombies", "1", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during zombie waves" );
+	//ConVar contingency_wave_multiplier_zombies( "contingency_wave_multiplier_zombies", "1", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during zombie waves" );
+	ConVar contingency_wave_multiplier_zombies( "contingency_wave_multiplier_zombies", "1.5", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during zombie waves" ); //increased the number spawned to make room for adding headcrabs to the wave
 	ConVar contingency_wave_multiplier_combine( "contingency_wave_multiplier_combine", "0.75", FCVAR_NOTIFY, "Defines the amount to scale the amount of NPCs spawned by during combine waves" );
 #else
 	ConVar contingency_client_heartbeatsounds( "contingency_client_heartbeatsounds", "1", FCVAR_ARCHIVE, "Toggles heartbeat sounds when health is low" );
@@ -614,9 +615,9 @@ void CContingencyRules::PerformWaveCalculations( void )
 		// seeing what NPC types each one supports, where NPC types that are not supported
 		// by any wave spawnpoints should be ignored with regards to our challenge wave "drawing"
 
-		/*bool bConsiderHeadcrab = false;
+		bool bConsiderHeadcrab = false;
 		bool bConsiderHeadcrabFast = false;
-		bool bConsiderHeadcrabBlack = false;*/
+		bool bConsiderHeadcrabBlack = false;
 		bool bConsiderAntlion = false;
 		bool bConsiderZombie = false;
 		bool bConsiderZombieTorso = false;
@@ -648,6 +649,15 @@ void CContingencyRules::PerformWaveCalculations( void )
 			}
 			else if ( waveSelected == WAVE_ZOMBIES )
 			{
+				if ( !bConsiderHeadcrab && pEntity->HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB) )
+					bConsiderHeadcrab = true;
+
+				if ( !bConsiderHeadcrabFast && pEntity->HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_FAST) )
+					bConsiderHeadcrabFast = true;
+
+				if ( !bConsiderHeadcrabBlack && pEntity->HasSpawnFlags(SF_WAVESPAWNER_HEADCRAB_BLACK) )
+					bConsiderHeadcrabBlack = true;
+
 				if ( !bConsiderZombie && pEntity->HasSpawnFlags(SF_WAVESPAWNER_ZOMBIE) )
 					bConsiderZombie = true;
 
@@ -690,12 +700,12 @@ void CContingencyRules::PerformWaveCalculations( void )
 
 		CUtlLinkedList<const char*, unsigned short> *pConsiderationList = new CUtlLinkedList<const char*, unsigned short>;
 		
-		/*if ( bConsiderHeadcrab )
+		if ( bConsiderHeadcrab )
 			pConsiderationList->AddToTail( "npc_headcrab" );
 		if ( bConsiderHeadcrabFast )
 			pConsiderationList->AddToTail( "npc_headcrab_fast" );
 		if ( bConsiderHeadcrabBlack )
-			pConsiderationList->AddToTail( "npc_headcrab_black" );*/
+			pConsiderationList->AddToTail( "npc_headcrab_black" );
 		if ( bConsiderAntlion )
 			pConsiderationList->AddToTail( "npc_antlion" );
 		if ( bConsiderZombie )

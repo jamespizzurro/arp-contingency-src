@@ -28,13 +28,16 @@ static const char* kWaveAntlionsNPCTypes[NUM_ANTLION_NPCS] =
 {
 	"npc_antlion"
 };
-static const int NUM_ZOMBIE_NPCS = 4;
+static const int NUM_ZOMBIE_NPCS = 7; // including headcrabs in zombie wave
 static const char* kWaveZombiesNPCTypes[NUM_ZOMBIE_NPCS] =
 {
 	"npc_zombie",
 	"npc_zombie_torso",
 	"npc_fastzombie",
-	"npc_poisonzombie"
+	"npc_poisonzombie",
+	"npc_headcrab",
+	"npc_headcrab_fast",
+	"npc_headcrab_black"
 };
 static const int NUM_COMBINE_NPCS = 5;
 static const char* kWaveCombineNPCTypes[NUM_COMBINE_NPCS] =
