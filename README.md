@@ -26,3 +26,7 @@ The complete game source code of Contingency, a Half-Life 2 modification built u
 
 * Fast headcrab now has 10 hp to die from one AR2 shot or two shots from other automatic weapons. Didn't notice before that in code it had read the classic headcrab health entry from skill.cfg.
 * Fast zombie health has been de-hardcoded and brought to skill.cfg.
+
+### v 0.1.8b
+
+* Headcrabs have joined the zombie wave, looking for some victims to zombify.
