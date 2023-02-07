@@ -3128,7 +3128,7 @@ void CRendering3dView::UpdateRenderablesOpacity()
 		flFactor = pLocal->GetFOVDistanceAdjustFactor();
 	}
 
-	if ( cl_leveloverview.GetFloat() > 0 || cl_propfade.GetFloat() > 0 )
+	if ( cl_leveloverview.GetFloat() > 0 || cl_propfade.GetFloat() == 0 )
 	{
 		// disable prop fading
 		flFactor = -1;
