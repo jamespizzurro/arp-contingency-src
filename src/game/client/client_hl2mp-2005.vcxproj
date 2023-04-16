@@ -137,13 +137,13 @@ copy "$(TargetDir)"client.dll "c:\program files (x86)\steam\steamapps\SourceMods
       </Command>
     </PreBuildEvent>
     <CustomBuildStep>
-      <Message>Copying to c:\program files (x86)\steam\steamapps\SourceMods\contingency\bin\</Message>
-      <Command>if exist "c:\program files (x86)\steam\steamapps\SourceMods\contingency\bin\client.dll" attrib -r "c:\program files (x86)\steam\steamapps\SourceMods\contingency\bin\client.dll"
-copy "$(TargetDir)"client.dll "c:\program files (x86)\steam\steamapps\SourceMods\contingency\bin"
-if exist "c:\program files (x86)\steam\steamapps\SourceMods\contingency\bin\client.pdb" attrib -r "c:\program files (x86)\steam\steamapps\SourceMods\contingency\bin\client.pdb"
-if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\program files (x86)\steam\steamapps\SourceMods\contingency\bin\client.pdb"
+      <Message>Copying to c:\programs\steam\steamapps\SourceMods\contingency\bin\</Message>
+      <Command>if exist "c:\programs\steam\steamapps\SourceMods\contingency\bin\client.dll" attrib -r "c:\programs\steam\steamapps\SourceMods\contingency\bin\client.dll"
+copy "$(TargetDir)"client.dll "c:\programs\steam\steamapps\SourceMods\contingency\bin"
+if exist "c:\programs\steam\steamapps\SourceMods\contingency\bin\client.pdb" attrib -r "c:\programs\steam\steamapps\SourceMods\contingency\bin\client.pdb"
+if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\programs\steam\steamapps\SourceMods\contingency\bin\client.pdb"
 </Command>
-      <Outputs>c:\program files (x86)\steam\steamapps\SourceMods\contingency\bin\client.dll;c:\program files (x86)\steam\steamapps\SourceMods\contingency\bin\client.pdb;%(Outputs)</Outputs>
+      <Outputs>c:\programs\steam\steamapps\SourceMods\contingency\bin\client.dll;c:\programs\steam\steamapps\SourceMods\contingency\bin\client.pdb;%(Outputs)</Outputs>
       <Inputs>$(TargetPath)</Inputs>
     </CustomBuildStep>
     <ClCompile>
