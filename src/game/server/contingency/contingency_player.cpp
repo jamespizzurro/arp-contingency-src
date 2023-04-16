@@ -132,10 +132,10 @@ void CContingency_Player::ApplyLoadout( void )
 
 	CBaseCombatWeapon *wpn = GetActiveWeapon();
 
-	if ( ContingencyRules()->GetCurrentPhase() == PHASE_COMBAT && wpn != NULL ) //only execute weapon methods if the player exists at the end of the interim phase
+	if ( wpn != NULL ) //only execute weapon methods if the player exists at the end of the phase
 	{
 		const char* ActiveWeaponName = wpn->GetName();
-		if (strcmp(ActiveWeaponName, "weapon_physcannon") == 0) // If at the end of the interim phase player has the gravity gun out...
+		if (strcmp(ActiveWeaponName, "weapon_physcannon") == 0) // If at the end of any phase player has the gravity gun out...
 		{
 			PhysCannonForceDropUnconditional(wpn); //...and is carrying an object with it, drop that object properly
 		}
