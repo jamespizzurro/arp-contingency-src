@@ -520,7 +520,23 @@ void CWeaponSMG1::SecondaryAttack( void )
 #endif
 
 	//SendWeaponAnim( ACT_VM_SECONDARYATTACK );
-	SendWeaponAnim(ACT_VM_SECONDARYATTACK_NO_RELOAD);
+	if (pPlayer->GetAmmoCount(m_iSecondaryAmmoType) > 1) // different shot animations: with reload if not the last grenade - HEVcrab
+	{
+		SendWeaponAnim(ACT_VM_SECONDARYATTACK);
+
+		m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
+
+		m_flNextSecondaryAttack = gpGlobals->curtime + SequenceDuration();
+	}
+	else // and without reload if the last grenade - HEVcrab
+	{
+		SendWeaponAnim(ACT_VM_SECONDARYATTACK_NO_RELOAD);
+
+		m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
+
+		// this is just in case you pick up an SMG1 grenade after emptying the grenade launcher, you can fire in a second - HEVcrab
+		m_flNextSecondaryAttack = gpGlobals->curtime + 1.0f;
+	}
 
 	// player "shoot" animation
 	pPlayer->SetAnimation( PLAYER_ATTACK1 );

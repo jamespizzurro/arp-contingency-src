@@ -1128,32 +1128,31 @@ CAmmoDef *GetAmmoDef()
 		// (e.g. reduced the effectiveness of all projectile weapons when wieled by an NPC...most have been restored to their HL2 defaults)
 		// Player damage for most weapons have also been restored to their HL2 defaults (we are dealing with NPCs afterall)
 
-		// Remember: player damage is defined in weapon scripts, NOT here (hence most if not all values for "plr dmg" below being '0')
+		// OBSOLETE: Remember: player damage is defined in weapon scripts, NOT here (hence most if not all values for "plr dmg" below being '0')
 //																								plr dmg		npc dmg	max carry	impulse
 		if (balanced)
 		{
-		def.AddAmmoType("AR2",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			10,		99999,		BULLET_IMPULSE(200, 1225),	0 );
-		def.AddAmmoType("AR2AltFire",		DMG_DISSOLVE,				TRACER_NONE,			0,			50,		1,			0,							0 );
-		def.AddAmmoType("Pistol",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			8,		99999,		BULLET_IMPULSE(200, 1225),	0 );
-		def.AddAmmoType("SMG1",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			5,		99999,		BULLET_IMPULSE(200, 1225),	0 );
-		def.AddAmmoType("357",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	0,			30,		99999,		BULLET_IMPULSE(800, 5000),	0 );
-		def.AddAmmoType("XBowBolt",			DMG_BULLET,					TRACER_LINE,			0,			10,		99999,		BULLET_IMPULSE(800, 8000),	0 );
-		def.AddAmmoType("Buckshot",			DMG_BULLET | DMG_BUCKSHOT,	TRACER_LINE,			0,			3,		99999,		BULLET_IMPULSE(400, 1200),	0 );
-		def.AddAmmoType("RPG_Round",		DMG_BURN,					TRACER_NONE,			0,			50,		3,			0,							0 );
-		def.AddAmmoType("SMG1_Grenade",		DMG_BURN,					TRACER_NONE,			0,			50,		1,			0,							0 );
-		def.AddAmmoType("Grenade",			DMG_BURN,					TRACER_NONE,			0,			75,		3,			0,							0 );
-		def.AddAmmoType("slam",				DMG_BURN,					TRACER_NONE,			0,			50,		3,			0,							0 );
+		def.AddAmmoType("AR2",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_ar2",	"sk_npc_dmg_ar2", "sk_max_ar2", BULLET_IMPULSE(200, 1225),	0 );
+		def.AddAmmoType("AR2AltFire",		DMG_DISSOLVE,				TRACER_NONE,			"sk_plr_dmg_ar2_altfire", "sk_npc_dmg_ar2_altfire", "sk_max_ar2_altfire", 0, 0 );
+		def.AddAmmoType("Pistol",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_pistol", "sk_npc_dmg_pistol", "sk_max_pistol", BULLET_IMPULSE(200, 1225), 0 );
+		def.AddAmmoType("SMG1",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_smg1",	"sk_npc_dmg_smg1",	"sk_max_smg1", BULLET_IMPULSE(200, 1225), 0 );
+		def.AddAmmoType("357",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_357", "sk_npc_dmg_357",	"sk_max_357", BULLET_IMPULSE(800, 5000), 0 );
+		def.AddAmmoType("XBowBolt",			DMG_BULLET,					TRACER_LINE,			"sk_plr_dmg_crossbow", "sk_npc_dmg_crossbow", "sk_max_crossbow", BULLET_IMPULSE(800, 8000), 0 );
+		def.AddAmmoType("Buckshot",			DMG_BULLET | DMG_BUCKSHOT,	TRACER_LINE,			"sk_plr_dmg_buckshot", "sk_npc_dmg_buckshot", "sk_max_buckshot", BULLET_IMPULSE(400, 1200), 0 );
+		def.AddAmmoType("RPG_Round",		DMG_BURN,					TRACER_NONE,			"sk_plr_dmg_rpg_round", "sk_npc_dmg_rpg_round", "sk_max_rpg_round", 0, 0 );
+		def.AddAmmoType("SMG1_Grenade",		DMG_BURN,					TRACER_NONE,			"sk_plr_dmg_smg1_grenade", "sk_npc_dmg_smg1_grenade", "sk_max_smg1_grenade", 0, 0 );
+		def.AddAmmoType("Grenade",			DMG_BURN,					TRACER_NONE,			"sk_plr_dmg_grenade", "sk_npc_dmg_grenade", "sk_max_grenade", 0, 0 );
+		def.AddAmmoType("slam",				DMG_BURN,					TRACER_NONE,			"sk_plr_dmg_satchel", "sk_npc_dmg_satchel", "sk_max_satchel", 0, 0 );
 		
 		// Added a modified version of Valve's floor turret
 		// New ammo type for turrets
-		def.AddAmmoType("TURRET",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	15,			15,		99999,		BULLET_IMPULSE(200, 1225),	0 );	// based on the AR2 ammo type
+		def.AddAmmoType("TURRET",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_npc_dmg_turret", "sk_npc_dmg_turret", "sk_max_turret", BULLET_IMPULSE(200, 1225),	0 );	// based on the AR2 ammo type
 
 		def.AddAmmoType("hopwire",			DMG_BLAST,					TRACER_NONE,			0,			0,		1,			0,							0 );
 
 		def.AddAmmoType("AlyxGun",			DMG_BULLET,					TRACER_LINE,			"sk_plr_dmg_alyxgun",		"sk_npc_dmg_alyxgun",		"sk_max_alyxgun",		BULLET_IMPULSE(200, 1225), 0 );
 		def.AddAmmoType("SniperRound",		DMG_BULLET | DMG_SNIPER,	TRACER_NONE,			"sk_plr_dmg_sniper_round",	"sk_npc_dmg_sniper_round",	"sk_max_sniper_round",	BULLET_IMPULSE(650, 6000), 0 );
 		def.AddAmmoType("SniperPenetratedRound", DMG_BULLET | DMG_SNIPER, TRACER_NONE,			"sk_dmg_sniper_penetrate_plr", "sk_dmg_sniper_penetrate_npc", "sk_max_sniper_round", BULLET_IMPULSE(150, 6000), 0 );
-		def.AddAmmoType("Grenade",			DMG_BURN,					TRACER_NONE,			"sk_plr_dmg_grenade",		"sk_npc_dmg_grenade",		"sk_max_grenade",		0, 0);
 		def.AddAmmoType("Thumper",			DMG_SONIC,					TRACER_NONE,			10, 10, 2, 0, 0 );
 		def.AddAmmoType("Gravity",			DMG_CLUB,					TRACER_NONE,			0,	0, 8, 0, 0 );
 		def.AddAmmoType("Battery",			DMG_CLUB,					TRACER_NONE,			NULL, NULL, NULL, 0, 0 );
