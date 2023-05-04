@@ -148,6 +148,10 @@ ConVar	sk_plr_dmg_grenade		( "sk_plr_dmg_grenade","0", FCVAR_REPLICATED);
 ConVar	sk_npc_dmg_grenade		( "sk_npc_dmg_grenade","0", FCVAR_REPLICATED);
 ConVar	sk_max_grenade			( "sk_max_grenade","0", FCVAR_REPLICATED);
 
+ConVar	sk_plr_dmg_satchel		("sk_plr_dmg_satchel","0", FCVAR_REPLICATED);
+ConVar	sk_npc_dmg_satchel		("sk_npc_dmg_satchel","0", FCVAR_REPLICATED);
+ConVar	sk_max_satchel			("sk_max_satchel","0", FCVAR_REPLICATED);
+
 #ifdef HL2_EPISODIC
 ConVar	sk_max_hopwire			( "sk_max_hopwire", "3", FCVAR_REPLICATED);
 ConVar	sk_max_striderbuster	( "sk_max_striderbuster", "3", FCVAR_REPLICATED);

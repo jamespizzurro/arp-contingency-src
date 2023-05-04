@@ -548,10 +548,10 @@ void CWeaponSMG1::SecondaryAttack( void )
 	pPlayer->RemoveAmmo( 1, m_iSecondaryAmmoType );
 
 	// Can shoot again immediately
-	m_flNextPrimaryAttack = gpGlobals->curtime + 0.5f;
+	// m_flNextPrimaryAttack = gpGlobals->curtime + 0.5f;
 
-	// Can blow up after a short delay (so have time to release mouse button)
-	m_flNextSecondaryAttack = gpGlobals->curtime + 1.0f;
+	// Can blow up after a short delay (so have time to release mouse button) - already set in reload or no reload
+	// m_flNextSecondaryAttack = gpGlobals->curtime + 1.0f;
 }
 
 //-----------------------------------------------------------------------------
