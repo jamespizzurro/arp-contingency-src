@@ -3969,7 +3969,7 @@ bool CNPC_Antlion::ShouldGib( const CTakeDamageInfo &info )
 	if ( info.GetDamageType() & (DMG_ALWAYSGIB|DMG_BLAST) )
 		return true;
 
-	if ( m_iHealth < -20 )
+	if ( m_iHealth <= -10 )
 		return true;
 	
 	return false;
