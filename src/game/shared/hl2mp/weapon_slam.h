@@ -85,7 +85,10 @@ public:
 
 private:
 	CWeapon_SLAM( const CWeapon_SLAM & );
-};
 
+#ifndef CLIENT_DLL
+	bool m_bShouldShowHint;
+#endif
+};
 
 #endif	//WEAPONSLAM_H

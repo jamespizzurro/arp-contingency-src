@@ -766,9 +766,15 @@ void CWeapon_SLAM::ItemPostFrame( void )
 {
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
 	if (!pOwner)
-	{
 		return;
+
+	#ifndef CLIENT_DLL
+	if ( m_bShouldShowHint )
+	{
+		UTIL_HudHintText( pOwner, "#Contingency_Hint_SLAM" );
+		m_bShouldShowHint = false;
 	}
+	#endif
 
 	SLAMThink();
 
@@ -1000,6 +1006,10 @@ bool CWeapon_SLAM::Deploy( void )
 	{
 		return false;
 	}
+
+#ifndef CLIENT_DLL
+	m_bShouldShowHint = true;
+#endif
 
 	m_bDetonatorArmed = AnyUndetonatedCharges();
 

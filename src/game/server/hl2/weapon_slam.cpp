@@ -993,4 +993,8 @@ CWeapon_SLAM::CWeapon_SLAM(void)
 	m_bAttachTripmine		= false;
 	m_bNeedDetonatorDraw	= false;
 	m_bNeedDetonatorHolster	= false;
+
+#ifndef CLIENT_DLL
+	m_bShouldShowHint = false;
+#endif
 }
