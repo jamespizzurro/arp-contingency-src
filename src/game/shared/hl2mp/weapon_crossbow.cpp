@@ -706,7 +706,9 @@ void CWeaponCrossbow::FireBolt( void )
 	QAngle angAiming;
 	VectorAngles( vecAiming, angAiming );
 
-	CCrossbowBolt *pBolt = CCrossbowBolt::BoltCreate( vecSrc, angAiming, GetHL2MPWpnData().m_iPlayerDamage, pOwner );
+	//CCrossbowBolt *pBolt = CCrossbowBolt::BoltCreate( vecSrc, angAiming, GetHL2MPWpnData().m_iPlayerDamage, pOwner );
+	CCrossbowBolt *pBolt = CCrossbowBolt::BoltCreate( vecSrc, angAiming, sk_plr_dmg_crossbow.GetInt(), pOwner );
+	//De-weaponscript crossbow bolt damage, use skill.cfg ConVar instead
 
 	if ( pOwner->GetWaterLevel() == 3 )
 	{
