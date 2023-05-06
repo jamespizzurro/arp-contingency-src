@@ -1185,7 +1185,7 @@ CAmmoDef *GetAmmoDef()
 		
 		// Added a modified version of Valve's floor turret
 		// New ammo type for turrets
-		def.AddAmmoType("TURRET",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	15,			15,		99999,		BULLET_IMPULSE(200, 1225),	0 );	// based on the AR2 ammo type
+		def.AddAmmoType("TURRET",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_turret", "sk_npc_dmg_turret", "sk_max_turret", BULLET_IMPULSE(200, 1225),	0 );	// based on the AR2 ammo type
 
 		def.AddAmmoType("hopwire",			DMG_BLAST,					TRACER_NONE,			0,			0,		1,			0,							0 );
 
