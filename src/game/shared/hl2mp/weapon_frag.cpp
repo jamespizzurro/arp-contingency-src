@@ -82,6 +82,10 @@ private:
 	// check a throw from vecSrc.  If not valid, move the position back along the line to vecEye
 	void	CheckThrowPosition( CBasePlayer *pPlayer, const Vector &vecEye, Vector &vecSrc );
 
+	#ifndef CLIENT_DLL
+	bool m_bShouldShowHint;
+	#endif
+
 	CNetworkVar( bool,	m_bRedraw );	//Draw the weapon again after throwing a grenade
 	
 	CNetworkVar( int,	m_AttackPaused );
@@ -135,6 +139,13 @@ BEGIN_PREDICTION_DATA( CWeaponFrag )
 END_PREDICTION_DATA()
 #endif
 
+#ifndef CLIENT_DLL
+
+extern ConVar sk_plr_dmg_grenade;
+extern ConVar sk_npc_dmg_grenade;
+
+#endif
+
 LINK_ENTITY_TO_CLASS( weapon_frag, CWeaponFrag );
 PRECACHE_WEAPON_REGISTER(weapon_frag);
 
@@ -142,6 +153,10 @@ CWeaponFrag::CWeaponFrag( void ) :
 	CBaseHL2MPCombatWeapon()
 {
 	m_bRedraw = false;
+	
+	#ifndef CLIENT_DLL
+	m_bShouldShowHint = false;
+	#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -237,6 +252,10 @@ bool CWeaponFrag::Deploy( void )
 {
 	m_bRedraw = false;
 	m_fDrawbackFinished = false;
+
+	#ifndef CLIENT_DLL
+	m_bShouldShowHint = true;
+	#endif
 
 	return BaseClass::Deploy();
 }
@@ -371,6 +390,14 @@ void CWeaponFrag::ItemPostFrame( void )
 
 		if (pOwner)
 		{
+			#ifndef CLIENT_DLL
+			if ( m_bShouldShowHint )
+			{
+				UTIL_HudHintText( pOwner, "#Contingency_Hint_FragGrenade" );
+				m_bShouldShowHint = false;
+			}
+			#endif
+
 			switch( m_AttackPaused )
 			{
 			case GRENADE_PAUSED_PRIMARY:
@@ -481,7 +508,8 @@ void CWeaponFrag::ThrowGrenade( CBasePlayer *pPlayer )
 			}
 		}
 		
-		pGrenade->SetDamage( GetHL2MPWpnData().m_iPlayerDamage );
+		//pGrenade->SetDamage( GetHL2MPWpnData().m_iPlayerDamage );
+		pGrenade->SetDamage(  sk_plr_dmg_grenade.GetInt() );
 		pGrenade->SetDamageRadius( GRENADE_DAMAGE_RADIUS );
 	}
 #endif

@@ -43,6 +43,10 @@
 #define	RPG_SPEED	1500
 
 #ifndef CLIENT_DLL
+
+extern ConVar sk_plr_dmg_rpg_round;
+extern ConVar sk_npc_dmg_rpg_round;
+
 const char *g_pLaserDotThink = "LaserThinkContext";
 
 static ConVar sk_apc_missile_damage("sk_apc_missile_damage", "15");
@@ -1631,7 +1635,8 @@ void CWeaponRPG::PrimaryAttack( void )
 		pMissile->SetGracePeriod( 0.3 );
 	}
 
-	pMissile->SetDamage( GetHL2MPWpnData().m_iPlayerDamage );
+	//pMissile->SetDamage( GetHL2MPWpnData().m_iPlayerDamage );
+	pMissile->SetDamage(  sk_plr_dmg_rpg_round.GetInt() );
 
 	m_hMissile = pMissile;
 	
