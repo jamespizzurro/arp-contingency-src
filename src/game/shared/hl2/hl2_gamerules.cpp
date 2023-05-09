@@ -104,6 +104,8 @@ ConVar	sk_plr_grenade_drop_time	( "sk_plr_grenade_drop_time", "30", FCVAR_REPLIC
 
 ConVar	sk_plr_dmg_ar2			( "sk_plr_dmg_ar2","0", FCVAR_REPLICATED );
 ConVar	sk_npc_dmg_ar2			( "sk_npc_dmg_ar2","0", FCVAR_REPLICATED);
+ConVar	sk_max_plr_dmg_ar2_altfire		( "sk_plr_dmg_ar2_altfire","0", FCVAR_REPLICATED);
+ConVar	sk_max_npc_dmg_ar2_altfire		( "sk_npc_dmg_ar2_altfire","0", FCVAR_REPLICATED);
 ConVar	sk_max_ar2				( "sk_max_ar2","0", FCVAR_REPLICATED);
 ConVar	sk_max_ar2_altfire		( "sk_max_ar2_altfire","0", FCVAR_REPLICATED);
 
@@ -177,6 +179,8 @@ ConVar	sk_dmg_sniper_penetrate_npc( "sk_dmg_sniper_penetrate_npc","0", FCVAR_REP
 ConVar	sk_plr_dmg_airboat		( "sk_plr_dmg_airboat", "0", FCVAR_REPLICATED );
 ConVar	sk_npc_dmg_airboat		( "sk_npc_dmg_airboat", "0", FCVAR_REPLICATED );
 
+// Gauss gun, will appear in Contingency someday
+ConVar	sk_jeep_gauss_damage	( "sk_jeep_gauss_damage", "0", FCVAR_REPLICATED );
 ConVar	sk_max_gauss_round		( "sk_max_gauss_round", "0", FCVAR_REPLICATED );
 
 // Gunship & Dropship cannons
@@ -186,6 +190,7 @@ ConVar	sk_npc_dmg_gunship_to_plr	( "sk_npc_dmg_gunship_to_plr", "0", FCVAR_REPLI
 // Turret
 
 ConVar	sk_npc_dmg_turret			( "sk_npc_dmg_turret", "0", FCVAR_REPLICATED );
+ConVar	sk_max_turret				( "sk_max_turret", "0", FCVAR_REPLICATED );
 
 //-----------------------------------------------------------------------------
 // Purpose: 

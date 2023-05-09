@@ -543,7 +543,8 @@ void CWeaponFrag::LobGrenade( CBasePlayer *pPlayer )
 
 	if ( pGrenade )
 	{
-		pGrenade->SetDamage( GetHL2MPWpnData().m_iPlayerDamage );
+		//pGrenade->SetDamage( GetHL2MPWpnData().m_iPlayerDamage );
+		pGrenade->SetDamage(  sk_plr_dmg_grenade.GetInt() );
 		pGrenade->SetDamageRadius( GRENADE_DAMAGE_RADIUS );
 	}
 #endif
@@ -595,7 +596,8 @@ void CWeaponFrag::RollGrenade( CBasePlayer *pPlayer )
 
 	if ( pGrenade )
 	{
-		pGrenade->SetDamage( GetHL2MPWpnData().m_iPlayerDamage );
+		//pGrenade->SetDamage( GetHL2MPWpnData().m_iPlayerDamage );
+		pGrenade->SetDamage(  sk_plr_dmg_grenade.GetInt() );
 		pGrenade->SetDamageRadius( GRENADE_DAMAGE_RADIUS );
 	}
 
