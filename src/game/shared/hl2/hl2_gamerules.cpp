@@ -104,8 +104,8 @@ ConVar	sk_plr_grenade_drop_time	( "sk_plr_grenade_drop_time", "30", FCVAR_REPLIC
 
 ConVar	sk_plr_dmg_ar2			( "sk_plr_dmg_ar2","0", FCVAR_REPLICATED );
 ConVar	sk_npc_dmg_ar2			( "sk_npc_dmg_ar2","0", FCVAR_REPLICATED);
-ConVar	sk_max_plr_dmg_ar2_altfire		( "sk_plr_dmg_ar2_altfire","0", FCVAR_REPLICATED);
-ConVar	sk_max_npc_dmg_ar2_altfire		( "sk_npc_dmg_ar2_altfire","0", FCVAR_REPLICATED);
+ConVar	sk_plr_dmg_ar2_altfire		( "sk_plr_dmg_ar2_altfire","0", FCVAR_REPLICATED);
+ConVar	sk_npc_dmg_ar2_altfire		( "sk_npc_dmg_ar2_altfire","0", FCVAR_REPLICATED);
 ConVar	sk_max_ar2				( "sk_max_ar2","0", FCVAR_REPLICATED);
 ConVar	sk_max_ar2_altfire		( "sk_max_ar2_altfire","0", FCVAR_REPLICATED);
 
