@@ -2,14 +2,21 @@ The complete game source code of Contingency, a Half-Life 2 modification built u
 
 ## Changelog
 
-### v 0.1.8d
+### v 0.1.8e
 
-* Fixed an oversight in ghost prop prevention, now it works when the prop-holding gravity gun is taken away at the end of any game phase.
+* Weapon balance tweaked and totally de-hardcoded, now fully defined in skill.cfg (the values in server's skill.cfg determine the game rules).
+* Player now carries 2 SMG1 grenades and reloads the grenade launcher if the fired grenade was not the last one.
+* Increased antlion gib chance, now shotgun gibs antlions well and even AR2 primary fire can in the rare specific case (if it hits an antlion with 1 hp).
+* Added HUD hints to SLAMs and hand grenades.
 
 **Known issues**
 
 * To start a server visible through Hamachi/Internet the hosting player has to type 'sv_lan 0' and 'map map_name' in the console after starting a server.
 See discussion here: https://steamcommunity.com/app/211/discussions/0/522730700940732111/
+
+### v 0.1.8d
+
+* Fixed an oversight in ghost prop prevention, now it works when the prop-holding gravity gun is taken away at the end of any game phase.
 
 ### v 0.1.8c Feb 7, 2023
 
