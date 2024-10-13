@@ -505,10 +505,13 @@ void CWeaponSMG1::SecondaryAttack( void )
 	
 #ifndef CLIENT_DLL
 	//Create the grenade
-	CGrenadeAR2 *pGrenade = (CGrenadeAR2*)Create( "grenade_ar2", vecSrc, vec3_angle, pPlayer );
+	QAngle angles;
+	VectorAngles( vecThrow, angles );
+	CGrenadeAR2 *pGrenade = (CGrenadeAR2*)Create( "grenade_ar2", vecSrc, angles, pPlayer );
 	pGrenade->SetAbsVelocity( vecThrow );
 
 	pGrenade->SetLocalAngularVelocity( RandomAngle( -400, 400 ) );
+	//pGrenade->SetLocalAngularVelocity(RandomAngle(-5, 5)); //very small randomness to test for correct initial orientation of the grenade - HEVcrab
 	pGrenade->SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE ); 
 	pGrenade->SetThrower( GetOwner() );
 	pGrenade->SetDamage( SMG1_GRENADE_DAMAGE );

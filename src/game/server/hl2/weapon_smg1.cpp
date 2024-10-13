@@ -359,6 +359,7 @@ void CWeaponSMG1::SecondaryAttack( void )
 	pGrenade->SetAbsVelocity( vecThrow );
 
 	pGrenade->SetLocalAngularVelocity( RandomAngle( -400, 400 ) );
+	//pGrenade->SetLocalAngularVelocity(RandomAngle(-5, 5)); //very small randomness to test for correct initial orientation of the grenade - HEVcrab
 	pGrenade->SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE ); 
 	pGrenade->SetThrower( GetOwner() );
 	pGrenade->SetDamage( sk_plr_dmg_smg1_grenade.GetFloat() );
