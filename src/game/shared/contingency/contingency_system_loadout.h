@@ -9,8 +9,8 @@ static const int NUM_WEAPON_TYPE_PARAMETERS = 2;
 static const int NUM_PRIMARY_WEAPON_TYPES = 5;
 static const char* kPrimaryWeaponTypes[NUM_PRIMARY_WEAPON_TYPES][NUM_WEAPON_TYPE_PARAMETERS] =
 {
-	{ "weapon_smg1", "SMG1" },
-	{ "weapon_alyxgun", "Alyx's Gun" },
+	{ "weapon_smg1", "4.6 mm SMG + GL" },
+	{ "weapon_alyxgun", "9 mm Alyx's Gun" },
 	{ "weapon_shotgun", "Shotgun" },
 	{ "weapon_ar2", "AR2" },
 	{ "weapon_crossbow", "Crossbow" }
@@ -19,9 +19,9 @@ static const char* kPrimaryWeaponTypes[NUM_PRIMARY_WEAPON_TYPES][NUM_WEAPON_TYPE
 static const int NUM_SECONDARY_WEAPON_TYPES = 4;
 static const char* kSecondaryWeaponTypes[NUM_SECONDARY_WEAPON_TYPES][NUM_WEAPON_TYPE_PARAMETERS] =
 {
-	{ "weapon_pistol", "Pistol" },
-	{ "weapon_pistols", "Dual Pistols" },
-	{ "weapon_357", "357" },
+	{ "weapon_pistol", "9 mm Pistol" },
+	{ "weapon_pistols", "9 mm Dual Pistols" },
+	{ "weapon_357", ".357 Magnum" },
 	{ "weapon_physcannon", "Gravity Gun" }
 };
 
