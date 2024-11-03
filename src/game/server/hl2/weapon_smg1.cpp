@@ -36,7 +36,7 @@ public:
 	void	Precache( void );
 	void	AddViewKick( void );
 	void	SecondaryAttack( void );
-
+	void	ItemPostFrame( void );
 	int		GetMinBurst() { return 2; }
 	int		GetMaxBurst() { return 5; }
 
@@ -66,6 +66,7 @@ protected:
 
 	Vector	m_vecTossVelocity;
 	float	m_flNextGrenadeCheck;
+	bool	m_bSecondaryFireReloadOrRecoil;
 };
 
 IMPLEMENT_SERVERCLASS_ST(CWeaponSMG1, DT_WeaponSMG1)
@@ -78,6 +79,7 @@ BEGIN_DATADESC( CWeaponSMG1 )
 
 	DEFINE_FIELD( m_vecTossVelocity, FIELD_VECTOR ),
 	DEFINE_FIELD( m_flNextGrenadeCheck, FIELD_TIME ),
+	DEFINE_FIELD ( m_bSecondaryFireReloadOrRecoil, FIELD_BOOLEAN),
 
 END_DATADESC()
 
@@ -283,6 +285,9 @@ Activity CWeaponSMG1::GetPrimaryAttackActivity( void )
 //-----------------------------------------------------------------------------
 bool CWeaponSMG1::Reload( void )
 {
+	if (m_bSecondaryFireReloadOrRecoil)
+		return false;
+
 	bool fRet;
 	float fCacheTime = m_flNextSecondaryAttack;
 
@@ -323,85 +328,94 @@ void CWeaponSMG1::AddViewKick( void )
 //-----------------------------------------------------------------------------
 void CWeaponSMG1::SecondaryAttack( void )
 {
-	// Only the player fires this way so we can cast
-	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+	if (!m_bInReload) // cannot fire secondary attack while reloading because the grenade launcher hand is inserting the new magazine
+		{
+		// Only the player fires this way so we can cast
+		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 	
-	if ( pPlayer == NULL )
-		return;
+		if ( pPlayer == NULL )
+			return;
 
-	//Must have ammo
-	if ( ( pPlayer->GetAmmoCount( m_iSecondaryAmmoType ) <= 0 ) || ( pPlayer->GetWaterLevel() == 3 ) )
-	{
-		SendWeaponAnim( ACT_VM_DRYFIRE );
-		BaseClass::WeaponSound( EMPTY );
-		m_flNextSecondaryAttack = gpGlobals->curtime + 0.5f;
-		return;
-	}
+		//Must have ammo
+		if ( ( pPlayer->GetAmmoCount( m_iSecondaryAmmoType ) <= 0 ) || ( pPlayer->GetWaterLevel() == 3 ) )
+		{
+			SendWeaponAnim( ACT_VM_DRYFIRE );
+			BaseClass::WeaponSound( EMPTY );
+			m_flNextSecondaryAttack = gpGlobals->curtime + 0.5f;
+			return;
+		}
 
-	if( m_bInReload )
-		m_bInReload = false;
+		// MUST call sound before removing a round from the clip of a CMachineGun
+		BaseClass::WeaponSound( WPN_DOUBLE );
 
-	// MUST call sound before removing a round from the clip of a CMachineGun
-	BaseClass::WeaponSound( WPN_DOUBLE );
+		pPlayer->RumbleEffect( RUMBLE_357, 0, RUMBLE_FLAGS_NONE );
 
-	pPlayer->RumbleEffect( RUMBLE_357, 0, RUMBLE_FLAGS_NONE );
-
-	Vector vecSrc = pPlayer->Weapon_ShootPosition();
-	Vector	vecThrow;
-	// Don't autoaim on grenade tosses
-	AngleVectors( pPlayer->EyeAngles() + pPlayer->GetPunchAngle(), &vecThrow );
-	VectorScale( vecThrow, 1000.0f, vecThrow );
+		Vector vecSrc = pPlayer->Weapon_ShootPosition();
+		Vector	vecThrow;
+		// Don't autoaim on grenade tosses
+		AngleVectors( pPlayer->EyeAngles() + pPlayer->GetPunchAngle(), &vecThrow );
+		VectorScale( vecThrow, 1000.0f, vecThrow );
 	
-	//Create the grenade
-	QAngle angles;
-	VectorAngles( vecThrow, angles );
-	CGrenadeAR2 *pGrenade = (CGrenadeAR2*)Create( "grenade_ar2", vecSrc, angles, pPlayer );
-	pGrenade->SetAbsVelocity( vecThrow );
+		//Create the grenade
+		QAngle angles;
+		VectorAngles( vecThrow, angles );
+		CGrenadeAR2 *pGrenade = (CGrenadeAR2*)Create( "grenade_ar2", vecSrc, angles, pPlayer );
+		pGrenade->SetAbsVelocity( vecThrow );
 
-	pGrenade->SetLocalAngularVelocity( RandomAngle( -400, 400 ) );
-	//pGrenade->SetLocalAngularVelocity(RandomAngle(-5, 5)); //very small randomness to test for correct initial orientation of the grenade - HEVcrab
-	pGrenade->SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE ); 
-	pGrenade->SetThrower( GetOwner() );
-	pGrenade->SetDamage( sk_plr_dmg_smg1_grenade.GetFloat() );
+		pGrenade->SetLocalAngularVelocity( RandomAngle( -400, 400 ) );
+		//pGrenade->SetLocalAngularVelocity(RandomAngle(-5, 5)); //very small randomness to test for correct initial orientation of the grenade - HEVcrab
+		pGrenade->SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE ); 
+		pGrenade->SetThrower( GetOwner() );
+		pGrenade->SetDamage( sk_plr_dmg_smg1_grenade.GetFloat() );
 
-	//SendWeaponAnim( ACT_VM_SECONDARYATTACK );
-	if (pPlayer->GetAmmoCount(m_iSecondaryAmmoType) > 1) // different shot animations: with reload if not the last grenade - HEVcrab
-	{
-		SendWeaponAnim(ACT_VM_SECONDARYATTACK);
+		//SendWeaponAnim( ACT_VM_SECONDARYATTACK );
+		if (pPlayer->GetAmmoCount(m_iSecondaryAmmoType) > 1) // different shot animations: with reload if not the last grenade - HEVcrab
+		{
+			SendWeaponAnim(ACT_VM_SECONDARYATTACK);
 
-		m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
+			m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
 
-		m_flNextSecondaryAttack = gpGlobals->curtime + SequenceDuration();
+			m_flNextSecondaryAttack = gpGlobals->curtime + SequenceDuration();
+		}
+		else // and without reload if the last grenade - HEVcrab
+		{
+			SendWeaponAnim(ACT_VM_SECONDARYATTACK_NO_RELOAD);
+
+			m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
+
+			// this is just in case you pick up an SMG1 grenade after emptying the grenade launcher, you can fire in a second - HEVcrab
+			m_flNextSecondaryAttack = gpGlobals->curtime + 1.0f;
+		}
+
+		m_bSecondaryFireReloadOrRecoil = true;
+
+		CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), 1000, 0.2, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
+
+		// player "shoot" animation
+		pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+		// Decrease ammo
+		pPlayer->RemoveAmmo( 1, m_iSecondaryAmmoType );
+
+		// Can shoot again immediately
+		// m_flNextPrimaryAttack = gpGlobals->curtime + 0.5f;
+
+		// Can blow up after a short delay (so have time to release mouse button) - already set in reload or no reload
+		// m_flNextSecondaryAttack = gpGlobals->curtime + 1.0f;
+
+		// Register a muzzleflash for the AI.
+		pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 0.5 );	
+
+		m_iSecondaryAttacks++;
+		gamestats->Event_WeaponFired( pPlayer, false, GetClassname() );
 	}
-	else // and without reload if the last grenade - HEVcrab
-	{
-		SendWeaponAnim(ACT_VM_SECONDARYATTACK_NO_RELOAD);
+}
 
-		m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
-
-		// this is just in case you pick up an SMG1 grenade after emptying the grenade launcher, you can fire in a second - HEVcrab
-		m_flNextSecondaryAttack = gpGlobals->curtime + 1.0f;
-	}
-
-	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), 1000, 0.2, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
-
-	// player "shoot" animation
-	pPlayer->SetAnimation( PLAYER_ATTACK1 );
-
-	// Decrease ammo
-	pPlayer->RemoveAmmo( 1, m_iSecondaryAmmoType );
-
-	// Can shoot again immediately
-	// m_flNextPrimaryAttack = gpGlobals->curtime + 0.5f;
-
-	// Can blow up after a short delay (so have time to release mouse button) - already set in reload or no reload
-	// m_flNextSecondaryAttack = gpGlobals->curtime + 1.0f;
-
-	// Register a muzzleflash for the AI.
-	pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 0.5 );	
-
-	m_iSecondaryAttacks++;
-	gamestats->Event_WeaponFired( pPlayer, false, GetClassname() );
+void CWeaponSMG1::ItemPostFrame(void)
+{
+	if (m_bSecondaryFireReloadOrRecoil && gpGlobals->curtime >= m_flNextSecondaryAttack)
+		m_bSecondaryFireReloadOrRecoil = false;
+	BaseClass::ItemPostFrame();
 }
 
 #define	COMBINE_MIN_GRENADE_CLEAR_DIST 256
