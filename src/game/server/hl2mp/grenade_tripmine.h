@@ -32,8 +32,7 @@ public:
 
 	int OnTakeDamage_Alive( const CTakeDamageInfo &info );
 	
-	void WarningThink( void );
-	void PowerupThink( void );
+	void PowerUp( void );
 	void BeamBreakThink( void );
 	void DelayDeathThink( void );
 	void Event_Killed( const CTakeDamageInfo &info );
@@ -51,7 +50,6 @@ public:
 	EHANDLE		m_hAttachEntity;
 
 private:
-	float		m_flPowerUp;
 	Vector		m_vecDir;
 	Vector		m_vecEnd;
 	float		m_flBeamLength;

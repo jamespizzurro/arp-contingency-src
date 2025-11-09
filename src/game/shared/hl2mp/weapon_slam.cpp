@@ -182,6 +182,7 @@ void CWeapon_SLAM::SlamTouch( CBaseEntity *pOther )
 bool CWeapon_SLAM::Holster( CBaseCombatWeapon *pSwitchingTo )
 {
 	SetThink(NULL);
+	m_bAttachTripmine = false;
 	return BaseClass::Holster(pSwitchingTo);
 }
 
@@ -217,10 +218,7 @@ void CWeapon_SLAM::PrimaryAttack( void )
 	switch (m_tSlamState)
 	{
 		case SLAM_TRIPMINE_READY:
-			if (CanAttachSLAM())
-			{
-				StartTripmineAttach();
-			}
+			StartTripmineAttach();
 			break;
 		case SLAM_SATCHEL_THROW:
 			StartSatchelThrow();
@@ -309,28 +307,24 @@ bool CWeapon_SLAM::AnyUndetonatedCharges(void)
 void CWeapon_SLAM::StartSatchelDetonate()
 {
 
-	if ( GetActivity() != ACT_SLAM_DETONATOR_IDLE && GetActivity() != ACT_SLAM_THROW_IDLE && !m_bDetonatorArmed ) // fix for being unable to detonate when holding a detonator and ready tripmine in hand
+	if ( GetActivity() != ACT_SLAM_STICKWALL_IDLE
+ 		&& GetActivity() != ACT_SLAM_DETONATOR_IDLE && GetActivity() != ACT_SLAM_THROW_IDLE )
 		 return;
 
 	// -----------------------------------------
 	//  Play detonate animation
 	// -----------------------------------------
-	if (m_bNeedReload)
+	if (m_bNeedReload || m_tSlamState == SLAM_TRIPMINE_READY)
 	{
+		// NOTE: In tripmine ready state, we send unarmed detonation animation
+ 		// as well, since there isn't a combined one available in this state
 		SendWeaponAnim(ACT_SLAM_DETONATOR_DETONATE);
-	}
-	else if (m_tSlamState == SLAM_SATCHEL_ATTACH || m_tSlamState == SLAM_TRIPMINE_READY) // second part of the aforementioned fix
-	{
-		SendWeaponAnim(ACT_SLAM_STICKWALL_DETONATE);
-	}
-	else if (m_tSlamState == SLAM_SATCHEL_THROW)
-	{
-		SendWeaponAnim(ACT_SLAM_THROW_DETONATE);
 	}
 	else
 	{
-		return;
+		SendWeaponAnim(m_tSlamState == SLAM_SATCHEL_THROW ? ACT_SLAM_THROW_DETONATE : ACT_SLAM_STICKWALL_DETONATE);
 	}
+
 	SatchelDetonate();
 
 	// needs a higher delay on all of these, a minimum time really - to elimiate refires.
@@ -364,11 +358,10 @@ void CWeapon_SLAM::TripmineAttach( void )
 
 	trace_t tr;
 
-	UTIL_TraceLine( vecSrc, vecSrc + (vecAiming * 128), MASK_SOLID, pOwner, COLLISION_GROUP_NONE, &tr );
-	
-	if (tr.fraction < 1.0)
+	if (CanAttachSLAM(&tr))
 	{
 		CBaseEntity *pEntity = tr.m_pEnt;
+
 		if (pEntity && !(pEntity->GetFlags() & FL_CONVEYOR))
 		{
 
@@ -417,13 +410,12 @@ void CWeapon_SLAM::StartTripmineAttach( void )
 
 	trace_t tr;
 
-	UTIL_TraceLine( vecSrc, vecSrc + (vecAiming * 128), MASK_SOLID, pPlayer, COLLISION_GROUP_NONE, &tr );
-	
-	if (tr.fraction < 1.0)
+	if (CanAttachSLAM(&tr))
 	{
 		// ALERT( at_console, "hit %f\n", tr.flFraction );
 
 		CBaseEntity *pEntity = tr.m_pEnt;
+
 		if (pEntity && !(pEntity->GetFlags() & FL_CONVEYOR))
 		{
 			// player "shoot" animation
@@ -565,11 +557,10 @@ void CWeapon_SLAM::SatchelAttach( void )
 
 	trace_t tr;
 
-	UTIL_TraceLine( vecSrc, vecSrc + (vecAiming * 128), MASK_SOLID, pOwner, COLLISION_GROUP_NONE, &tr );
-	
-	if (tr.fraction < 1.0)
+	if (CanAttachSLAM(&tr))
 	{
 		CBaseEntity *pEntity = tr.m_pEnt;
+
 		if (pEntity && !(pEntity->GetFlags() & FL_CONVEYOR))
 		{
 			QAngle angles;
@@ -611,11 +602,10 @@ void CWeapon_SLAM::StartSatchelAttach( void )
 
 	trace_t tr;
 
-	UTIL_TraceLine( vecSrc, vecSrc + (vecAiming * 128), MASK_SOLID, pOwner, COLLISION_GROUP_NONE, &tr );
-	
-	if (tr.fraction < 1.0)
+	if (CanAttachSLAM(&tr))
 	{
 		CBaseEntity *pEntity = tr.m_pEnt;
+
 		if (pEntity && !(pEntity->GetFlags() & FL_CONVEYOR))
 		{
 			// Only the player fires this way so we can cast
@@ -682,7 +672,7 @@ void CWeapon_SLAM::SLAMThink( void )
 	CBaseCombatCharacter *pOwner  = GetOwner();
 
 	if ( (pOwner && pOwner->GetAmmoCount(m_iSecondaryAmmoType) > 0))
-	{	
+	{
 		if (CanAttachSLAM())
 		{
 			if (m_tSlamState == SLAM_SATCHEL_THROW)
@@ -691,7 +681,7 @@ void CWeapon_SLAM::SLAMThink( void )
 				int iAnim =	m_bDetonatorArmed ? ACT_SLAM_THROW_TO_STICKWALL : ACT_SLAM_THROW_TO_TRIPMINE_ND;
 				SendWeaponAnim( iAnim );
 				m_flWallSwitchTime = gpGlobals->curtime + SequenceDuration();
-				m_bNeedReload = false;
+				m_bNeedReload = m_bAttachTripmine = false;
 			}
 		}
 		else
@@ -713,7 +703,7 @@ void CWeapon_SLAM::SLAMThink( void )
 // Input  :
 // Output :
 //-----------------------------------------------------------------------------
-bool CWeapon_SLAM::CanAttachSLAM( void )
+bool CWeapon_SLAM::CanAttachSLAM( trace_t* pTrace )
 {
 	CHL2MP_Player *pOwner = ToHL2MPPlayer( GetOwner() );
 
@@ -743,11 +733,18 @@ bool CWeapon_SLAM::CanAttachSLAM( void )
 		{
 			CBaseEntity *pEntity = tr.m_pEnt;
 			CBaseCombatCharacter *pBCC		= ToBaseCombatCharacter( pEntity );
+
 			if (pBCC)
 			{
 				return false;
 			}
 		}
+
+ 		if (pTrace != NULL)
+ 		{
+ 			*pTrace = tr;
+ 		}
+
 		return true;
 	}
 	else
@@ -1044,7 +1041,7 @@ bool CWeapon_SLAM::Deploy( void )
 		}
 	}
 	else
-	{	
+	{
 		if (CanAttachSLAM())
 		{
 			iActivity = ACT_SLAM_TRIPMINE_DRAW; 
