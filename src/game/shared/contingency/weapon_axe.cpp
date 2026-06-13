@@ -17,6 +17,9 @@
 #define	AXE_RANGE 75.0f
 #define	AXE_REFIRE 1.2f
 
+ConVar sk_plr_dmg_axe( "sk_plr_dmg_axe", "70", FCVAR_ARCHIVE | FCVAR_REPLICATED );
+ConVar sk_npc_dmg_axe( "sk_npc_dmg_axe", "70", FCVAR_ARCHIVE | FCVAR_REPLICATED );
+
 #ifdef CLIENT_DLL
 #define CWeaponAxe C_WeaponAxe
 #endif
@@ -86,7 +89,11 @@ CWeaponAxe::CWeaponAxe( void )
 //-----------------------------------------------------------------------------
 float CWeaponAxe::GetDamageForActivity( Activity hitActivity )
 {
-	return 60.0f;
+	// return 60.0f;
+	if ( ( GetOwner() != NULL ) && ( GetOwner()->IsPlayer() ) )
+		return sk_plr_dmg_axe.GetFloat();
+
+	return sk_npc_dmg_axe.GetFloat();
 }
 
 //-----------------------------------------------------------------------------

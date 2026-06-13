@@ -37,6 +37,9 @@
 
 extern ConVar metropolice_move_and_melee;
 
+ConVar sk_plr_dmg_stunstick( "sk_plr_dmg_stunstick", "40", FCVAR_ARCHIVE | FCVAR_REPLICATED );
+ConVar sk_npc_dmg_stunstick( "sk_npc_dmg_stunstick", "40", FCVAR_ARCHIVE | FCVAR_REPLICATED );
+
 #define	STUNSTICK_RANGE				75.0f
 #define	STUNSTICK_REFIRE			0.8f
 #define	STUNSTICK_BEAM_MATERIAL		"sprites/lgtning.vmt"
@@ -216,7 +219,11 @@ void CWeaponStunStick::Precache()
 //-----------------------------------------------------------------------------
 float CWeaponStunStick::GetDamageForActivity( Activity hitActivity )
 {
-	return 40.0f;
+	// return 40.0f;
+	if ( ( GetOwner() != NULL ) && ( GetOwner()->IsPlayer() ) )
+		return sk_plr_dmg_stunstick.GetFloat();
+
+	return sk_npc_dmg_stunstick.GetFloat();
 }
 
 //-----------------------------------------------------------------------------
