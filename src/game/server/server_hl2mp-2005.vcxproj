@@ -230,6 +230,7 @@ if exist "$(TargetDir)"server.pdb copy "$(TargetDir)"server.pdb "c:\programs\ste
     <ClCompile Include="..\shared\contingency\weapon_pistols.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_wrench.cpp" />
     <ClCompile Include="..\shared\hl2mp\hl2mp_weapon_parse.cpp" />
+    <ClCompile Include="..\shared\hl2mp\weapon_smg1_npc.cpp" />
     <ClCompile Include="ai_activity.cpp" />
     <ClCompile Include="ai_baseactor.cpp" />
     <ClCompile Include="ai_basehumanoid.cpp" />

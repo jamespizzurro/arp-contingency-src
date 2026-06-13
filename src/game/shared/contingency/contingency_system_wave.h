@@ -52,14 +52,14 @@ static const int NUM_COMBINE_S_WEAPONS = 3;
 static const char* kWaveCombineSWeaponTypes[NUM_COMBINE_S_WEAPONS] =
 {
 	"weapon_shotgun",
-	"weapon_smg1",
+	"weapon_smg1_npc",
 	"weapon_ar2"
 };
 static const int NUM_METROPOLICE_WEAPONS = 2;
 static const char* kWaveMetropoliceWeaponTypes[NUM_METROPOLICE_WEAPONS] =
 {
 	"weapon_pistol",
-	"weapon_smg1"
+	"weapon_smg1_npc"
 };
 
 // Support wave types
@@ -72,7 +72,7 @@ static const int NUM_CITIZEN_WEAPONS = 3;
 static const char* kSupportWaveCitizenWeaponTypes[NUM_CITIZEN_WEAPONS] =
 {
 	"weapon_shotgun",
-	"weapon_smg1",
+	"weapon_smg1_npc",
 	"weapon_ar2"
 };
 

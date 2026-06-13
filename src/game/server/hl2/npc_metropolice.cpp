@@ -703,12 +703,12 @@ void CNPC_MetroPolice::Spawn( void )
 	m_nBurstReloadCount = METROPOLICE_BURST_RELOAD_COUNT;
 	SetBurstMode( false );
 
-	// Clear out spawnflag if we're missing the smg1
+	// Clear out spawnflag if we're missing the smg1_npc
 	if( HasSpawnFlags( SF_METROPOLICE_ALWAYS_STITCH ) )
 	{
-		if ( !Weapon_OwnsThisType( "weapon_smg1" ) )
+		if ( !Weapon_OwnsThisType( "weapon_smg1_npc" ) )
 		{
-			Warning( "Warning! Metrocop is trying to use the stitch behavior but he has no smg1!\n" );
+			Warning( "Warning! Metrocop is trying to use the stitch behavior but he has no smg1_npc!\n" );
 			RemoveSpawnFlags( SF_METROPOLICE_ALWAYS_STITCH );
 		}
 	}
@@ -3774,7 +3774,7 @@ int CNPC_MetroPolice::SelectAirboatCombatSchedule()
 		return nResult;
 
 	// We're assuming here that the cops who attack airboats have SMGs
-//	Assert( Weapon_OwnsThisType( "weapon_smg1" ) );
+//	Assert( Weapon_OwnsThisType( "weapon_smg1_npc" ) );
 
 	if ( HasCondition( COND_SEE_ENEMY ) )
 	{
@@ -4172,7 +4172,7 @@ int CNPC_MetroPolice::SelectSchedule( void )
 			break;
 
 		case NPC_STATE_COMBAT:
-			if (!IsEnemyInAnAirboat() || !Weapon_OwnsThisType( "weapon_smg1" ) )
+			if (!IsEnemyInAnAirboat() || !Weapon_OwnsThisType( "weapon_smg1_npc" ) )
 			{
 				int nResult = SelectCombatSchedule();
 				if ( nResult != SCHED_NONE )
@@ -4274,7 +4274,7 @@ int CNPC_MetroPolice::TranslateSchedule( int scheduleType )
 			return SCHED_METROPOLICE_DRAW_PISTOL;
 		}
 
-		if( Weapon_OwnsThisType( "weapon_smg1" ) )
+		if( Weapon_OwnsThisType( "weapon_smg1_npc" ) )
 		{
 			if ( IsEnemyInAnAirboat() )
 			{
@@ -4962,7 +4962,7 @@ WeaponProficiency_t CNPC_MetroPolice::CalcWeaponProficiency( CBaseCombatWeapon *
 		return WEAPON_PROFICIENCY_POOR;
 	}
 
-	if( FClassnameIs( pWeapon, "weapon_smg1" ) )
+	if( FClassnameIs( pWeapon, "weapon_smg1_npc" ) )
 	{
 		return WEAPON_PROFICIENCY_VERY_GOOD;
 	}

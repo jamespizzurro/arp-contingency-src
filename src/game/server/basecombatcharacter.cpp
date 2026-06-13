@@ -1822,7 +1822,7 @@ void CBaseCombatCharacter::Weapon_Drop( CBaseCombatWeapon *pWeapon, const Vector
 		{
 			pWeapon->m_iClip1 = pWeapon->GetDefaultClip1();
 
-			if( FClassnameIs( pWeapon, "weapon_smg1" ) )
+			if( FClassnameIs( pWeapon, "weapon_smg1_npc" ) )
 			{
 				// Drop enough ammo to kill 2 of me.
 				// Figure out how much damage one piece of this type of ammo does to this type of enemy.

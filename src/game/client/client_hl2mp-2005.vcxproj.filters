@@ -1650,6 +1650,9 @@
     <ClCompile Include="contingency\c_weapon_hopwire.cpp">
       <Filter>Source Files\Contingency\Weapons</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\hl2mp\weapon_smg1_npc.cpp">
+      <Filter>Source Files\Contingency\Modified Engine Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="achievement_notification_panel.h">

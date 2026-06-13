@@ -229,6 +229,7 @@ if exist "$(TargetDir)"client.pdb copy "$(TargetDir)"client.pdb "c:\programs\ste
     <ClCompile Include="..\shared\contingency\weapon_nyangun.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_pistols.cpp" />
     <ClCompile Include="..\shared\contingency\weapon_wrench.cpp" />
+    <ClCompile Include="..\shared\hl2mp\weapon_smg1_npc.cpp" />
     <ClCompile Include="achievement_notification_panel.cpp" />
     <ClCompile Include="..\shared\achievement_saverestore.cpp" />
     <ClCompile Include="..\shared\achievementmgr.cpp" />
