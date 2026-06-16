@@ -29,8 +29,8 @@ static const int NUM_MELEE_WEAPON_TYPES = 3;
 static const char* kMeleeWeaponTypes[NUM_MELEE_WEAPON_TYPES][NUM_WEAPON_TYPE_PARAMETERS] =
 {
 	{ "weapon_crowbar", "Crowbar" },
-	{ "weapon_axe", "Axe" },
-	{ "weapon_stunstick", "Stunstick" }
+	{ "weapon_stunstick", "Stunstick" },
+	{ "weapon_axe", "Axe" }
 };
 
 static const int NUM_EQUIPMENT_TYPES = 6;

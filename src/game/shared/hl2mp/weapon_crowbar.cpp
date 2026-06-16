@@ -30,7 +30,7 @@
 #define	CROWBAR_REFIRE	0.4f
 
 ConVar sk_plr_dmg_crowbar( "sk_plr_dmg_crowbar", "25", FCVAR_ARCHIVE | FCVAR_REPLICATED );
-ConVar sk_npc_dmg_crowbar( "sk_npc_dmg_crowbar", "40", FCVAR_ARCHIVE | FCVAR_REPLICATED );
+ConVar sk_npc_dmg_crowbar( "sk_npc_dmg_crowbar", "25", FCVAR_ARCHIVE | FCVAR_REPLICATED );
 
 //-----------------------------------------------------------------------------
 // CWeaponCrowbar
